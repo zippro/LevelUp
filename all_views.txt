@@ -1,0 +1,506 @@
+Authenticating to https://eu-west-1a.online.tableau.com (Site: narcadegames)...
+Authentication Successful!
+Fetching Views...
+
+Found valid Views (Copy the ID):
+---------------------------------------------------
+Name: Farm Bubbles IOS
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   2664f7f1-7562-4f08-8d7b-0ed13dcccb0a
+URL:  reklamgenel/sheets/FarmBubblesIOS
+---------------------------------------------------
+Name: Farm Bubbles Android
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   8150b442-4036-4470-ab72-044a4911d8e7
+URL:  reklamgenel/sheets/FarmBubblesAndroid
+---------------------------------------------------
+Name: Farm Bubbles Amazon
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   e1ce7b2c-5dcb-44e2-91d5-b06dbd309378
+URL:  reklamgenel/sheets/FarmBubblesAmazon
+---------------------------------------------------
+Name: Popland Android
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   fcd5e52a-ca9e-4e73-932a-095b70c8717b
+URL:  reklamgenel/sheets/PoplandAndroid
+---------------------------------------------------
+Name: Popland IOS
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   806954a5-a140-434e-9599-a69e8163b9a5
+URL:  reklamgenel/sheets/PoplandIOS
+---------------------------------------------------
+Name: Popland Amazon
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   1ef8b9b3-121d-4da9-9bfb-456528134648
+URL:  reklamgenel/sheets/PoplandAmazon
+---------------------------------------------------
+Name: Bubble Friends
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   dc555d42-f623-4113-bffe-6102beecac8e
+URL:  reklamgenel/sheets/BubbleFriends
+---------------------------------------------------
+Name: Ignis
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   ea8d3d2a-c27d-47c2-aa96-f159bf9ed3df
+URL:  reklamgenel/sheets/Ignis
+---------------------------------------------------
+Name: Genel
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   4c7ed6f8-011f-45a4-8845-bb4a8cf10868
+URL:  reklamgenel/sheets/Genel
+---------------------------------------------------
+Name: New Users
+Workbook: f079b03a-963a-477e-b4d0-e5bbb80c6107
+ID:   1913a61a-4f56-47ca-9156-22b6381e2863
+URL:  ReklamGenelGorunumOcak/sheets/NewUsers
+---------------------------------------------------
+Name: Organik Users
+Workbook: f079b03a-963a-477e-b4d0-e5bbb80c6107
+ID:   c3c30114-e03b-4004-90c9-dacc4ca2acb3
+URL:  ReklamGenelGorunumOcak/sheets/OrganikUsers
+---------------------------------------------------
+Name: Aktif Kullanıcı
+Workbook: f079b03a-963a-477e-b4d0-e5bbb80c6107
+ID:   216757e3-82f2-4cb9-af1c-9b468da6b25c
+URL:  ReklamGenelGorunumOcak/sheets/AktifKullanc
+---------------------------------------------------
+Name: APRDAU
+Workbook: f079b03a-963a-477e-b4d0-e5bbb80c6107
+ID:   9a38ca79-0259-4fbc-b50c-9541a1b840a6
+URL:  ReklamGenelGorunumOcak/sheets/APRDAU
+---------------------------------------------------
+Name: Inapp ARDAU
+Workbook: f079b03a-963a-477e-b4d0-e5bbb80c6107
+ID:   d8d2b943-aa76-439c-ad71-cb321c7500e4
+URL:  ReklamGenelGorunumOcak/sheets/InappARDAU
+---------------------------------------------------
+Name: New-Organic Users
+Workbook: f079b03a-963a-477e-b4d0-e5bbb80c6107
+ID:   8f491ab3-1a7c-4fb7-8824-5e99a0e84631
+URL:  ReklamGenelGorunumOcak/sheets/New-OrganicUsers
+---------------------------------------------------
+Name: Inapp Oranı
+Workbook: f079b03a-963a-477e-b4d0-e5bbb80c6107
+ID:   bf85028d-d7a3-460e-afbe-f374091397cb
+URL:  ReklamGenelGorunumOcak/sheets/InappOran
+---------------------------------------------------
+Name: Genel(Gelir-Gider)
+Workbook: f079b03a-963a-477e-b4d0-e5bbb80c6107
+ID:   d5a0f2a4-109d-44d2-abf3-9e592ae7d1aa
+URL:  ReklamGenelGorunumOcak/sheets/GenelGelir-Gider
+---------------------------------------------------
+Name: ROI Özet
+Workbook: 718df5d8-0d26-4acd-b458-d33ada4080a4
+ID:   812da32f-9fd0-4b16-a57b-cef43a2bf57b
+URL:  ROI7zeti/sheets/ROIzet
+---------------------------------------------------
+Name: Genel weekly
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   03ce6a40-bade-43e5-ac1a-87b8f27e745a
+URL:  reklamgenel/sheets/Genelweekly
+---------------------------------------------------
+Name: Dashboard
+Workbook: 05338d95-3a7e-43d3-a9fc-27f6dca4117a
+ID:   95a1898e-17f8-46d0-960d-d213d6b765ae
+URL:  BubblePopland_0/sheets/Dashboard
+---------------------------------------------------
+Name: Interaktif
+Workbook: 05338d95-3a7e-43d3-a9fc-27f6dca4117a
+ID:   2dc262bb-bc0a-491b-8a73-14742885f0c5
+URL:  BubblePopland_0/sheets/Interaktif
+---------------------------------------------------
+Name: Level Action
+Workbook: 3720203e-a71e-4608-84bf-06081acb335f
+ID:   60c1c686-56de-4fe3-8aca-fd027f3c7cd6
+URL:  GummyDash/sheets/LevelAction
+---------------------------------------------------
+Name: Churn
+Workbook: 3720203e-a71e-4608-84bf-06081acb335f
+ID:   0cc9f210-7929-46f4-9e85-6dc13632f92c
+URL:  GummyDash/sheets/Churn
+---------------------------------------------------
+Name: Level 1 Geçiş
+Workbook: 3720203e-a71e-4608-84bf-06081acb335f
+ID:   12ee8f40-7e7b-4d53-930b-059496d449e7
+URL:  GummyDash/sheets/Level1Gei
+---------------------------------------------------
+Name: Difficulty
+Workbook: 3720203e-a71e-4608-84bf-06081acb335f
+ID:   523d5600-c91d-43c6-b691-3242b684e3e3
+URL:  GummyDash/sheets/Difficulty
+---------------------------------------------------
+Name: Dashboard 1
+Workbook: 3720203e-a71e-4608-84bf-06081acb335f
+ID:   4b22231b-7367-4638-9f7f-cb5105a39abd
+URL:  GummyDash/sheets/Dashboard1
+---------------------------------------------------
+Name: Metin abi
+Workbook: 3720203e-a71e-4608-84bf-06081acb335f
+ID:   6274f53b-5917-4665-ba99-7108b202df92
+URL:  GummyDash/sheets/Metinabi
+---------------------------------------------------
+Name: Bubble Friends Organic CVR Country 
+Workbook: 56ce05a7-acef-4074-a227-0a386488f1a2
+ID:   5a32851b-09e2-4f99-8cf8-f655f4b641b2
+URL:  BubbleFriendsGooglePlayOrganicCVRCountry/sheets/BubbleFriendsOrganicCVRCountry
+---------------------------------------------------
+Name: Sheet 2
+Workbook: 56ce05a7-acef-4074-a227-0a386488f1a2
+ID:   5adc6139-aa61-4d97-9f29-4ca62743ac5d
+URL:  BubbleFriendsGooglePlayOrganicCVRCountry/sheets/Sheet2
+---------------------------------------------------
+Name: Interaktif (2)
+Workbook: 05338d95-3a7e-43d3-a9fc-27f6dca4117a
+ID:   579a05c5-9c2a-42ca-9e4d-7757ae67b26c
+URL:  BubblePopland_0/sheets/Interaktif2
+---------------------------------------------------
+Name: ROI Cohort
+Workbook: 158e3e7f-f5b9-48dd-bbea-465feb52b598
+ID:   c612a56b-44de-4cde-99b7-41d1f750239c
+URL:  2016-2019Istatistikleri/sheets/ROICohort
+---------------------------------------------------
+Name: ROI Genel Görünüm
+Workbook: 158e3e7f-f5b9-48dd-bbea-465feb52b598
+ID:   276d5233-8b19-4da2-b867-707b87c6969d
+URL:  2016-2019Istatistikleri/sheets/ROIGenelGrnm
+---------------------------------------------------
+Name: ROI Metric Dashboard
+Workbook: 158e3e7f-f5b9-48dd-bbea-465feb52b598
+ID:   5bcb2b00-2af3-40aa-b9bd-76b5de1ec35c
+URL:  2016-2019Istatistikleri/sheets/ROIMetricDashboard
+---------------------------------------------------
+Name: CPM
+Workbook: 158e3e7f-f5b9-48dd-bbea-465feb52b598
+ID:   c757a7fe-b405-448f-ac71-aa9ff5f349a2
+URL:  2016-2019Istatistikleri/sheets/CPM
+---------------------------------------------------
+Name: CPI
+Workbook: 158e3e7f-f5b9-48dd-bbea-465feb52b598
+ID:   04844549-ea9c-48a7-9cc6-ea7253584011
+URL:  2016-2019Istatistikleri/sheets/CPI
+---------------------------------------------------
+Name: Ads Per User - Rewarded Per User
+Workbook: 158e3e7f-f5b9-48dd-bbea-465feb52b598
+ID:   c1b4cc53-ba16-455e-82a8-551a0fe45cc3
+URL:  2016-2019Istatistikleri/sheets/AdsPerUser-RewardedPerUser
+---------------------------------------------------
+Name: Farm Bubbles Organic Installs by GEO
+Workbook: e908f99a-6a31-449c-b1d9-65cf2f067d9b
+ID:   bcda0dd0-5f35-4ce8-8006-298221489972
+URL:  IgnisGooglePlayOrganicCVR/sheets/FarmBubblesOrganicInstallsbyGEO
+---------------------------------------------------
+Name: GEO Comperasions
+Workbook: e908f99a-6a31-449c-b1d9-65cf2f067d9b
+ID:   36e64b61-ab21-40fc-9edf-1f822b577416
+URL:  IgnisGooglePlayOrganicCVR/sheets/GEOComperasions
+---------------------------------------------------
+Name: Ignis Organic CVR
+Workbook: e908f99a-6a31-449c-b1d9-65cf2f067d9b
+ID:   2f9f8084-3585-40b8-aa8e-9c3b4193cc61
+URL:  IgnisGooglePlayOrganicCVR/sheets/IgnisOrganicCVR
+---------------------------------------------------
+Name: Daily
+Workbook: 331b6871-5784-4f58-bd8b-59e3e4280b43
+ID:   83df109f-de01-42b8-ae0e-5b1c238846a4
+URL:  AdsveRewardShowCohort/sheets/Daily
+---------------------------------------------------
+Name: Cohort
+Workbook: 331b6871-5784-4f58-bd8b-59e3e4280b43
+ID:   1e15075d-2a46-47ca-85c8-d591db445b2a
+URL:  AdsveRewardShowCohort/sheets/Cohort
+---------------------------------------------------
+Name: StarScore
+Workbook: 3720203e-a71e-4608-84bf-06081acb335f
+ID:   1b663b6c-2996-4a48-94ca-588dea8f95be
+URL:  GummyDash/sheets/StarScore
+---------------------------------------------------
+Name: GEO Comperasions
+Workbook: 90760ea4-0aef-456c-bd1f-e41a65d5f881
+ID:   dceca0ec-3208-4c6a-a97b-453c86a9eeb7
+URL:  PoplandGooglePlayOrganicCVR/sheets/GEOComperasions
+---------------------------------------------------
+Name: Popland Organic CVR Installs & CVR
+Workbook: 90760ea4-0aef-456c-bd1f-e41a65d5f881
+ID:   2f16fa63-abaf-4275-9ae4-7ab08efe88db
+URL:  PoplandGooglePlayOrganicCVR/sheets/PoplandOrganicCVRInstallsCVR
+---------------------------------------------------
+Name: Popland CVRs Top 3
+Workbook: 90760ea4-0aef-456c-bd1f-e41a65d5f881
+ID:   c45e1b26-1c1e-41d7-bd68-fd5bce7d16b1
+URL:  PoplandGooglePlayOrganicCVR/sheets/PoplandCVRsTop3
+---------------------------------------------------
+Name: Measure Graph
+Workbook: 40f6e7cf-504d-42bc-a70c-96cceea5641f
+ID:   a9d7e2d8-5e69-40f7-acae-829a67576282
+URL:  LevelAnalytics/sheets/MeasureGraph
+---------------------------------------------------
+Name: Interaktif
+Workbook: 40f6e7cf-504d-42bc-a70c-96cceea5641f
+ID:   4e619555-1984-4ed5-ba82-bf85542b5b8d
+URL:  LevelAnalytics/sheets/Interaktif
+---------------------------------------------------
+Name: Dashboard
+Workbook: 40f6e7cf-504d-42bc-a70c-96cceea5641f
+ID:   3d325790-3446-4e68-9b38-8b66d91a9499
+URL:  LevelAnalytics/sheets/Dashboard
+---------------------------------------------------
+Name: ayay
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   039c360c-e77d-40ce-b87c-5bcb8f5efa82
+URL:  reklamgenel/sheets/ayay_1
+---------------------------------------------------
+Name: Sheet 3
+Workbook: 40f6e7cf-504d-42bc-a70c-96cceea5641f
+ID:   2ae155fd-a560-42d5-a9b7-f778b390ad11
+URL:  LevelAnalytics/sheets/Sheet3
+---------------------------------------------------
+Name: Android
+Workbook: 8d77731b-a24b-484f-acbd-fa9388823e0a
+ID:   d776b37f-4066-47af-b8e7-ace305edceac
+URL:  Ignis_Android_US_OrganikPaid/sheets/Android
+---------------------------------------------------
+Name: IOS
+Workbook: 8d77731b-a24b-484f-acbd-fa9388823e0a
+ID:   9ebe9cdf-fc3b-40d0-9d3c-b0e63182b6f6
+URL:  Ignis_Android_US_OrganikPaid/sheets/IOS
+---------------------------------------------------
+Name: Farm Bubbles Organic CVR
+Workbook: 3a6ff971-cc74-4ef8-b87f-302be90a1712
+ID:   a73a7721-e4a6-4809-b28f-78c8d6f69b5f
+URL:  FarmBubblesGooglePlayOrganicConversionReports/sheets/FarmBubblesOrganicCVR
+---------------------------------------------------
+Name: GEO Comperasions
+Workbook: 3a6ff971-cc74-4ef8-b87f-302be90a1712
+ID:   91547cda-2f49-4b82-b44f-75ae860744d9
+URL:  FarmBubblesGooglePlayOrganicConversionReports/sheets/GEOComperasions
+---------------------------------------------------
+Name: Farm Bubbles Organic Installs by GEO&CVR
+Workbook: 3a6ff971-cc74-4ef8-b87f-302be90a1712
+ID:   dbe924ef-4d0a-48fb-ad9e-829baa69763f
+URL:  FarmBubblesGooglePlayOrganicConversionReports/sheets/FarmBubblesOrganicInstallsbyGEOCVR
+---------------------------------------------------
+Name: Sheet 1
+Workbook: a51975ad-a51a-4e53-9e26-f0ce0eaca352
+ID:   16a6e016-a9ec-49c8-b819-cef7c2ea3247
+URL:  NarcadeGamesCVR2019/sheets/Sheet1
+---------------------------------------------------
+Name: Dashboard 2
+Workbook: aca0dba1-dbde-4abd-bf8d-003767ce9bba
+ID:   a544d03f-b350-4398-ae7d-4ff988eb4857
+URL:  GRANTS/sheets/Dashboard2
+---------------------------------------------------
+Name: Android
+Workbook: 57c3e40c-5ab0-4275-ac2b-1bde1503de94
+ID:   266c46a8-3c00-4964-b8b7-a83b7326bf4b
+URL:  IGNISOrganicPaid/sheets/Android
+---------------------------------------------------
+Name: IOS
+Workbook: 57c3e40c-5ab0-4275-ac2b-1bde1503de94
+ID:   4d873107-ee9e-44fe-9bd9-e50dbb663bb0
+URL:  IGNISOrganicPaid/sheets/IOS
+---------------------------------------------------
+Name: D1
+Workbook: 57c3e40c-5ab0-4275-ac2b-1bde1503de94
+ID:   5348c790-1ab5-4740-8ffb-d09e13feb418
+URL:  IGNISOrganicPaid/sheets/D1_1
+---------------------------------------------------
+Name: D7
+Workbook: 57c3e40c-5ab0-4275-ac2b-1bde1503de94
+ID:   a30d2f0b-25b4-48b2-8ec1-87eafd36316e
+URL:  IGNISOrganicPaid/sheets/D7
+---------------------------------------------------
+Name: D14
+Workbook: 57c3e40c-5ab0-4275-ac2b-1bde1503de94
+ID:   bff4dc0b-8e02-4c35-ac07-75abbdf14b55
+URL:  IGNISOrganicPaid/sheets/D14
+---------------------------------------------------
+Name: D30
+Workbook: 57c3e40c-5ab0-4275-ac2b-1bde1503de94
+ID:   66c243c5-0a68-41d6-b31f-91c67887301e
+URL:  IGNISOrganicPaid/sheets/D30_1
+---------------------------------------------------
+Name: Kampanya ROI
+Workbook: d4ff2d3e-98c5-4692-a9e1-1616133af0c9
+ID:   0f88311d-2c73-4a05-a3f4-404f18226a3f
+URL:  FBAmazonDailybase/sheets/KampanyaROI
+---------------------------------------------------
+Name: Organikli ROI
+Workbook: d4ff2d3e-98c5-4692-a9e1-1616133af0c9
+ID:   0f8936f6-8761-4502-a54c-f2da685e3a64
+URL:  FBAmazonDailybase/sheets/OrganikliROI
+---------------------------------------------------
+Name: Ülke ROI
+Workbook: d4ff2d3e-98c5-4692-a9e1-1616133af0c9
+ID:   1818792a-5d88-4df6-9cc8-ef6c41e98646
+URL:  FBAmazonDailybase/sheets/lkeROI
+---------------------------------------------------
+Name: Genel Karşılaştırma
+Workbook: d4ff2d3e-98c5-4692-a9e1-1616133af0c9
+ID:   53674f37-1777-4d4a-ad27-f13b6b6257c5
+URL:  FBAmazonDailybase/sheets/GenelKarlatrma
+---------------------------------------------------
+Name: Measure Graph
+Workbook: 340e11ce-c47d-44c6-aaf4-837c08edb9d8
+ID:   5b11e99b-8891-49dd-8145-23803442cc03
+URL:  StarshipLevelAnalyticsworganic/sheets/MeasureGraph
+---------------------------------------------------
+Name: Main
+Workbook: 75ccf8f1-1685-44ea-8091-2f5088ed0ad3
+ID:   e51258f0-6f45-494e-9177-04c141c8e1e1
+URL:  ZiplineROI/sheets/Main
+---------------------------------------------------
+Name: Ads + Organic
+Workbook: 75ccf8f1-1685-44ea-8091-2f5088ed0ad3
+ID:   1b383148-5470-4782-85dd-d4365093929a
+URL:  ZiplineROI/sheets/AdsOrganic
+---------------------------------------------------
+Name: Stage
+Workbook: 340e11ce-c47d-44c6-aaf4-837c08edb9d8
+ID:   c55f1419-53aa-46db-85c0-c571c262fc27
+URL:  StarshipLevelAnalyticsworganic/sheets/Stage
+---------------------------------------------------
+Name: Suggested Bid
+Workbook: 75ccf8f1-1685-44ea-8091-2f5088ed0ad3
+ID:   43c6fd8a-3024-458f-aa97-ed29075926ff
+URL:  ZiplineROI/sheets/SuggestedBid
+---------------------------------------------------
+Name: Organic Key Factor
+Workbook: 75ccf8f1-1685-44ea-8091-2f5088ed0ad3
+ID:   a28e516a-3874-4dbd-b6da-cf3d16fdccab
+URL:  ZiplineROI/sheets/OrganicKeyFactor
+---------------------------------------------------
+Name: CİRO
+Workbook: 201418b3-3430-4dc2-baaf-5ad4c84df589
+ID:   801c7b52-581f-47b4-855d-afe6ad8bb781
+URL:  NARCADEFNANSALZET/sheets/CRO
+---------------------------------------------------
+Name: KARLILIK
+Workbook: 201418b3-3430-4dc2-baaf-5ad4c84df589
+ID:   68f435b2-fe0a-40c3-99dd-7c6d7362957c
+URL:  NARCADEFNANSALZET/sheets/KARLILIK
+---------------------------------------------------
+Name: YILLIK REKLAM HARCAMALARI
+Workbook: 201418b3-3430-4dc2-baaf-5ad4c84df589
+ID:   dab4fa9d-3e2f-4f5f-bc81-12a4562d67b8
+URL:  NARCADEFNANSALZET/sheets/YILLIKREKLAMHARCAMALARI
+---------------------------------------------------
+Name: 2019 AYLIK REKLAM HARCAMALARI
+Workbook: 201418b3-3430-4dc2-baaf-5ad4c84df589
+ID:   eb3fbcea-4c6f-437a-a2c5-dc68dab5ec11
+URL:  NARCADEFNANSALZET/sheets/2019AYLIKREKLAMHARCAMALARI
+---------------------------------------------------
+Name: Dashboard 1
+Workbook: 201418b3-3430-4dc2-baaf-5ad4c84df589
+ID:   1c6494c3-9177-48fa-be34-dca46fcca6b6
+URL:  NARCADEFNANSALZET/sheets/Dashboard1
+---------------------------------------------------
+Name: Measure Graph
+Workbook: b7c3332d-9cbb-491a-858a-f956fee40902
+ID:   d15033d4-9354-49dd-92e1-a83d86ceaa43
+URL:  StarshipIngameABTest/sheets/MeasureGraph
+---------------------------------------------------
+Name: Level
+Workbook: b7c3332d-9cbb-491a-858a-f956fee40902
+ID:   e79c3f58-a08a-4da8-bec5-dfe902d2f073
+URL:  StarshipIngameABTest/sheets/Level
+---------------------------------------------------
+Name: Stage
+Workbook: b7c3332d-9cbb-491a-858a-f956fee40902
+ID:   95143865-a84f-45e0-99a6-3bbc8670ddf9
+URL:  StarshipIngameABTest/sheets/Stage
+---------------------------------------------------
+Name: Stage Class Churn
+Workbook: b7c3332d-9cbb-491a-858a-f956fee40902
+ID:   31298351-604d-4141-9e93-7fc7547b93a9
+URL:  StarshipIngameABTest/sheets/StageClassChurn
+---------------------------------------------------
+Name: Sheet 5
+Workbook: b7c3332d-9cbb-491a-858a-f956fee40902
+ID:   3992053f-6ec5-4e8f-a049-ef4988ded59a
+URL:  StarshipIngameABTest/sheets/Sheet5
+---------------------------------------------------
+Name: Main
+Workbook: 0795e991-1e1b-4f7d-a3e6-19035bc9fece
+ID:   3020d76f-0553-45b4-afe9-f4e9fcb6b1f5
+URL:  IgnisROI/sheets/Main
+---------------------------------------------------
+Name: Organic Key Factor
+Workbook: 0795e991-1e1b-4f7d-a3e6-19035bc9fece
+ID:   2a90ef72-5cff-459c-a752-00b7fb35cce3
+URL:  IgnisROI/sheets/OrganicKeyFactor
+---------------------------------------------------
+Name: Suggested Bid
+Workbook: 0795e991-1e1b-4f7d-a3e6-19035bc9fece
+ID:   8bd7cf9e-912a-40f3-b791-33ffbcfa1fa4
+URL:  IgnisROI/sheets/SuggestedBid
+---------------------------------------------------
+Name: Ads + Organic
+Workbook: 0795e991-1e1b-4f7d-a3e6-19035bc9fece
+ID:   66e4a75c-af93-4f3e-b1fd-ee734f716e68
+URL:  IgnisROI/sheets/AdsOrganic
+---------------------------------------------------
+Name: Source
+Workbook: 6b5a2981-20d0-4617-ace4-606647b853bb
+ID:   cd4d0cbc-1812-4778-9e6d-aa3710cc38da
+URL:  ZiplineLevelAnalytics/sheets/Source
+---------------------------------------------------
+Name: Source
+Workbook: 9dbfc887-2106-4718-889b-4717bca4a0fb
+ID:   3f06f81f-ea62-4b75-996d-74b968b2c143
+URL:  ZiplineABTest/sheets/Source
+---------------------------------------------------
+Name: EventNames
+Workbook: 9dbfc887-2106-4718-889b-4717bca4a0fb
+ID:   68bc4ca6-79ac-47ae-a3fc-ab4928df8dbd
+URL:  ZiplineABTest/sheets/EventNames
+---------------------------------------------------
+Name: Rewarded
+Workbook: 9dbfc887-2106-4718-889b-4717bca4a0fb
+ID:   b44c67b5-2e69-4e24-8d7c-b313d3072f73
+URL:  ZiplineABTest/sheets/Rewarded
+---------------------------------------------------
+Name: LevelBonus
+Workbook: 340e11ce-c47d-44c6-aaf4-837c08edb9d8
+ID:   abcc16c9-1a84-41c9-a42a-e2202928a953
+URL:  StarshipLevelAnalyticsworganic/sheets/LevelBonus
+---------------------------------------------------
+Name: Measure Graph
+Workbook: 17629a05-0639-4672-b4b7-4118e7a5107f
+ID:   cd428006-5736-417a-880d-231b6d2f8012
+URL:  StarshipABTest/sheets/MeasureGraph
+---------------------------------------------------
+Name: Level
+Workbook: 17629a05-0639-4672-b4b7-4118e7a5107f
+ID:   d9f71f83-b639-46f3-a99f-0c0482f2b51b
+URL:  StarshipABTest/sheets/Level
+---------------------------------------------------
+Name: Stage
+Workbook: 17629a05-0639-4672-b4b7-4118e7a5107f
+ID:   c37e913e-4df8-4ca5-b4c9-e3ac9a257d17
+URL:  StarshipABTest/sheets/Stage
+---------------------------------------------------
+Name: Stage Class Churn
+Workbook: 17629a05-0639-4672-b4b7-4118e7a5107f
+ID:   9eee6305-546c-4d62-babc-a6992b38f707
+URL:  StarshipABTest/sheets/StageClassChurn
+---------------------------------------------------
+Name: LevelBonus
+Workbook: 17629a05-0639-4672-b4b7-4118e7a5107f
+ID:   d180132e-c51e-41a5-a40d-bf2ce64e6933
+URL:  StarshipABTest/sheets/LevelBonus
+---------------------------------------------------
+Name: Source
+Workbook: 340e11ce-c47d-44c6-aaf4-837c08edb9d8
+ID:   2d266115-048a-4eab-8c97-74c3a987be61
+URL:  StarshipLevelAnalyticsworganic/sheets/Source
+---------------------------------------------------
+Name: StageSource
+Workbook: 340e11ce-c47d-44c6-aaf4-837c08edb9d8
+ID:   3241e710-ce07-4619-a876-221fa0dae263
+URL:  StarshipLevelAnalyticsworganic/sheets/StageSource
+---------------------------------------------------
+Name: Player Status
+Workbook: 340e11ce-c47d-44c6-aaf4-837c08edb9d8
+ID:   821359f3-2e92-47a4-a439-69b286b988bb
+URL:  StarshipLevelAnalyticsworganic/sheets/PlayerStatus
+---------------------------------------------------

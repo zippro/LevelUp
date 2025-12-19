@@ -1,0 +1,21 @@
+{
+  "variables": [
+    "Level Revize",
+    "Churn Report"
+  ],
+  "reports": {
+    "Level Revize": [
+      "Bölgesel Revize"
+    ]
+  },
+  "games": [
+    {
+      "id": "game-1",
+      "name": "Christmas Puzzle",
+      "viewMappings": {
+        "Final Level Score": "7d23b782-5716-488a-a9a8-4c1b174e230c",
+        "Level Revize": "99b6db23-884c-45e2-a56b-2e1322f90129"
+      }
+    }
+  ]
+}

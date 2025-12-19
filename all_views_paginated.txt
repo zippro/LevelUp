@@ -1,0 +1,4225 @@
+Authenticating to https://eu-west-1a.online.tableau.com (Site: narcadegames)...
+Authentication Successful!
+Fetching Views...
+Fetching page 1...
+Fetching page 2...
+Fetching page 3...
+Fetching page 4...
+Fetching page 5...
+Fetching page 6...
+Fetching page 7...
+Fetching page 8...
+Fetching page 9...
+
+Found valid Views (Copy the ID):
+---------------------------------------------------
+Name: Farm Bubbles IOS
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   2664f7f1-7562-4f08-8d7b-0ed13dcccb0a
+URL:  reklamgenel/sheets/FarmBubblesIOS
+---------------------------------------------------
+Name: Farm Bubbles Android
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   8150b442-4036-4470-ab72-044a4911d8e7
+URL:  reklamgenel/sheets/FarmBubblesAndroid
+---------------------------------------------------
+Name: Farm Bubbles Amazon
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   e1ce7b2c-5dcb-44e2-91d5-b06dbd309378
+URL:  reklamgenel/sheets/FarmBubblesAmazon
+---------------------------------------------------
+Name: Popland Android
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   fcd5e52a-ca9e-4e73-932a-095b70c8717b
+URL:  reklamgenel/sheets/PoplandAndroid
+---------------------------------------------------
+Name: Popland IOS
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   806954a5-a140-434e-9599-a69e8163b9a5
+URL:  reklamgenel/sheets/PoplandIOS
+---------------------------------------------------
+Name: Popland Amazon
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   1ef8b9b3-121d-4da9-9bfb-456528134648
+URL:  reklamgenel/sheets/PoplandAmazon
+---------------------------------------------------
+Name: Bubble Friends
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   dc555d42-f623-4113-bffe-6102beecac8e
+URL:  reklamgenel/sheets/BubbleFriends
+---------------------------------------------------
+Name: Ignis
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   ea8d3d2a-c27d-47c2-aa96-f159bf9ed3df
+URL:  reklamgenel/sheets/Ignis
+---------------------------------------------------
+Name: Genel
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   4c7ed6f8-011f-45a4-8845-bb4a8cf10868
+URL:  reklamgenel/sheets/Genel
+---------------------------------------------------
+Name: New Users
+Workbook: f079b03a-963a-477e-b4d0-e5bbb80c6107
+ID:   1913a61a-4f56-47ca-9156-22b6381e2863
+URL:  ReklamGenelGorunumOcak/sheets/NewUsers
+---------------------------------------------------
+Name: Organik Users
+Workbook: f079b03a-963a-477e-b4d0-e5bbb80c6107
+ID:   c3c30114-e03b-4004-90c9-dacc4ca2acb3
+URL:  ReklamGenelGorunumOcak/sheets/OrganikUsers
+---------------------------------------------------
+Name: Aktif Kullanıcı
+Workbook: f079b03a-963a-477e-b4d0-e5bbb80c6107
+ID:   216757e3-82f2-4cb9-af1c-9b468da6b25c
+URL:  ReklamGenelGorunumOcak/sheets/AktifKullanc
+---------------------------------------------------
+Name: APRDAU
+Workbook: f079b03a-963a-477e-b4d0-e5bbb80c6107
+ID:   9a38ca79-0259-4fbc-b50c-9541a1b840a6
+URL:  ReklamGenelGorunumOcak/sheets/APRDAU
+---------------------------------------------------
+Name: Inapp ARDAU
+Workbook: f079b03a-963a-477e-b4d0-e5bbb80c6107
+ID:   d8d2b943-aa76-439c-ad71-cb321c7500e4
+URL:  ReklamGenelGorunumOcak/sheets/InappARDAU
+---------------------------------------------------
+Name: New-Organic Users
+Workbook: f079b03a-963a-477e-b4d0-e5bbb80c6107
+ID:   8f491ab3-1a7c-4fb7-8824-5e99a0e84631
+URL:  ReklamGenelGorunumOcak/sheets/New-OrganicUsers
+---------------------------------------------------
+Name: Inapp Oranı
+Workbook: f079b03a-963a-477e-b4d0-e5bbb80c6107
+ID:   bf85028d-d7a3-460e-afbe-f374091397cb
+URL:  ReklamGenelGorunumOcak/sheets/InappOran
+---------------------------------------------------
+Name: Genel(Gelir-Gider)
+Workbook: f079b03a-963a-477e-b4d0-e5bbb80c6107
+ID:   d5a0f2a4-109d-44d2-abf3-9e592ae7d1aa
+URL:  ReklamGenelGorunumOcak/sheets/GenelGelir-Gider
+---------------------------------------------------
+Name: ROI Özet
+Workbook: 718df5d8-0d26-4acd-b458-d33ada4080a4
+ID:   812da32f-9fd0-4b16-a57b-cef43a2bf57b
+URL:  ROI7zeti/sheets/ROIzet
+---------------------------------------------------
+Name: Genel weekly
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   03ce6a40-bade-43e5-ac1a-87b8f27e745a
+URL:  reklamgenel/sheets/Genelweekly
+---------------------------------------------------
+Name: Dashboard
+Workbook: 05338d95-3a7e-43d3-a9fc-27f6dca4117a
+ID:   95a1898e-17f8-46d0-960d-d213d6b765ae
+URL:  BubblePopland_0/sheets/Dashboard
+---------------------------------------------------
+Name: Interaktif
+Workbook: 05338d95-3a7e-43d3-a9fc-27f6dca4117a
+ID:   2dc262bb-bc0a-491b-8a73-14742885f0c5
+URL:  BubblePopland_0/sheets/Interaktif
+---------------------------------------------------
+Name: Level Action
+Workbook: 3720203e-a71e-4608-84bf-06081acb335f
+ID:   60c1c686-56de-4fe3-8aca-fd027f3c7cd6
+URL:  GummyDash/sheets/LevelAction
+---------------------------------------------------
+Name: Churn
+Workbook: 3720203e-a71e-4608-84bf-06081acb335f
+ID:   0cc9f210-7929-46f4-9e85-6dc13632f92c
+URL:  GummyDash/sheets/Churn
+---------------------------------------------------
+Name: Level 1 Geçiş
+Workbook: 3720203e-a71e-4608-84bf-06081acb335f
+ID:   12ee8f40-7e7b-4d53-930b-059496d449e7
+URL:  GummyDash/sheets/Level1Gei
+---------------------------------------------------
+Name: Difficulty
+Workbook: 3720203e-a71e-4608-84bf-06081acb335f
+ID:   523d5600-c91d-43c6-b691-3242b684e3e3
+URL:  GummyDash/sheets/Difficulty
+---------------------------------------------------
+Name: Dashboard 1
+Workbook: 3720203e-a71e-4608-84bf-06081acb335f
+ID:   4b22231b-7367-4638-9f7f-cb5105a39abd
+URL:  GummyDash/sheets/Dashboard1
+---------------------------------------------------
+Name: Metin abi
+Workbook: 3720203e-a71e-4608-84bf-06081acb335f
+ID:   6274f53b-5917-4665-ba99-7108b202df92
+URL:  GummyDash/sheets/Metinabi
+---------------------------------------------------
+Name: Bubble Friends Organic CVR Country 
+Workbook: 56ce05a7-acef-4074-a227-0a386488f1a2
+ID:   5a32851b-09e2-4f99-8cf8-f655f4b641b2
+URL:  BubbleFriendsGooglePlayOrganicCVRCountry/sheets/BubbleFriendsOrganicCVRCountry
+---------------------------------------------------
+Name: Sheet 2
+Workbook: 56ce05a7-acef-4074-a227-0a386488f1a2
+ID:   5adc6139-aa61-4d97-9f29-4ca62743ac5d
+URL:  BubbleFriendsGooglePlayOrganicCVRCountry/sheets/Sheet2
+---------------------------------------------------
+Name: Interaktif (2)
+Workbook: 05338d95-3a7e-43d3-a9fc-27f6dca4117a
+ID:   579a05c5-9c2a-42ca-9e4d-7757ae67b26c
+URL:  BubblePopland_0/sheets/Interaktif2
+---------------------------------------------------
+Name: ROI Cohort
+Workbook: 158e3e7f-f5b9-48dd-bbea-465feb52b598
+ID:   c612a56b-44de-4cde-99b7-41d1f750239c
+URL:  2016-2019Istatistikleri/sheets/ROICohort
+---------------------------------------------------
+Name: ROI Genel Görünüm
+Workbook: 158e3e7f-f5b9-48dd-bbea-465feb52b598
+ID:   276d5233-8b19-4da2-b867-707b87c6969d
+URL:  2016-2019Istatistikleri/sheets/ROIGenelGrnm
+---------------------------------------------------
+Name: ROI Metric Dashboard
+Workbook: 158e3e7f-f5b9-48dd-bbea-465feb52b598
+ID:   5bcb2b00-2af3-40aa-b9bd-76b5de1ec35c
+URL:  2016-2019Istatistikleri/sheets/ROIMetricDashboard
+---------------------------------------------------
+Name: CPM
+Workbook: 158e3e7f-f5b9-48dd-bbea-465feb52b598
+ID:   c757a7fe-b405-448f-ac71-aa9ff5f349a2
+URL:  2016-2019Istatistikleri/sheets/CPM
+---------------------------------------------------
+Name: CPI
+Workbook: 158e3e7f-f5b9-48dd-bbea-465feb52b598
+ID:   04844549-ea9c-48a7-9cc6-ea7253584011
+URL:  2016-2019Istatistikleri/sheets/CPI
+---------------------------------------------------
+Name: Ads Per User - Rewarded Per User
+Workbook: 158e3e7f-f5b9-48dd-bbea-465feb52b598
+ID:   c1b4cc53-ba16-455e-82a8-551a0fe45cc3
+URL:  2016-2019Istatistikleri/sheets/AdsPerUser-RewardedPerUser
+---------------------------------------------------
+Name: Farm Bubbles Organic Installs by GEO
+Workbook: e908f99a-6a31-449c-b1d9-65cf2f067d9b
+ID:   bcda0dd0-5f35-4ce8-8006-298221489972
+URL:  IgnisGooglePlayOrganicCVR/sheets/FarmBubblesOrganicInstallsbyGEO
+---------------------------------------------------
+Name: GEO Comperasions
+Workbook: e908f99a-6a31-449c-b1d9-65cf2f067d9b
+ID:   36e64b61-ab21-40fc-9edf-1f822b577416
+URL:  IgnisGooglePlayOrganicCVR/sheets/GEOComperasions
+---------------------------------------------------
+Name: Ignis Organic CVR
+Workbook: e908f99a-6a31-449c-b1d9-65cf2f067d9b
+ID:   2f9f8084-3585-40b8-aa8e-9c3b4193cc61
+URL:  IgnisGooglePlayOrganicCVR/sheets/IgnisOrganicCVR
+---------------------------------------------------
+Name: Daily
+Workbook: 331b6871-5784-4f58-bd8b-59e3e4280b43
+ID:   83df109f-de01-42b8-ae0e-5b1c238846a4
+URL:  AdsveRewardShowCohort/sheets/Daily
+---------------------------------------------------
+Name: Cohort
+Workbook: 331b6871-5784-4f58-bd8b-59e3e4280b43
+ID:   1e15075d-2a46-47ca-85c8-d591db445b2a
+URL:  AdsveRewardShowCohort/sheets/Cohort
+---------------------------------------------------
+Name: StarScore
+Workbook: 3720203e-a71e-4608-84bf-06081acb335f
+ID:   1b663b6c-2996-4a48-94ca-588dea8f95be
+URL:  GummyDash/sheets/StarScore
+---------------------------------------------------
+Name: GEO Comperasions
+Workbook: 90760ea4-0aef-456c-bd1f-e41a65d5f881
+ID:   dceca0ec-3208-4c6a-a97b-453c86a9eeb7
+URL:  PoplandGooglePlayOrganicCVR/sheets/GEOComperasions
+---------------------------------------------------
+Name: Popland Organic CVR Installs & CVR
+Workbook: 90760ea4-0aef-456c-bd1f-e41a65d5f881
+ID:   2f16fa63-abaf-4275-9ae4-7ab08efe88db
+URL:  PoplandGooglePlayOrganicCVR/sheets/PoplandOrganicCVRInstallsCVR
+---------------------------------------------------
+Name: Popland CVRs Top 3
+Workbook: 90760ea4-0aef-456c-bd1f-e41a65d5f881
+ID:   c45e1b26-1c1e-41d7-bd68-fd5bce7d16b1
+URL:  PoplandGooglePlayOrganicCVR/sheets/PoplandCVRsTop3
+---------------------------------------------------
+Name: Measure Graph
+Workbook: 40f6e7cf-504d-42bc-a70c-96cceea5641f
+ID:   a9d7e2d8-5e69-40f7-acae-829a67576282
+URL:  LevelAnalytics/sheets/MeasureGraph
+---------------------------------------------------
+Name: Interaktif
+Workbook: 40f6e7cf-504d-42bc-a70c-96cceea5641f
+ID:   4e619555-1984-4ed5-ba82-bf85542b5b8d
+URL:  LevelAnalytics/sheets/Interaktif
+---------------------------------------------------
+Name: Dashboard
+Workbook: 40f6e7cf-504d-42bc-a70c-96cceea5641f
+ID:   3d325790-3446-4e68-9b38-8b66d91a9499
+URL:  LevelAnalytics/sheets/Dashboard
+---------------------------------------------------
+Name: ayay
+Workbook: 55c94d78-3658-4670-92a8-755eeac41212
+ID:   039c360c-e77d-40ce-b87c-5bcb8f5efa82
+URL:  reklamgenel/sheets/ayay_1
+---------------------------------------------------
+Name: Sheet 3
+Workbook: 40f6e7cf-504d-42bc-a70c-96cceea5641f
+ID:   2ae155fd-a560-42d5-a9b7-f778b390ad11
+URL:  LevelAnalytics/sheets/Sheet3
+---------------------------------------------------
+Name: Android
+Workbook: 8d77731b-a24b-484f-acbd-fa9388823e0a
+ID:   d776b37f-4066-47af-b8e7-ace305edceac
+URL:  Ignis_Android_US_OrganikPaid/sheets/Android
+---------------------------------------------------
+Name: IOS
+Workbook: 8d77731b-a24b-484f-acbd-fa9388823e0a
+ID:   9ebe9cdf-fc3b-40d0-9d3c-b0e63182b6f6
+URL:  Ignis_Android_US_OrganikPaid/sheets/IOS
+---------------------------------------------------
+Name: Farm Bubbles Organic CVR
+Workbook: 3a6ff971-cc74-4ef8-b87f-302be90a1712
+ID:   a73a7721-e4a6-4809-b28f-78c8d6f69b5f
+URL:  FarmBubblesGooglePlayOrganicConversionReports/sheets/FarmBubblesOrganicCVR
+---------------------------------------------------
+Name: GEO Comperasions
+Workbook: 3a6ff971-cc74-4ef8-b87f-302be90a1712
+ID:   91547cda-2f49-4b82-b44f-75ae860744d9
+URL:  FarmBubblesGooglePlayOrganicConversionReports/sheets/GEOComperasions
+---------------------------------------------------
+Name: Farm Bubbles Organic Installs by GEO&CVR
+Workbook: 3a6ff971-cc74-4ef8-b87f-302be90a1712
+ID:   dbe924ef-4d0a-48fb-ad9e-829baa69763f
+URL:  FarmBubblesGooglePlayOrganicConversionReports/sheets/FarmBubblesOrganicInstallsbyGEOCVR
+---------------------------------------------------
+Name: Sheet 1
+Workbook: a51975ad-a51a-4e53-9e26-f0ce0eaca352
+ID:   16a6e016-a9ec-49c8-b819-cef7c2ea3247
+URL:  NarcadeGamesCVR2019/sheets/Sheet1
+---------------------------------------------------
+Name: Dashboard 2
+Workbook: aca0dba1-dbde-4abd-bf8d-003767ce9bba
+ID:   a544d03f-b350-4398-ae7d-4ff988eb4857
+URL:  GRANTS/sheets/Dashboard2
+---------------------------------------------------
+Name: Android
+Workbook: 57c3e40c-5ab0-4275-ac2b-1bde1503de94
+ID:   266c46a8-3c00-4964-b8b7-a83b7326bf4b
+URL:  IGNISOrganicPaid/sheets/Android
+---------------------------------------------------
+Name: IOS
+Workbook: 57c3e40c-5ab0-4275-ac2b-1bde1503de94
+ID:   4d873107-ee9e-44fe-9bd9-e50dbb663bb0
+URL:  IGNISOrganicPaid/sheets/IOS
+---------------------------------------------------
+Name: D1
+Workbook: 57c3e40c-5ab0-4275-ac2b-1bde1503de94
+ID:   5348c790-1ab5-4740-8ffb-d09e13feb418
+URL:  IGNISOrganicPaid/sheets/D1_1
+---------------------------------------------------
+Name: D7
+Workbook: 57c3e40c-5ab0-4275-ac2b-1bde1503de94
+ID:   a30d2f0b-25b4-48b2-8ec1-87eafd36316e
+URL:  IGNISOrganicPaid/sheets/D7
+---------------------------------------------------
+Name: D14
+Workbook: 57c3e40c-5ab0-4275-ac2b-1bde1503de94
+ID:   bff4dc0b-8e02-4c35-ac07-75abbdf14b55
+URL:  IGNISOrganicPaid/sheets/D14
+---------------------------------------------------
+Name: D30
+Workbook: 57c3e40c-5ab0-4275-ac2b-1bde1503de94
+ID:   66c243c5-0a68-41d6-b31f-91c67887301e
+URL:  IGNISOrganicPaid/sheets/D30_1
+---------------------------------------------------
+Name: Kampanya ROI
+Workbook: d4ff2d3e-98c5-4692-a9e1-1616133af0c9
+ID:   0f88311d-2c73-4a05-a3f4-404f18226a3f
+URL:  FBAmazonDailybase/sheets/KampanyaROI
+---------------------------------------------------
+Name: Organikli ROI
+Workbook: d4ff2d3e-98c5-4692-a9e1-1616133af0c9
+ID:   0f8936f6-8761-4502-a54c-f2da685e3a64
+URL:  FBAmazonDailybase/sheets/OrganikliROI
+---------------------------------------------------
+Name: Ülke ROI
+Workbook: d4ff2d3e-98c5-4692-a9e1-1616133af0c9
+ID:   1818792a-5d88-4df6-9cc8-ef6c41e98646
+URL:  FBAmazonDailybase/sheets/lkeROI
+---------------------------------------------------
+Name: Genel Karşılaştırma
+Workbook: d4ff2d3e-98c5-4692-a9e1-1616133af0c9
+ID:   53674f37-1777-4d4a-ad27-f13b6b6257c5
+URL:  FBAmazonDailybase/sheets/GenelKarlatrma
+---------------------------------------------------
+Name: Measure Graph
+Workbook: 340e11ce-c47d-44c6-aaf4-837c08edb9d8
+ID:   5b11e99b-8891-49dd-8145-23803442cc03
+URL:  StarshipLevelAnalyticsworganic/sheets/MeasureGraph
+---------------------------------------------------
+Name: Main
+Workbook: 75ccf8f1-1685-44ea-8091-2f5088ed0ad3
+ID:   e51258f0-6f45-494e-9177-04c141c8e1e1
+URL:  ZiplineROI/sheets/Main
+---------------------------------------------------
+Name: Ads + Organic
+Workbook: 75ccf8f1-1685-44ea-8091-2f5088ed0ad3
+ID:   1b383148-5470-4782-85dd-d4365093929a
+URL:  ZiplineROI/sheets/AdsOrganic
+---------------------------------------------------
+Name: Stage
+Workbook: 340e11ce-c47d-44c6-aaf4-837c08edb9d8
+ID:   c55f1419-53aa-46db-85c0-c571c262fc27
+URL:  StarshipLevelAnalyticsworganic/sheets/Stage
+---------------------------------------------------
+Name: Suggested Bid
+Workbook: 75ccf8f1-1685-44ea-8091-2f5088ed0ad3
+ID:   43c6fd8a-3024-458f-aa97-ed29075926ff
+URL:  ZiplineROI/sheets/SuggestedBid
+---------------------------------------------------
+Name: Organic Key Factor
+Workbook: 75ccf8f1-1685-44ea-8091-2f5088ed0ad3
+ID:   a28e516a-3874-4dbd-b6da-cf3d16fdccab
+URL:  ZiplineROI/sheets/OrganicKeyFactor
+---------------------------------------------------
+Name: CİRO
+Workbook: 201418b3-3430-4dc2-baaf-5ad4c84df589
+ID:   801c7b52-581f-47b4-855d-afe6ad8bb781
+URL:  NARCADEFNANSALZET/sheets/CRO
+---------------------------------------------------
+Name: KARLILIK
+Workbook: 201418b3-3430-4dc2-baaf-5ad4c84df589
+ID:   68f435b2-fe0a-40c3-99dd-7c6d7362957c
+URL:  NARCADEFNANSALZET/sheets/KARLILIK
+---------------------------------------------------
+Name: YILLIK REKLAM HARCAMALARI
+Workbook: 201418b3-3430-4dc2-baaf-5ad4c84df589
+ID:   dab4fa9d-3e2f-4f5f-bc81-12a4562d67b8
+URL:  NARCADEFNANSALZET/sheets/YILLIKREKLAMHARCAMALARI
+---------------------------------------------------
+Name: 2019 AYLIK REKLAM HARCAMALARI
+Workbook: 201418b3-3430-4dc2-baaf-5ad4c84df589
+ID:   eb3fbcea-4c6f-437a-a2c5-dc68dab5ec11
+URL:  NARCADEFNANSALZET/sheets/2019AYLIKREKLAMHARCAMALARI
+---------------------------------------------------
+Name: Dashboard 1
+Workbook: 201418b3-3430-4dc2-baaf-5ad4c84df589
+ID:   1c6494c3-9177-48fa-be34-dca46fcca6b6
+URL:  NARCADEFNANSALZET/sheets/Dashboard1
+---------------------------------------------------
+Name: Measure Graph
+Workbook: b7c3332d-9cbb-491a-858a-f956fee40902
+ID:   d15033d4-9354-49dd-92e1-a83d86ceaa43
+URL:  StarshipIngameABTest/sheets/MeasureGraph
+---------------------------------------------------
+Name: Level
+Workbook: b7c3332d-9cbb-491a-858a-f956fee40902
+ID:   e79c3f58-a08a-4da8-bec5-dfe902d2f073
+URL:  StarshipIngameABTest/sheets/Level
+---------------------------------------------------
+Name: Stage
+Workbook: b7c3332d-9cbb-491a-858a-f956fee40902
+ID:   95143865-a84f-45e0-99a6-3bbc8670ddf9
+URL:  StarshipIngameABTest/sheets/Stage
+---------------------------------------------------
+Name: Stage Class Churn
+Workbook: b7c3332d-9cbb-491a-858a-f956fee40902
+ID:   31298351-604d-4141-9e93-7fc7547b93a9
+URL:  StarshipIngameABTest/sheets/StageClassChurn
+---------------------------------------------------
+Name: Sheet 5
+Workbook: b7c3332d-9cbb-491a-858a-f956fee40902
+ID:   3992053f-6ec5-4e8f-a049-ef4988ded59a
+URL:  StarshipIngameABTest/sheets/Sheet5
+---------------------------------------------------
+Name: Main
+Workbook: 0795e991-1e1b-4f7d-a3e6-19035bc9fece
+ID:   3020d76f-0553-45b4-afe9-f4e9fcb6b1f5
+URL:  IgnisROI/sheets/Main
+---------------------------------------------------
+Name: Organic Key Factor
+Workbook: 0795e991-1e1b-4f7d-a3e6-19035bc9fece
+ID:   2a90ef72-5cff-459c-a752-00b7fb35cce3
+URL:  IgnisROI/sheets/OrganicKeyFactor
+---------------------------------------------------
+Name: Suggested Bid
+Workbook: 0795e991-1e1b-4f7d-a3e6-19035bc9fece
+ID:   8bd7cf9e-912a-40f3-b791-33ffbcfa1fa4
+URL:  IgnisROI/sheets/SuggestedBid
+---------------------------------------------------
+Name: Ads + Organic
+Workbook: 0795e991-1e1b-4f7d-a3e6-19035bc9fece
+ID:   66e4a75c-af93-4f3e-b1fd-ee734f716e68
+URL:  IgnisROI/sheets/AdsOrganic
+---------------------------------------------------
+Name: Source
+Workbook: 6b5a2981-20d0-4617-ace4-606647b853bb
+ID:   cd4d0cbc-1812-4778-9e6d-aa3710cc38da
+URL:  ZiplineLevelAnalytics/sheets/Source
+---------------------------------------------------
+Name: Source
+Workbook: 9dbfc887-2106-4718-889b-4717bca4a0fb
+ID:   3f06f81f-ea62-4b75-996d-74b968b2c143
+URL:  ZiplineABTest/sheets/Source
+---------------------------------------------------
+Name: EventNames
+Workbook: 9dbfc887-2106-4718-889b-4717bca4a0fb
+ID:   68bc4ca6-79ac-47ae-a3fc-ab4928df8dbd
+URL:  ZiplineABTest/sheets/EventNames
+---------------------------------------------------
+Name: Rewarded
+Workbook: 9dbfc887-2106-4718-889b-4717bca4a0fb
+ID:   b44c67b5-2e69-4e24-8d7c-b313d3072f73
+URL:  ZiplineABTest/sheets/Rewarded
+---------------------------------------------------
+Name: LevelBonus
+Workbook: 340e11ce-c47d-44c6-aaf4-837c08edb9d8
+ID:   abcc16c9-1a84-41c9-a42a-e2202928a953
+URL:  StarshipLevelAnalyticsworganic/sheets/LevelBonus
+---------------------------------------------------
+Name: Measure Graph
+Workbook: 17629a05-0639-4672-b4b7-4118e7a5107f
+ID:   cd428006-5736-417a-880d-231b6d2f8012
+URL:  StarshipABTest/sheets/MeasureGraph
+---------------------------------------------------
+Name: Level
+Workbook: 17629a05-0639-4672-b4b7-4118e7a5107f
+ID:   d9f71f83-b639-46f3-a99f-0c0482f2b51b
+URL:  StarshipABTest/sheets/Level
+---------------------------------------------------
+Name: Stage
+Workbook: 17629a05-0639-4672-b4b7-4118e7a5107f
+ID:   c37e913e-4df8-4ca5-b4c9-e3ac9a257d17
+URL:  StarshipABTest/sheets/Stage
+---------------------------------------------------
+Name: Stage Class Churn
+Workbook: 17629a05-0639-4672-b4b7-4118e7a5107f
+ID:   9eee6305-546c-4d62-babc-a6992b38f707
+URL:  StarshipABTest/sheets/StageClassChurn
+---------------------------------------------------
+Name: LevelBonus
+Workbook: 17629a05-0639-4672-b4b7-4118e7a5107f
+ID:   d180132e-c51e-41a5-a40d-bf2ce64e6933
+URL:  StarshipABTest/sheets/LevelBonus
+---------------------------------------------------
+Name: Source
+Workbook: 340e11ce-c47d-44c6-aaf4-837c08edb9d8
+ID:   2d266115-048a-4eab-8c97-74c3a987be61
+URL:  StarshipLevelAnalyticsworganic/sheets/Source
+---------------------------------------------------
+Name: StageSource
+Workbook: 340e11ce-c47d-44c6-aaf4-837c08edb9d8
+ID:   3241e710-ce07-4619-a876-221fa0dae263
+URL:  StarshipLevelAnalyticsworganic/sheets/StageSource
+---------------------------------------------------
+Name: Player Status
+Workbook: 340e11ce-c47d-44c6-aaf4-837c08edb9d8
+ID:   821359f3-2e92-47a4-a439-69b286b988bb
+URL:  StarshipLevelAnalyticsworganic/sheets/PlayerStatus
+---------------------------------------------------
+Name: ROI Genel Özeti
+Workbook: a9aeb532-a30d-4f64-b525-8d8e6824483c
+ID:   51adb4c2-8cc8-4220-8c42-6b4240ae81fd
+URL:  FarmBubblesROIGenelzeti/sheets/ROIGenelzeti
+---------------------------------------------------
+Name: ROI Genel Özeti Grafik
+Workbook: a9aeb532-a30d-4f64-b525-8d8e6824483c
+ID:   5f8477ef-b4c6-483c-a59f-abdc575b5f5c
+URL:  FarmBubblesROIGenelzeti/sheets/ROIGenelzetiGrafik
+---------------------------------------------------
+Name: Main
+Workbook: a9aeb532-a30d-4f64-b525-8d8e6824483c
+ID:   8d2cb9e4-f5bc-404a-8856-9f50268e09f3
+URL:  FarmBubblesROIGenelzeti/sheets/Main
+---------------------------------------------------
+Name: D7 - D120 Hedef Tutma Koşulu
+Workbook: a9aeb532-a30d-4f64-b525-8d8e6824483c
+ID:   ddeab936-3729-4372-b574-496fe5fa90c7
+URL:  FarmBubblesROIGenelzeti/sheets/D7-D120HedefTutmaKoulu
+---------------------------------------------------
+Name: D7 - D150 Hedef Tutma Koşulu
+Workbook: a9aeb532-a30d-4f64-b525-8d8e6824483c
+ID:   4b902303-fe54-4fd2-9b29-98640b8dfd6b
+URL:  FarmBubblesROIGenelzeti/sheets/D7-D150HedefTutmaKoulu
+---------------------------------------------------
+Name: Farm Bubbles Inter Imp CPM Comparition by Months
+Workbook: 15badaa5-c134-4007-8c00-1a4fb8a52512
+ID:   1316036a-e3d1-4416-a121-2f7a0297b19e
+URL:  FarmBubblesInterImpCPMComparitionbyMonths/sheets/FarmBubblesInterImpCPMComparitionbyMonths
+---------------------------------------------------
+Name: Reklam Genel Görünüm
+Workbook: 09dac7be-50cc-45b5-888b-841896d4033d
+ID:   c7b39121-c560-4c68-b58e-24a63c4db502
+URL:  B2MlkeReklamGenelGrnm/sheets/ReklamGenelGrnm
+---------------------------------------------------
+Name: Main
+Workbook: cd8a1427-8641-4df1-b4c7-4a9ce1cb6658
+ID:   b20848b4-0aa5-4dc1-b20a-a7865ce2723c
+URL:  GummyWonderlandROI/sheets/Main
+---------------------------------------------------
+Name: Organic Key Factor
+Workbook: cd8a1427-8641-4df1-b4c7-4a9ce1cb6658
+ID:   bd1c4aab-52ec-47e8-bcab-445be1667001
+URL:  GummyWonderlandROI/sheets/OrganicKeyFactor
+---------------------------------------------------
+Name: Suggested Bid
+Workbook: cd8a1427-8641-4df1-b4c7-4a9ce1cb6658
+ID:   d63d2ef4-5e22-4c86-947b-5e92a8f5976d
+URL:  GummyWonderlandROI/sheets/SuggestedBid
+---------------------------------------------------
+Name: Ads + Organic
+Workbook: cd8a1427-8641-4df1-b4c7-4a9ce1cb6658
+ID:   d78d60d8-698b-4db2-8078-f2d102ab8313
+URL:  GummyWonderlandROI/sheets/AdsOrganic
+---------------------------------------------------
+Name: Reklam Genel Görünüm
+Workbook: 387a5ce1-66ec-4b96-903d-e20629236bb5
+ID:   46f26336-5878-46de-b883-3ede265349ac
+URL:  ZiplinelkeReklamGenelGrnm/sheets/ReklamGenelGrnm
+---------------------------------------------------
+Name: Organikli ROI
+Workbook: 36e53214-f2a7-4bf8-b125-6711472e8a3d
+ID:   570a5040-6852-4744-b0e2-067e018321ea
+URL:  FarmBubblesOrganikliROI/sheets/OrganikliROI
+---------------------------------------------------
+Name: Dashboard 1
+Workbook: 36e53214-f2a7-4bf8-b125-6711472e8a3d
+ID:   6535ea20-4d55-4fea-98c7-46a206b30b33
+URL:  FarmBubblesOrganikliROI/sheets/Dashboard1
+---------------------------------------------------
+Name: Genel Analiz
+Workbook: 5738194e-1eae-4584-a046-8ce7654f75e8
+ID:   320cd08c-f234-4e73-8122-5bab8f60c45b
+URL:  SUMMARY/sheets/GenelAnaliz
+---------------------------------------------------
+Name: FarmBubbles
+Workbook: 5738194e-1eae-4584-a046-8ce7654f75e8
+ID:   bb5d3143-12db-4141-af35-65289fca72ed
+URL:  SUMMARY/sheets/FarmBubbles
+---------------------------------------------------
+Name: BubbleFriends
+Workbook: 5738194e-1eae-4584-a046-8ce7654f75e8
+ID:   7836cd16-d841-47ab-8c71-b6eacec0541d
+URL:  SUMMARY/sheets/BubbleFriends
+---------------------------------------------------
+Name: Cost-Revenue
+Workbook: 5738194e-1eae-4584-a046-8ce7654f75e8
+ID:   56259ad8-813d-4151-a074-8cb81c61f3a0
+URL:  SUMMARY/sheets/Cost-Revenue
+---------------------------------------------------
+Name: Main
+Workbook: 8e312cf8-3f1f-4a40-80df-05fa6e572dad
+ID:   bd44064c-ded6-46a7-88ae-67cb4eae03f0
+URL:  TrickMeROI/sheets/Main
+---------------------------------------------------
+Name: Organic Key Factor
+Workbook: 8e312cf8-3f1f-4a40-80df-05fa6e572dad
+ID:   31ffbce0-949b-4bef-9b67-3dde5b275b28
+URL:  TrickMeROI/sheets/OrganicKeyFactor
+---------------------------------------------------
+Name: Suggested Bid
+Workbook: 8e312cf8-3f1f-4a40-80df-05fa6e572dad
+ID:   461d2267-902c-417c-8561-4cccee75521b
+URL:  TrickMeROI/sheets/SuggestedBid
+---------------------------------------------------
+Name: Ads + Organic
+Workbook: 8e312cf8-3f1f-4a40-80df-05fa6e572dad
+ID:   2e2369c4-5573-43d6-b682-353ea2c6e1b6
+URL:  TrickMeROI/sheets/AdsOrganic
+---------------------------------------------------
+Name: Main
+Workbook: 51da40e1-4b1c-4cc8-9568-34083168c7c7
+ID:   97e5de76-357e-4bb9-bac6-37bf7a3b1054
+URL:  MadRunROI/sheets/Main
+---------------------------------------------------
+Name: Organic Key Factor
+Workbook: 51da40e1-4b1c-4cc8-9568-34083168c7c7
+ID:   ca33c3ca-59b6-4faa-a90e-8ed6929cea0a
+URL:  MadRunROI/sheets/OrganicKeyFactor
+---------------------------------------------------
+Name: Ads + Organic
+Workbook: 51da40e1-4b1c-4cc8-9568-34083168c7c7
+ID:   eded9ab2-5797-4143-b266-50c85f9e5f63
+URL:  MadRunROI/sheets/AdsOrganic
+---------------------------------------------------
+Name: Zipline US-IOS Cost-CPC
+Workbook: b31c9c7a-04c1-4319-9fd1-03786f94605e
+ID:   c42d70dd-3b2c-47d8-bb2b-a329b70d5146
+URL:  ZiplinevsMadRun/sheets/ZiplineUS-IOSCost-CPC
+---------------------------------------------------
+Name: Zipline US-IOS Cost-CPI
+Workbook: b31c9c7a-04c1-4319-9fd1-03786f94605e
+ID:   a9484c4e-2116-4084-a5a0-d0a9dd83411e
+URL:  ZiplinevsMadRun/sheets/ZiplineUS-IOSCost-CPI
+---------------------------------------------------
+Name: Zipline US-IOS Cost-CTR
+Workbook: b31c9c7a-04c1-4319-9fd1-03786f94605e
+ID:   b963e04c-80e3-4dd7-85ce-df243171ba87
+URL:  ZiplinevsMadRun/sheets/ZiplineUS-IOSCost-CTR
+---------------------------------------------------
+Name: Zipline US-IOS Cost-IPM
+Workbook: b31c9c7a-04c1-4319-9fd1-03786f94605e
+ID:   42f883e0-1767-44fc-ba73-7daf28765e57
+URL:  ZiplinevsMadRun/sheets/ZiplineUS-IOSCost-IPM
+---------------------------------------------------
+Name: Mad Run Cost-CPC
+Workbook: b31c9c7a-04c1-4319-9fd1-03786f94605e
+ID:   bdbff283-5053-4cfd-bfef-ea4657255750
+URL:  ZiplinevsMadRun/sheets/MadRunCost-CPC
+---------------------------------------------------
+Name: Mad Run Cost-CPI
+Workbook: b31c9c7a-04c1-4319-9fd1-03786f94605e
+ID:   6e0bba0e-f4a5-4fd9-bd6e-cd6d9f719636
+URL:  ZiplinevsMadRun/sheets/MadRunCost-CPI
+---------------------------------------------------
+Name: Mad Run Cost-CTR
+Workbook: b31c9c7a-04c1-4319-9fd1-03786f94605e
+ID:   d1378317-62f3-4511-900c-b783c62793f2
+URL:  ZiplinevsMadRun/sheets/MadRunCost-CTR
+---------------------------------------------------
+Name: Mad Run Cost-IPM
+Workbook: b31c9c7a-04c1-4319-9fd1-03786f94605e
+ID:   31e3e8e7-4a48-48aa-99eb-616f95703dcb
+URL:  ZiplinevsMadRun/sheets/MadRunCost-IPM
+---------------------------------------------------
+Name: eCPM
+Workbook: 38026d4b-607b-4d06-9151-1cf862b54d1c
+ID:   555460aa-fbe3-4007-8d55-9e7339078566
+URL:  eCPMDatabase/sheets/eCPM
+---------------------------------------------------
+Name: Revenue by Network
+Workbook: 38026d4b-607b-4d06-9151-1cf862b54d1c
+ID:   05fbc420-1ce0-47a6-b962-9be2e41f37b9
+URL:  eCPMDatabase/sheets/RevenuebyNetwork
+---------------------------------------------------
+Name: Revenue by Network and Country
+Workbook: 38026d4b-607b-4d06-9151-1cf862b54d1c
+ID:   2b8b1982-aa85-465f-8ddd-a5a903423806
+URL:  eCPMDatabase/sheets/RevenuebyNetworkandCountry
+---------------------------------------------------
+Name: Revenue Graph
+Workbook: 38026d4b-607b-4d06-9151-1cf862b54d1c
+ID:   3b166015-670b-4bd6-85e7-e4603004ddb8
+URL:  eCPMDatabase/sheets/RevenueGraph
+---------------------------------------------------
+Name: Main
+Workbook: 7c8c1a97-c38d-46fe-8974-de42e3168a75
+ID:   e65308dc-40ad-4216-8f09-85be53c4a89f
+URL:  BlasttoMergeROI/sheets/Main
+---------------------------------------------------
+Name: Organic Key Factor
+Workbook: 7c8c1a97-c38d-46fe-8974-de42e3168a75
+ID:   3bbcdfe8-7461-4cd6-97b6-c89bf806a1bb
+URL:  BlasttoMergeROI/sheets/OrganicKeyFactor
+---------------------------------------------------
+Name: Suggested Bid
+Workbook: 7c8c1a97-c38d-46fe-8974-de42e3168a75
+ID:   ec5c8972-c933-4c53-becb-2edca1680203
+URL:  BlasttoMergeROI/sheets/SuggestedBid
+---------------------------------------------------
+Name: Ads + Organic
+Workbook: 7c8c1a97-c38d-46fe-8974-de42e3168a75
+ID:   119f5a76-4240-4c18-9ed1-202b952b8c41
+URL:  BlasttoMergeROI/sheets/AdsOrganic
+---------------------------------------------------
+Name: Overview
+Workbook: c267ab9e-69dd-4248-b965-b2958091b3de
+ID:   b495b4b3-4094-4a91-aaaa-2e6ed17a7467
+URL:  AdminInsightsStarter/sheets/Overview
+---------------------------------------------------
+Name: Login Activity Drilldown
+Workbook: c267ab9e-69dd-4248-b965-b2958091b3de
+ID:   19dddb46-4bf6-4d88-ba1f-ac5c5a72b4da
+URL:  AdminInsightsStarter/sheets/LoginActivityDrilldown
+---------------------------------------------------
+Name: Traffic and Adoption Drilldown
+Workbook: c267ab9e-69dd-4248-b965-b2958091b3de
+ID:   922d769a-e4c7-409b-83a2-83b5c20abfea
+URL:  AdminInsightsStarter/sheets/TrafficandAdoptionDrilldown
+---------------------------------------------------
+Name: Publish Event Drilldown
+Workbook: c267ab9e-69dd-4248-b965-b2958091b3de
+ID:   cdda77be-bd3f-40d6-a8d8-313cb092d1d0
+URL:  AdminInsightsStarter/sheets/PublishEventDrilldown
+---------------------------------------------------
+Name: rewarded show
+Workbook: 286bc3c0-cd81-4fd0-a9d5-ab731eea72a4
+ID:   feb6c5db-b7e5-434b-93ee-3343a785bd3a
+URL:  FarmBlastARPU/sheets/Sheet1
+---------------------------------------------------
+Name: Sheet 1 (3)
+Workbook: 286bc3c0-cd81-4fd0-a9d5-ab731eea72a4
+ID:   52684e32-9423-4e20-bc23-e3b4ed142dff
+URL:  FarmBlastARPU/sheets/Sheet13
+---------------------------------------------------
+Name: Sheet 1 (2)
+Workbook: 286bc3c0-cd81-4fd0-a9d5-ab731eea72a4
+ID:   c92ae090-84e1-4cef-84ee-05d9be5e157b
+URL:  FarmBlastARPU/sheets/Sheet12
+---------------------------------------------------
+Name: inapp arpu
+Workbook: 286bc3c0-cd81-4fd0-a9d5-ab731eea72a4
+ID:   8b33ce45-eff4-4d65-b87c-eb0432ed8901
+URL:  FarmBlastARPU/sheets/inapparpu
+---------------------------------------------------
+Name: ads arpu
+Workbook: 286bc3c0-cd81-4fd0-a9d5-ab731eea72a4
+ID:   f79dac43-4679-4ee0-b70c-3fbf3c05b9e0
+URL:  FarmBlastARPU/sheets/adsarpu
+---------------------------------------------------
+Name: ARPU
+Workbook: 286bc3c0-cd81-4fd0-a9d5-ab731eea72a4
+ID:   b4a30ac6-8684-45fd-b624-51c3a7ba4564
+URL:  FarmBlastARPU/sheets/ARPU
+---------------------------------------------------
+Name: Session
+Workbook: 286bc3c0-cd81-4fd0-a9d5-ab731eea72a4
+ID:   25ed454f-4f4a-4b6d-8b17-e3ffb44e1ff1
+URL:  FarmBlastARPU/sheets/Session
+---------------------------------------------------
+Name: Sheet 1
+Workbook: 61ab7507-1bb7-476b-b458-ae7eeb419bd9
+ID:   170fe8ca-cf2b-41bf-9e84-b5e7bf6a070a
+URL:  CPMveNewUserDAU/sheets/Sheet1
+---------------------------------------------------
+Name: PUBLISH-STUDIO
+Workbook: bf4aab9c-4850-4258-a09c-59436976482c
+ID:   73328ba7-56ca-4062-91e9-98dbfa2fddc0
+URL:  PUBLISH-STIDOREVENUECOST/sheets/PUBLISH-STUDIO
+---------------------------------------------------
+Name: Measure Graph
+Workbook: c5badadc-beb2-482e-b682-ed5e2fff534d
+ID:   b01119a3-5418-46d9-b409-cd80abe4156e
+URL:  LevelAnalyticsAMAZONworganic/sheets/MeasureGraph
+---------------------------------------------------
+Name: Interaktif
+Workbook: c5badadc-beb2-482e-b682-ed5e2fff534d
+ID:   7d5f0127-33cd-4a5c-871e-2ead25afbc80
+URL:  LevelAnalyticsAMAZONworganic/sheets/Interaktif
+---------------------------------------------------
+Name: Dashboard
+Workbook: c5badadc-beb2-482e-b682-ed5e2fff534d
+ID:   c4406077-af4e-42c9-8bb8-90d82600ecec
+URL:  LevelAnalyticsAMAZONworganic/sheets/Dashboard
+---------------------------------------------------
+Name: KPI
+Workbook: c5badadc-beb2-482e-b682-ed5e2fff534d
+ID:   292f48eb-3b4d-483c-9b11-f7cbc87b3260
+URL:  LevelAnalyticsAMAZONworganic/sheets/KPI
+---------------------------------------------------
+Name: Source
+Workbook: c5badadc-beb2-482e-b682-ed5e2fff534d
+ID:   63b72694-6632-496f-9bd5-a024f346b7bc
+URL:  LevelAnalyticsAMAZONworganic/sheets/Source
+---------------------------------------------------
+Name: Main
+Workbook: 900cd6fd-12ba-4085-9078-32d34841a371
+ID:   3d239af2-56eb-4f3d-943f-7b488cd3b301
+URL:  BrainingROI/sheets/Main
+---------------------------------------------------
+Name: Organic Key Factor
+Workbook: 900cd6fd-12ba-4085-9078-32d34841a371
+ID:   d89d4629-2326-4219-bd4e-9c6ec9877583
+URL:  BrainingROI/sheets/OrganicKeyFactor
+---------------------------------------------------
+Name: Suggested Bid
+Workbook: 900cd6fd-12ba-4085-9078-32d34841a371
+ID:   bc55912f-ed8c-4c28-9e4c-66c31144f41b
+URL:  BrainingROI/sheets/SuggestedBid
+---------------------------------------------------
+Name: Ads + Organic
+Workbook: 900cd6fd-12ba-4085-9078-32d34841a371
+ID:   2d92b87e-9074-4c93-b4af-53dd7f26c15e
+URL:  BrainingROI/sheets/AdsOrganic
+---------------------------------------------------
+Name: Sheet 5
+Workbook: 900cd6fd-12ba-4085-9078-32d34841a371
+ID:   1e3aeca9-8ee8-41b3-bca1-330a2e142f8d
+URL:  BrainingROI/sheets/Sheet5
+---------------------------------------------------
+Name: Main
+Workbook: 0c2ec270-c5c9-4ab6-8163-20c2dc5fcf47
+ID:   858d04ae-4e93-49e0-94ae-7f3a1aa48de8
+URL:  HyperGelir-Gider/sheets/Main
+---------------------------------------------------
+Name: Dağılım Dashboard
+Workbook: 0c2ec270-c5c9-4ab6-8163-20c2dc5fcf47
+ID:   18adceea-a62c-418a-ad80-9a30a36db400
+URL:  HyperGelir-Gider/sheets/DalmDashboard
+---------------------------------------------------
+Name: Country
+Workbook: 0c2ec270-c5c9-4ab6-8163-20c2dc5fcf47
+ID:   0487ee29-6d17-432d-b51d-6f2b73c84444
+URL:  HyperGelir-Gider/sheets/Country
+---------------------------------------------------
+Name: ROI
+Workbook: c1f92e24-2048-4ad4-87cb-e4143722004d
+ID:   f0c93346-3c8c-4be6-b30e-e7fbf351be0e
+URL:  FarmBubbles2020/sheets/ROI
+---------------------------------------------------
+Name: Retention
+Workbook: c1f92e24-2048-4ad4-87cb-e4143722004d
+ID:   235f2148-e743-4858-982f-34d83ed21841
+URL:  FarmBubbles2020/sheets/Retention
+---------------------------------------------------
+Name: Dashboard 1
+Workbook: c1f92e24-2048-4ad4-87cb-e4143722004d
+ID:   fbac48d5-228c-41b2-819b-a3e9e4e1a944
+URL:  FarmBubbles2020/sheets/Dashboard1
+---------------------------------------------------
+Name: Story 1
+Workbook: c1f92e24-2048-4ad4-87cb-e4143722004d
+ID:   51519a07-8f15-4872-a66f-02628f4de72e
+URL:  FarmBubbles2020/sheets/Story1
+---------------------------------------------------
+Name: ROI-Cost Graphic
+Workbook: 3fba6b20-ce5c-40c8-8908-389698138c58
+ID:   ff1f9f80-5546-48b2-b950-5ec3a27130e5
+URL:  zgen/sheets/ROI-CostGraphic
+---------------------------------------------------
+Name: Farm Bubbles Graphic
+Workbook: 3fba6b20-ce5c-40c8-8908-389698138c58
+ID:   a7f78fb8-cc88-4644-92ad-348dae3e6caa
+URL:  zgen/sheets/FarmBubblesGraphic
+---------------------------------------------------
+Name: Özgen
+Workbook: 3fba6b20-ce5c-40c8-8908-389698138c58
+ID:   e077df60-e0b0-43ee-8bc8-f2dd8a1cb225
+URL:  zgen/sheets/zgen
+---------------------------------------------------
+Name: Farm Bubbles Detail
+Workbook: 3fba6b20-ce5c-40c8-8908-389698138c58
+ID:   fd7f4fb0-f5e1-4745-b7f9-f75b2987969a
+URL:  zgen/sheets/FarmBubblesDetail
+---------------------------------------------------
+Name: Bubble Friends Graphic
+Workbook: 3fba6b20-ce5c-40c8-8908-389698138c58
+ID:   f028db79-8139-415b-affc-6dff1cab0252
+URL:  zgen/sheets/BubbleFriendsGraphic
+---------------------------------------------------
+Name: Bubble Friends Detail
+Workbook: 3fba6b20-ce5c-40c8-8908-389698138c58
+ID:   98630f47-ddb1-4f24-b18a-5f532a9796e7
+URL:  zgen/sheets/BubbleFriendsDetail
+---------------------------------------------------
+Name: Farm Blast Graphic
+Workbook: 3fba6b20-ce5c-40c8-8908-389698138c58
+ID:   ee3a7c8d-78c2-4c0a-8aac-6892f01361a0
+URL:  zgen/sheets/FarmBlastGraphic
+---------------------------------------------------
+Name: Farm Blast Detail
+Workbook: 3fba6b20-ce5c-40c8-8908-389698138c58
+ID:   a1df0e55-3d3d-48ce-984c-f4a8f503b359
+URL:  zgen/sheets/FarmBlastDetail
+---------------------------------------------------
+Name: ROI Cohort
+Workbook: 9333632c-2785-4aaf-a2b3-702d6d6a4c7c
+ID:   65b07947-1df5-4709-b3ca-0bfaccafb487
+URL:  ROIGenelGrnmYepyeniv3/sheets/ROICohort
+---------------------------------------------------
+Name: ROI Genel Görünüm
+Workbook: 9333632c-2785-4aaf-a2b3-702d6d6a4c7c
+ID:   e3684cce-9269-410f-b302-d8a032ee1d97
+URL:  ROIGenelGrnmYepyeniv3/sheets/ROIGenelGrnm
+---------------------------------------------------
+Name: ROI Genel Görünüm (2)
+Workbook: 9333632c-2785-4aaf-a2b3-702d6d6a4c7c
+ID:   d2a9b123-b92b-4534-bce5-6af200be4d68
+URL:  ROIGenelGrnmYepyeniv3/sheets/ROIGenelGrnm2
+---------------------------------------------------
+Name: ROI Genel Görünüm Country
+Workbook: 9333632c-2785-4aaf-a2b3-702d6d6a4c7c
+ID:   726b3751-13b6-46b3-8075-b987ca58ef2c
+URL:  ROIGenelGrnmYepyeniv3/sheets/ROIGenelGrnmCountry
+---------------------------------------------------
+Name: ROI Genel Görünüm Country (2)
+Workbook: 9333632c-2785-4aaf-a2b3-702d6d6a4c7c
+ID:   723f7151-bc9d-4d7e-bb9a-2156664a09c6
+URL:  ROIGenelGrnmYepyeniv3/sheets/ROIGenelGrnmCountry2
+---------------------------------------------------
+Name: ROI Genel Görünüm Cost
+Workbook: 9333632c-2785-4aaf-a2b3-702d6d6a4c7c
+ID:   0015f09b-7f6b-4271-b69b-e945c15014f8
+URL:  ROIGenelGrnmYepyeniv3/sheets/ROIGenelGrnmCost
+---------------------------------------------------
+Name: ROI Metric Dashboard
+Workbook: 9333632c-2785-4aaf-a2b3-702d6d6a4c7c
+ID:   92ba9cdb-1d65-480b-a3e2-a994fd332996
+URL:  ROIGenelGrnmYepyeniv3/sheets/ROIMetricDashboard
+---------------------------------------------------
+Name: CPI
+Workbook: 9333632c-2785-4aaf-a2b3-702d6d6a4c7c
+ID:   63d6fcc6-87f2-4d9e-b266-70650d7d0832
+URL:  ROIGenelGrnmYepyeniv3/sheets/CPI
+---------------------------------------------------
+Name: ROI Genel Görünüm Dashboard
+Workbook: 9333632c-2785-4aaf-a2b3-702d6d6a4c7c
+ID:   b75def31-d3f8-486a-8270-9bd2a86cb18a
+URL:  ROIGenelGrnmYepyeniv3/sheets/ROIGenelGrnmDashboard
+---------------------------------------------------
+Name: Dashboard 1
+Workbook: 1bc0db21-922c-47cb-9350-e26c0fa1c9c9
+ID:   13f3fe31-9093-45da-bc4f-7f055a7445d2
+URL:  FINANCIALSTATEMENTS/sheets/Dashboard1
+---------------------------------------------------
+Name: Sheet 1
+Workbook: eb10ef42-9f25-4b2a-bbae-84811e3f7545
+ID:   f35f67c7-33ea-4612-ab39-b78870800b10
+URL:  FarmBubblesIAP/sheets/Sheet1
+---------------------------------------------------
+Name: Android Organic Revenue Yüzdeleri
+Workbook: 295972d4-ed7b-44ee-838e-701a55e0c5e9
+ID:   2ba50368-931a-46d3-a2df-77fd6063a380
+URL:  RevenueRatio/sheets/AndroidOrganicRevenueYzdeleri
+---------------------------------------------------
+Name: Android All Revenue Yüzdeleri
+Workbook: 295972d4-ed7b-44ee-838e-701a55e0c5e9
+ID:   60a87c9c-1374-4727-9216-4f91f37c8bc8
+URL:  RevenueRatio/sheets/AndroidAllRevenueYzdeleri
+---------------------------------------------------
+Name: FarmBubbles_Android_Facebook_US_AEO_IAP_Purchase_LAL.07.10.2020 Adjust Ads&RW Show
+Workbook: 82a2dd16-bb06-4621-a7bc-1997ec533e1a
+ID:   a9e916f0-86d6-47f8-9bea-ff1a10267ea4
+URL:  FarmBubblesAndroidIAPCampaign/sheets/FarmBubbles_Android_Facebook_US_AEO_IAP_Purchase_LAL_07_10_2020AdjustAdsRWShow
+---------------------------------------------------
+Name: Android Kampanya Revenue Yüzdeleri
+Workbook: 295972d4-ed7b-44ee-838e-701a55e0c5e9
+ID:   556d4903-d76d-4aae-ad9d-dcc4846d9f1a
+URL:  RevenueRatio/sheets/AndroidKampanyaRevenueYzdeleri
+---------------------------------------------------
+Name: Android Organic Reklam
+Workbook: 295972d4-ed7b-44ee-838e-701a55e0c5e9
+ID:   ddf1f5a5-2b8e-45e0-92fb-019d97f5eed4
+URL:  RevenueRatio/sheets/AndroidOrganicReklam
+---------------------------------------------------
+Name: Android Kampanya Reklam
+Workbook: 295972d4-ed7b-44ee-838e-701a55e0c5e9
+ID:   94292a02-233c-44b0-9db6-303ca9e65995
+URL:  RevenueRatio/sheets/AndroidKampanyaReklam
+---------------------------------------------------
+Name: Android All Reklam
+Workbook: 295972d4-ed7b-44ee-838e-701a55e0c5e9
+ID:   4764352e-4e4a-4acf-98f7-a24fe516c3e4
+URL:  RevenueRatio/sheets/AndroidAllReklam
+---------------------------------------------------
+Name: FarmBubbles_Android_Facebook_US_AEO_IAP_Purchase_LAL.07.10.2020
+Workbook: 382c92c9-ba81-40f6-8dc0-9160c7427107
+ID:   f2e4372a-b15a-4614-a272-2875aab39b49
+URL:  KampanyaAnalizi/sheets/FarmBubbles_Android_Facebook_US_AEO_IAP_Purchase_LAL_07_10_2020
+---------------------------------------------------
+Name: Sheet 2
+Workbook: 2feea83e-24d5-4b09-b14d-c7d8c7384377
+ID:   77c48ddd-c102-4bca-a79e-a83720bfae19
+URL:  FarmBubblesBigQuery/sheets/Sheet2
+---------------------------------------------------
+Name: ATT Status ve OS Version
+Workbook: 6832e062-da6b-4670-af68-5388a3df15e7
+ID:   74e2ff09-6b84-4c71-97a2-0b4248d031d0
+URL:  Attstatusveosversion/sheets/ATTStatusveOSVersion
+---------------------------------------------------
+Name: Campaign
+Workbook: c8c259f4-adec-4ac8-8ab1-54bbb289c08b
+ID:   0db2e068-f58c-4e7c-9438-6abbfd4244fb
+URL:  ATTStatusReport21-28_05/sheets/Campaign
+---------------------------------------------------
+Name: APP
+Workbook: c8c259f4-adec-4ac8-8ab1-54bbb289c08b
+ID:   cd0d7b0d-9b87-47b9-a6e7-cf737dfe8a3e
+URL:  ATTStatusReport21-28_05/sheets/APP
+---------------------------------------------------
+Name: Install
+Workbook: c8c259f4-adec-4ac8-8ab1-54bbb289c08b
+ID:   4ceb1e5c-d380-4d00-949f-5a085691ead0
+URL:  ATTStatusReport21-28_05/sheets/Install
+---------------------------------------------------
+Name: SK Install
+Workbook: de2293a9-4567-4f9d-8482-874fcb027b74
+ID:   c19414d8-dd32-4013-a026-f7605fd78580
+URL:  SKInstall/sheets/SKInstall
+---------------------------------------------------
+Name: Sheet 1
+Workbook: b02e88a2-cf61-42e6-9933-7e937e2a94c9
+ID:   6b9ba6be-50bb-4f1d-942e-a09271838525
+URL:  Nisan-MaysCost-InstallbyPlacement/sheets/Sheet1
+---------------------------------------------------
+Name: Zipline Suggested Bid
+Workbook: b96ece4b-2689-4d60-be43-2efcb73fe57a
+ID:   209e2bd0-552c-4e48-9b96-4b86b1b51f81
+URL:  HyperSuggestedBid/sheets/ZiplineSuggestedBid
+---------------------------------------------------
+Name: Ignis Suggested Bid
+Workbook: b96ece4b-2689-4d60-be43-2efcb73fe57a
+ID:   707ec121-d459-44cd-9f70-c85fc7238689
+URL:  HyperSuggestedBid/sheets/IgnisSuggestedBid
+---------------------------------------------------
+Name: TrickMe Suggested Bid
+Workbook: b96ece4b-2689-4d60-be43-2efcb73fe57a
+ID:   29d8ba99-d384-445c-a655-df59b4cce431
+URL:  HyperSuggestedBid/sheets/TrickMeSuggestedBid
+---------------------------------------------------
+Name: Draw a Line Suggested Bid
+Workbook: b96ece4b-2689-4d60-be43-2efcb73fe57a
+ID:   245d91eb-7090-4a06-ba81-f0b930d60e00
+URL:  HyperSuggestedBid/sheets/DrawaLineSuggestedBid
+---------------------------------------------------
+Name: Braining Suggested Bid
+Workbook: b96ece4b-2689-4d60-be43-2efcb73fe57a
+ID:   62998d80-268e-4938-9f1e-9c8c4f9c9249
+URL:  HyperSuggestedBid/sheets/BrainingSuggestedBid
+---------------------------------------------------
+Name: Sheet 1
+Workbook: a039491f-864d-4135-a486-d9f8201ae0e3
+ID:   2bfb65dc-62b6-405a-a5ad-4262e1a17053
+URL:  5IAPcampaignMAU/sheets/Sheet1
+---------------------------------------------------
+Name: FarmBubbles Creative Report
+Workbook: e9650e5a-192c-4db4-9dba-a46bd86259ad
+ID:   6e324f2b-ba1c-4599-9b24-32e9f265d719
+URL:  CreativeReportStudioGames/sheets/FarmBubblesCreativeReport
+---------------------------------------------------
+Name: FarmBubbles Compare Report
+Workbook: e9650e5a-192c-4db4-9dba-a46bd86259ad
+ID:   f1e2d4d7-7fc2-470d-bf84-a0c88d9aff52
+URL:  CreativeReportStudioGames/sheets/FarmBubblesCompareReport
+---------------------------------------------------
+Name: BubbleFriends Creative Report
+Workbook: e9650e5a-192c-4db4-9dba-a46bd86259ad
+ID:   71513cac-748d-4515-8aa7-a0e14c249314
+URL:  CreativeReportStudioGames/sheets/BubbleFriendsCreativeReport
+---------------------------------------------------
+Name: BubbleFriends Compare Report
+Workbook: e9650e5a-192c-4db4-9dba-a46bd86259ad
+ID:   aeec451c-e98b-4aa8-91ef-8c8d6950085b
+URL:  CreativeReportStudioGames/sheets/BubbleFriendsCompareReport
+---------------------------------------------------
+Name: Network Cost Type
+Workbook: 4d629219-77d5-4d57-922a-15d54428ba5c
+ID:   9ec0255b-98f0-4f37-9697-58c9938b2463
+URL:  StudioSuggestedBid/sheets/NetworkCostType
+---------------------------------------------------
+Name: Dolar Type
+Workbook: 4d629219-77d5-4d57-922a-15d54428ba5c
+ID:   58049198-94bc-4d99-b848-78620d32fd24
+URL:  StudioSuggestedBid/sheets/DolarType
+---------------------------------------------------
+Name: Daily Network Cost Type
+Workbook: 4d629219-77d5-4d57-922a-15d54428ba5c
+ID:   1890490c-8b76-4ede-b2cc-964b1339858c
+URL:  StudioSuggestedBid/sheets/DailyNetworkCostType
+---------------------------------------------------
+Name: Compare Network Cost Type
+Workbook: 4d629219-77d5-4d57-922a-15d54428ba5c
+ID:   41d4d5ed-58a0-4328-85c4-92a86e84a183
+URL:  StudioSuggestedBid/sheets/CompareNetworkCostType
+---------------------------------------------------
+Name: Farm Bubbles Facebook Analysis
+Workbook: b292bcc4-8e6a-4afd-aca6-465fec010f57
+ID:   afe145e8-93c3-4101-aa3f-8da08c3e5d9d
+URL:  CreativeTestReport/sheets/FarmBubblesFacebookAnalysis
+---------------------------------------------------
+Name: FarmBubbles Tiktok Analysis
+Workbook: b292bcc4-8e6a-4afd-aca6-465fec010f57
+ID:   e9296b8e-b6b7-40f2-87c9-8a52d395ed1b
+URL:  CreativeTestReport/sheets/FarmBubblesTiktokAnalysis
+---------------------------------------------------
+Name: Farm Blast Facebook Analysis
+Workbook: b292bcc4-8e6a-4afd-aca6-465fec010f57
+ID:   8ddf64c5-b03d-4674-a982-e854fb4d36ae
+URL:  CreativeTestReport/sheets/FarmBlastFacebookAnalysis
+---------------------------------------------------
+Name: Farm Blast Creative Report
+Workbook: e9650e5a-192c-4db4-9dba-a46bd86259ad
+ID:   4ebf4604-1ebd-43ae-ac3d-ab6e9161a009
+URL:  CreativeReportStudioGames/sheets/FarmBlastCreativeReport
+---------------------------------------------------
+Name: Farm Blast Compare Report
+Workbook: e9650e5a-192c-4db4-9dba-a46bd86259ad
+ID:   f7c1951b-619f-4b63-83e8-19922f41e6a4
+URL:  CreativeReportStudioGames/sheets/FarmBlastCompareReport
+---------------------------------------------------
+Name: DailyEventStage Complete Ratio
+Workbook: c1a1f8a5-61f9-4a54-88c7-1a2f54ffd0d0
+ID:   ad20fb09-e1bc-4f01-80f2-1ab7d7d1cfcd
+URL:  FarmBlastDailyEvent/sheets/DailyEventStageCompleteRatio
+---------------------------------------------------
+Name: DailyEventStage Avg. Level Size
+Workbook: c1a1f8a5-61f9-4a54-88c7-1a2f54ffd0d0
+ID:   2c7369dc-106e-4d37-a0ca-f76d193c2e29
+URL:  FarmBlastDailyEvent/sheets/DailyEventStageAvg_LevelSize
+---------------------------------------------------
+Name: DailyEventStage Weekdays Complete Ratio
+Workbook: c1a1f8a5-61f9-4a54-88c7-1a2f54ffd0d0
+ID:   b1f1b56f-301a-4a2e-a5bd-c5aeb8686bf2
+URL:  FarmBlastDailyEvent/sheets/DailyEventStageWeekdaysCompleteRatio
+---------------------------------------------------
+Name: DailyEventStage Complete Konseptsiz
+Workbook: c1a1f8a5-61f9-4a54-88c7-1a2f54ffd0d0
+ID:   9258fb71-07ad-4e46-bb5f-4014079db577
+URL:  FarmBlastDailyEvent/sheets/DailyEventStageCompleteKonseptsiz
+---------------------------------------------------
+Name: ROI-Cost Graphic
+Workbook: 2379e61d-b3d6-43df-a6a6-27022790dbe2
+ID:   2a80a378-fbb4-410c-a95f-219742cc1040
+URL:  ROI-CostGraphic_16304144634250/sheets/ROI-CostGraphic
+---------------------------------------------------
+Name: Farm Bubbles Graphic
+Workbook: 2379e61d-b3d6-43df-a6a6-27022790dbe2
+ID:   72356c48-5c50-4a0c-be30-65ff21cbf175
+URL:  ROI-CostGraphic_16304144634250/sheets/FarmBubblesGraphic
+---------------------------------------------------
+Name: Farm Bubbles Pivot
+Workbook: 2379e61d-b3d6-43df-a6a6-27022790dbe2
+ID:   1a4950ef-d595-4138-92a1-0a7456f3b350
+URL:  ROI-CostGraphic_16304144634250/sheets/FarmBubblesPivot
+---------------------------------------------------
+Name: Farm Bubbles IAP Graphic
+Workbook: 2379e61d-b3d6-43df-a6a6-27022790dbe2
+ID:   604d407e-ce7f-424d-baa3-e6200318ae94
+URL:  ROI-CostGraphic_16304144634250/sheets/FarmBubblesIAPGraphic
+---------------------------------------------------
+Name: Bubble Friends Pivot
+Workbook: 2379e61d-b3d6-43df-a6a6-27022790dbe2
+ID:   6c32cdb0-ca65-47cd-bd47-0ff06bba259e
+URL:  ROI-CostGraphic_16304144634250/sheets/BubbleFriendsPivot
+---------------------------------------------------
+Name: Bubble Friends Graphic
+Workbook: 2379e61d-b3d6-43df-a6a6-27022790dbe2
+ID:   4aad2f2e-fff6-48b4-903c-883b99bab8af
+URL:  ROI-CostGraphic_16304144634250/sheets/BubbleFriendsGraphic
+---------------------------------------------------
+Name: Bubble Friends IAP Graphic
+Workbook: 2379e61d-b3d6-43df-a6a6-27022790dbe2
+ID:   3065b5e1-0988-4206-8b84-bfea3b3b2c80
+URL:  ROI-CostGraphic_16304144634250/sheets/BubbleFriendsIAPGraphic
+---------------------------------------------------
+Name: Farm Blast Pivot
+Workbook: 2379e61d-b3d6-43df-a6a6-27022790dbe2
+ID:   6ffe1dc3-0394-43fb-a9ac-d4d0aee0354a
+URL:  ROI-CostGraphic_16304144634250/sheets/FarmBlastPivot
+---------------------------------------------------
+Name: Farm Blast Graphic
+Workbook: 2379e61d-b3d6-43df-a6a6-27022790dbe2
+ID:   6327ea44-cc87-44b3-b115-75ddd59e0794
+URL:  ROI-CostGraphic_16304144634250/sheets/FarmBlastGraphic
+---------------------------------------------------
+Name: Farm Blast IAP Graphic
+Workbook: 2379e61d-b3d6-43df-a6a6-27022790dbe2
+ID:   4e5c6d37-4f59-47e6-aa1d-3cd316e1d974
+URL:  ROI-CostGraphic_16304144634250/sheets/FarmBlastIAPGraphic
+---------------------------------------------------
+Name: Bubble Friends Reward Games Report
+Workbook: c769896c-ebcf-4444-af10-450b71a22ffe
+ID:   852fcfae-4005-4643-8bba-3d8e48cd5fd5
+URL:  BubbleFriendsRewardGames/sheets/BubbleFriendsRewardGamesReport
+---------------------------------------------------
+Name: Cost Graphic
+Workbook: 4d629219-77d5-4d57-922a-15d54428ba5c
+ID:   d0425c2d-6a72-4087-a0ab-24315674780d
+URL:  StudioSuggestedBid/sheets/CostGraphic
+---------------------------------------------------
+Name: Network/Cost SOV
+Workbook: 4ff943b9-d669-4964-963d-7292ffedc26d
+ID:   ca8695a2-2deb-45b4-ba65-57d8ad332c3d
+URL:  CostGraphic/sheets/NetworkCostSOV
+---------------------------------------------------
+Name: Top 10 Country/Cost SOV
+Workbook: 4ff943b9-d669-4964-963d-7292ffedc26d
+ID:   186dd124-ed39-4d2d-bc18-7a5792c937c7
+URL:  CostGraphic/sheets/Top10CountryCostSOV
+---------------------------------------------------
+Name: Dashboard 
+Workbook: 3075ee7f-d6fc-440b-992a-f3918e037f91
+ID:   ba171504-e7ea-4438-a33c-ebd511d77687
+URL:  COLLECTIONDATE/sheets/Dashboard
+---------------------------------------------------
+Name: Narcade
+Workbook: 4ff943b9-d669-4964-963d-7292ffedc26d
+ID:   e2514e35-39e5-482e-bb30-9627ba77f315
+URL:  CostGraphic/sheets/Narcade
+---------------------------------------------------
+Name: Games(Cost)
+Workbook: 4ff943b9-d669-4964-963d-7292ffedc26d
+ID:   84c35aa3-0bb1-4c87-b1bb-0382094e4187
+URL:  CostGraphic/sheets/GamesCost
+---------------------------------------------------
+Name: Games(Install)
+Workbook: 4ff943b9-d669-4964-963d-7292ffedc26d
+ID:   54901e91-0307-4e36-983b-3545cfcfe191
+URL:  CostGraphic/sheets/GamesInstall
+---------------------------------------------------
+Name: Media Source/Install
+Workbook: 4ff943b9-d669-4964-963d-7292ffedc26d
+ID:   810001a9-39be-4f68-bcad-8a2dcc5466c6
+URL:  CostGraphic/sheets/MediaSourceInstall
+---------------------------------------------------
+Name: CPI Change
+Workbook: 4ff943b9-d669-4964-963d-7292ffedc26d
+ID:   f4615455-5947-4ecf-b242-8d2d975722e8
+URL:  CostGraphic/sheets/CPIChange
+---------------------------------------------------
+Name: CPI Change Graph
+Workbook: 4ff943b9-d669-4964-963d-7292ffedc26d
+ID:   b447d6f1-b184-4710-a0a8-e746cca98234
+URL:  CostGraphic/sheets/CPIChangeGraph
+---------------------------------------------------
+Name: All Game Graphic
+Workbook: db97de7d-4b43-4ab4-a0ba-0ffd9a3b9727
+ID:   8bc0ee88-89f3-445d-8e94-c11d094e2343
+URL:  yenitablo/sheets/AllGameGraphic
+---------------------------------------------------
+Name: Ads Graphic
+Workbook: db97de7d-4b43-4ab4-a0ba-0ffd9a3b9727
+ID:   70e8e1a8-29e9-4f34-959d-7477fcd875a8
+URL:  yenitablo/sheets/AdsGraphic
+---------------------------------------------------
+Name: Game Pivot
+Workbook: db97de7d-4b43-4ab4-a0ba-0ffd9a3b9727
+ID:   34688617-f13a-443e-b7f2-68928c07831f
+URL:  yenitablo/sheets/GamePivot
+---------------------------------------------------
+Name: Campaign Pivot
+Workbook: db97de7d-4b43-4ab4-a0ba-0ffd9a3b9727
+ID:   8a631638-8d1f-4dbb-9328-607fbbe0ad06
+URL:  yenitablo/sheets/CampaignPivot
+---------------------------------------------------
+Name: Country Pivot
+Workbook: db97de7d-4b43-4ab4-a0ba-0ffd9a3b9727
+ID:   47c478f0-8f0a-4583-8b5b-22a6b654e114
+URL:  yenitablo/sheets/CountryPivot
+---------------------------------------------------
+Name: IAP Graphic
+Workbook: db97de7d-4b43-4ab4-a0ba-0ffd9a3b9727
+ID:   1c9f47a2-8161-46a3-9622-6a47d94749ff
+URL:  yenitablo/sheets/IAPGraphic
+---------------------------------------------------
+Name: Network Pivot
+Workbook: db97de7d-4b43-4ab4-a0ba-0ffd9a3b9727
+ID:   4b24550d-9008-4f9b-8642-c63dbc828402
+URL:  yenitablo/sheets/NetworkPivot
+---------------------------------------------------
+Name: Farm Bubbles Reward Games Analyse
+Workbook: 3b8ff16e-d169-4504-b1d1-92cf662f3b43
+ID:   3d124682-9108-46c3-9c61-884be1298303
+URL:  FarmBubblesRewardGames/sheets/FarmBubblesRewardGamesAnalyse
+---------------------------------------------------
+Name: Studio - Cohort 120
+Workbook: ab49d1b8-b2df-4354-85af-d6df9b393d84
+ID:   01aca9ad-f9f0-4881-92e4-c7757163211d
+URL:  NarcadeCohortReports/sheets/Studio-Cohort120
+---------------------------------------------------
+Name: Studio - Cohort 7
+Workbook: ab49d1b8-b2df-4354-85af-d6df9b393d84
+ID:   4074c95e-c3be-4627-a40c-c2fdad82e875
+URL:  NarcadeCohortReports/sheets/Studio-Cohort7
+---------------------------------------------------
+Name: Campaign Perform
+Workbook: ab49d1b8-b2df-4354-85af-d6df9b393d84
+ID:   5829ad85-cd67-4029-84c4-7437dcde92ad
+URL:  NarcadeCohortReports/sheets/CampaignPerform
+---------------------------------------------------
+Name: Studio - Cohort 120
+Workbook: 0bacdd1c-562d-48c0-9a2a-5a7dc06fa892
+ID:   dc1d719f-babd-49d9-bf8d-1b9541385eaf
+URL:  NarcadeCohortRepots/sheets/Studio-Cohort120
+---------------------------------------------------
+Name: Studio - Cohort 7
+Workbook: 0bacdd1c-562d-48c0-9a2a-5a7dc06fa892
+ID:   2b7faac9-aeae-4faf-a083-7665de12047a
+URL:  NarcadeCohortRepots/sheets/Studio-Cohort7
+---------------------------------------------------
+Name: Campaign Perform
+Workbook: 0bacdd1c-562d-48c0-9a2a-5a7dc06fa892
+ID:   812b01f9-f3e1-4238-b0c7-093df4299cf0
+URL:  NarcadeCohortRepots/sheets/CampaignPerform
+---------------------------------------------------
+Name: MONTHS SOURCE
+Workbook: 33875a66-6842-4d7a-b925-ea130264ee32
+ID:   87a02f4d-740e-4c6f-9fc7-1cc55a73a172
+URL:  DATABASE/sheets/MONTHSSOURCE
+---------------------------------------------------
+Name: MONTHS APPS
+Workbook: 33875a66-6842-4d7a-b925-ea130264ee32
+ID:   7ec7d645-b03b-45e6-a0c6-42e15fab91b2
+URL:  DATABASE/sheets/MONTHSAPPS
+---------------------------------------------------
+Name: COST-REVENUE
+Workbook: 33875a66-6842-4d7a-b925-ea130264ee32
+ID:   0c8367c5-fa0c-4e1c-a395-ce95367454ca
+URL:  DATABASE/sheets/COST-REVENUE
+---------------------------------------------------
+Name: REVENUE-COST
+Workbook: 33875a66-6842-4d7a-b925-ea130264ee32
+ID:   baa3f806-fe2d-4443-910d-57689747db88
+URL:  DATABASE/sheets/REVENUE-COST
+---------------------------------------------------
+Name: REVENUE
+Workbook: 33875a66-6842-4d7a-b925-ea130264ee32
+ID:   d1951958-2304-49f5-aba6-1f3fc16a4891
+URL:  DATABASE/sheets/REVENUE
+---------------------------------------------------
+Name: COST
+Workbook: 33875a66-6842-4d7a-b925-ea130264ee32
+ID:   86b093d6-cf5d-4478-b159-02ca49e254ef
+URL:  DATABASE/sheets/COST
+---------------------------------------------------
+Name: INAPP
+Workbook: 33875a66-6842-4d7a-b925-ea130264ee32
+ID:   80520c51-c84d-474c-8ae4-fa161502ccad
+URL:  DATABASE/sheets/INAPP
+---------------------------------------------------
+Name: INAPP-REVENUE
+Workbook: 33875a66-6842-4d7a-b925-ea130264ee32
+ID:   1fe5c221-5f4f-46ed-bda4-2667eb17de9f
+URL:  DATABASE/sheets/INAPP-REVENUE
+---------------------------------------------------
+Name: User Drilldown
+Workbook: c267ab9e-69dd-4248-b965-b2958091b3de
+ID:   89038e10-1846-4cdb-a630-bf0bd8ae8e9a
+URL:  AdminInsightsStarter/sheets/UserDrilldown
+---------------------------------------------------
+Name: Group Drilldown
+Workbook: c267ab9e-69dd-4248-b965-b2958091b3de
+ID:   d8a6e08b-a40b-4aa2-bb55-ebebbd8882ab
+URL:  AdminInsightsStarter/sheets/GroupDrilldown
+---------------------------------------------------
+Name: Stale Content
+Workbook: c267ab9e-69dd-4248-b965-b2958091b3de
+ID:   640a9176-afa5-4d06-81f3-013f65172f75
+URL:  AdminInsightsStarter/sheets/StaleContent
+---------------------------------------------------
+Name: Stats for Space Usage
+Workbook: c267ab9e-69dd-4248-b965-b2958091b3de
+ID:   48564a8e-c9c7-4cb7-b9dd-7d006c21259a
+URL:  AdminInsightsStarter/sheets/StatsforSpaceUsage
+---------------------------------------------------
+Name: Cohort Analysis
+Workbook: 384c5306-90a7-40db-9565-b974b857ecfe
+ID:   dd5bf1be-a25d-4ea8-99b5-a99712a3f871
+URL:  iOS14Dashboard/sheets/CohortAnalysis
+---------------------------------------------------
+Name: Cohort Analysis Daily
+Workbook: 384c5306-90a7-40db-9565-b974b857ecfe
+ID:   201e1445-54b5-45bc-8673-0b1dfa8751ad
+URL:  iOS14Dashboard/sheets/CohortAnalysisDaily
+---------------------------------------------------
+Name: Cohort Reports
+Workbook: 384c5306-90a7-40db-9565-b974b857ecfe
+ID:   229f59b8-b483-44e9-93af-daa4cf04b7c3
+URL:  iOS14Dashboard/sheets/CohortReports
+---------------------------------------------------
+Name: Campaign Reports
+Workbook: 384c5306-90a7-40db-9565-b974b857ecfe
+ID:   638a295a-61ce-438b-8b84-5b7e6271ba66
+URL:  iOS14Dashboard/sheets/CampaignReports
+---------------------------------------------------
+Name: Campaign Comparison
+Workbook: ab49d1b8-b2df-4354-85af-d6df9b393d84
+ID:   460dff60-8eea-482f-9a01-c74021f1c344
+URL:  NarcadeCohortReports/sheets/CampaignComparison
+---------------------------------------------------
+Name: Activity
+Workbook: e7955a31-f424-4b7c-b6a3-53abb75be70d
+ID:   29bfe1f2-4b5c-4795-ac15-53ea68b61161
+URL:  Activity/sheets/Activity
+---------------------------------------------------
+Name: Cohort Revenue
+Workbook: 6e0d7e93-13eb-4b47-9a96-28d8b6d87312
+ID:   e7e99a62-a988-49a9-8a2d-a0ad67dfcb78
+URL:  CohortAnalysis/sheets/CohortRevenue
+---------------------------------------------------
+Name: Overall
+Workbook: 6e0d7e93-13eb-4b47-9a96-28d8b6d87312
+ID:   cb33b721-a999-4605-9acd-2a9450c3c190
+URL:  CohortAnalysis/sheets/Overall
+---------------------------------------------------
+Name: Game
+Workbook: 6e0d7e93-13eb-4b47-9a96-28d8b6d87312
+ID:   c4a7aa3f-53c7-4f91-800b-286dd77f8c3c
+URL:  CohortAnalysis/sheets/Game
+---------------------------------------------------
+Name: Campaign
+Workbook: 6e0d7e93-13eb-4b47-9a96-28d8b6d87312
+ID:   3bc6ddfb-84cb-48d3-a215-412fe1d63e4c
+URL:  CohortAnalysis/sheets/Campaign
+---------------------------------------------------
+Name: Main
+Workbook: 0f039801-3c2a-43d9-b8b9-688b236363da
+ID:   564e83fc-885b-4647-a448-5d019b38232d
+URL:  1_10_03vs1_10_04/sheets/Main
+---------------------------------------------------
+Name: Compare
+Workbook: 0f039801-3c2a-43d9-b8b9-688b236363da
+ID:   eeafc522-feed-4eb0-9cf2-f7c9c8c95fcf
+URL:  1_10_03vs1_10_04/sheets/Compare
+---------------------------------------------------
+Name: Main
+Workbook: e9291cac-e670-4e5b-9e29-2d98fc1e4ed5
+ID:   e41a8806-c865-4071-b398-179ae904cdfa
+URL:  Activity-Version-Retention/sheets/Main
+---------------------------------------------------
+Name: Compare
+Workbook: e9291cac-e670-4e5b-9e29-2d98fc1e4ed5
+ID:   6b9f75cc-5d9c-4c49-87a7-baacf6e986e4
+URL:  Activity-Version-Retention/sheets/Compare
+---------------------------------------------------
+Name: Retention//Overall
+Workbook: e9291cac-e670-4e5b-9e29-2d98fc1e4ed5
+ID:   9e017f53-64a9-4e1b-a856-793feeb3b5fb
+URL:  Activity-Version-Retention/sheets/RetentionOverall
+---------------------------------------------------
+Name: Retention//Version
+Workbook: e9291cac-e670-4e5b-9e29-2d98fc1e4ed5
+ID:   911c2e82-3112-4091-b579-9b0d0d818399
+URL:  Activity-Version-Retention/sheets/RetentionVersion
+---------------------------------------------------
+Name: User
+Workbook: 1ad2d43b-4a69-4318-b317-9e878c1ac683
+ID:   b297624a-4c60-462e-996a-911ec5ba3adc
+URL:  AdmostIAPLog/sheets/User
+---------------------------------------------------
+Name: Product
+Workbook: 1ad2d43b-4a69-4318-b317-9e878c1ac683
+ID:   a15c46bc-a3cf-4c20-b8fb-a719674810a0
+URL:  AdmostIAPLog/sheets/Product
+---------------------------------------------------
+Name: Product Mobile
+Workbook: 1ad2d43b-4a69-4318-b317-9e878c1ac683
+ID:   7621487b-66ad-4aa2-a63c-8f4bd7648225
+URL:  AdmostIAPLog/sheets/ProductMobile
+---------------------------------------------------
+Name: Product(Piggy/Endless/Other)
+Workbook: 1ad2d43b-4a69-4318-b317-9e878c1ac683
+ID:   62314237-4a01-4954-ba5b-7703d5e19dfb
+URL:  AdmostIAPLog/sheets/ProductPiggyEndlessOther
+---------------------------------------------------
+Name: LineGraph
+Workbook: 1ad2d43b-4a69-4318-b317-9e878c1ac683
+ID:   118ac040-961f-43b4-ad76-63ea5d9de29e
+URL:  AdmostIAPLog/sheets/LineGraph
+---------------------------------------------------
+Name: InAppPurchaseByCountry
+Workbook: 1ad2d43b-4a69-4318-b317-9e878c1ac683
+ID:   c4bf31f2-1bea-44d2-85ca-a08bce006f33
+URL:  AdmostIAPLog/sheets/InAppPurchaseByCountry
+---------------------------------------------------
+Name: Activity Main Board
+Workbook: 2ec99c4b-640c-4418-a45a-facde31d1c64
+ID:   a341f439-c6f6-4cb5-a2c8-7fc9a6acb9f1
+URL:  GameAnalytics_16490733391260/sheets/ActivityMainBoard
+---------------------------------------------------
+Name: Cohort Main Board
+Workbook: 2ec99c4b-640c-4418-a45a-facde31d1c64
+ID:   4f0ebecf-13c1-46e5-8115-8e4d2ec2e834
+URL:  GameAnalytics_16490733391260/sheets/CohortMainBoard
+---------------------------------------------------
+Name: Cohort Version Compare Board
+Workbook: 2ec99c4b-640c-4418-a45a-facde31d1c64
+ID:   976369b0-d4ab-4c88-9c58-cbb71b26d199
+URL:  GameAnalytics_16490733391260/sheets/CohortVersionCompareBoard
+---------------------------------------------------
+Name: Cohort Version Compare Board//Static
+Workbook: 2ec99c4b-640c-4418-a45a-facde31d1c64
+ID:   e8759190-d131-497f-95af-8891b84c2501
+URL:  GameAnalytics_16490733391260/sheets/CohortVersionCompareBoardStatic
+---------------------------------------------------
+Name: Activity Main Line
+Workbook: 2ec99c4b-640c-4418-a45a-facde31d1c64
+ID:   663f67b0-b93c-4404-b15c-02028d7e0034
+URL:  GameAnalytics_16490733391260/sheets/ActivityMainLine
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: b8df842b-2e9a-40e1-af49-864177788416
+ID:   47da82a7-5de0-4c47-9dad-b3dce537d928
+URL:  BubbleFriends3DayChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Main Churn Toplu 3day
+Workbook: b8df842b-2e9a-40e1-af49-864177788416
+ID:   97a576da-abdd-4964-b9ee-d1845ee948d4
+URL:  BubbleFriends3DayChurn/sheets/MainChurnToplu3day
+---------------------------------------------------
+Name: Main Churn AB Ayrık
+Workbook: b8df842b-2e9a-40e1-af49-864177788416
+ID:   82c116db-7202-4d25-ac7b-28c5ba6887a5
+URL:  BubbleFriends3DayChurn/sheets/MainChurnABAyrk
+---------------------------------------------------
+Name: Main Churn AB Ayrık 3day
+Workbook: b8df842b-2e9a-40e1-af49-864177788416
+ID:   259d58bc-9e7d-40c5-bebb-1136461534c8
+URL:  BubbleFriends3DayChurn/sheets/MainChurnABAyrk3day
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: a4ae84ed-e186-4ff7-bb20-763f74342502
+ID:   c0033386-5d1a-40d8-a38e-103fe9e8c05d
+URL:  FarmBlastChurnv3_0/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Main Churn Toplu 3day
+Workbook: a4ae84ed-e186-4ff7-bb20-763f74342502
+ID:   ccc5997d-7be4-4678-9cf9-118d9cc57c36
+URL:  FarmBlastChurnv3_0/sheets/MainChurnToplu3day
+---------------------------------------------------
+Name: Main Churn AB Ayrık
+Workbook: a4ae84ed-e186-4ff7-bb20-763f74342502
+ID:   4e036186-3091-4152-80e1-a0c6a6041a11
+URL:  FarmBlastChurnv3_0/sheets/MainChurnABAyrk
+---------------------------------------------------
+Name: Main Churn AB Ayrık 3day
+Workbook: a4ae84ed-e186-4ff7-bb20-763f74342502
+ID:   c57cc0c0-1a1a-468e-8371-d6290b1f217c
+URL:  FarmBlastChurnv3_0/sheets/MainChurnABAyrk3day
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 3c378f87-c099-4dd7-99a7-92ab2a34da12
+ID:   022059b8-7a40-4e64-8559-f77bdc0a2916
+URL:  FarmBubbles3DayChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Main Churn Toplu 3day
+Workbook: 3c378f87-c099-4dd7-99a7-92ab2a34da12
+ID:   85a279b0-400b-46c1-a60f-7067885a72db
+URL:  FarmBubbles3DayChurn/sheets/MainChurnToplu3day
+---------------------------------------------------
+Name: Main Churn AB Ayrık
+Workbook: 3c378f87-c099-4dd7-99a7-92ab2a34da12
+ID:   7ab29f8a-ee8d-47a9-bf50-4adb8e4b6fc0
+URL:  FarmBubbles3DayChurn/sheets/MainChurnABAyrk
+---------------------------------------------------
+Name: Main Churn AB Ayrık 3day
+Workbook: 3c378f87-c099-4dd7-99a7-92ab2a34da12
+ID:   6c994123-4acf-4d55-a6fe-32a977d5872b
+URL:  FarmBubbles3DayChurn/sheets/MainChurnABAyrk3day
+---------------------------------------------------
+Name: Activity Main Line Compare
+Workbook: 2ec99c4b-640c-4418-a45a-facde31d1c64
+ID:   2aee1817-b3d8-4adb-bfc9-1316deb9f772
+URL:  GameAnalytics_16490733391260/sheets/ActivityMainLineCompare
+---------------------------------------------------
+Name: Sheet 4
+Workbook: b5b1d0b5-6889-4a84-a344-ed68dd6c6ebc
+ID:   d0fbd334-d0f2-4557-a30e-617dbe7a9352
+URL:  AdmostFarmBubblesUS-RawData/sheets/Sheet4
+---------------------------------------------------
+Name: Sheet 5
+Workbook: b5b1d0b5-6889-4a84-a344-ed68dd6c6ebc
+ID:   fc597586-b01d-4b2d-98e7-d296204f8582
+URL:  AdmostFarmBubblesUS-RawData/sheets/Sheet5
+---------------------------------------------------
+Name: Sheet 5 (2)
+Workbook: b5b1d0b5-6889-4a84-a344-ed68dd6c6ebc
+ID:   8a4ddb98-9872-472d-8ddc-a08337b7c5da
+URL:  AdmostFarmBubblesUS-RawData/sheets/Sheet52
+---------------------------------------------------
+Name: Performance Top
+Workbook: e59ab16e-8f40-4daa-8340-52d6891f9f1f
+ID:   2d490a4e-ec56-4224-9d04-48ce6bb91c20
+URL:  CohortAnalysisV2/sheets/PerformanceTop
+---------------------------------------------------
+Name: Performance Paid/Organic
+Workbook: e59ab16e-8f40-4daa-8340-52d6891f9f1f
+ID:   aa9b67de-d3a1-447c-a1e7-a322aa1f5626
+URL:  CohortAnalysisV2/sheets/PerformancePaidOrganic
+---------------------------------------------------
+Name: Game
+Workbook: e59ab16e-8f40-4daa-8340-52d6891f9f1f
+ID:   e6d73585-78ea-4c98-bac4-417f44e56269
+URL:  CohortAnalysisV2/sheets/Game
+---------------------------------------------------
+Name: Overall
+Workbook: e59ab16e-8f40-4daa-8340-52d6891f9f1f
+ID:   c23fe186-9e0d-4880-9164-5daebfa93653
+URL:  CohortAnalysisV2/sheets/Overall
+---------------------------------------------------
+Name: Cost- Graphic
+Workbook: e59ab16e-8f40-4daa-8340-52d6891f9f1f
+ID:   715beb92-f7d3-41f5-acc7-3410fedd0887
+URL:  CohortAnalysisV2/sheets/Cost-Graphic
+---------------------------------------------------
+Name: KPI Graphic
+Workbook: e59ab16e-8f40-4daa-8340-52d6891f9f1f
+ID:   cdc0db5d-a793-4708-9780-361b3c1e09ef
+URL:  CohortAnalysisV2/sheets/KPIGraphic
+---------------------------------------------------
+Name: KPI Compare
+Workbook: e59ab16e-8f40-4daa-8340-52d6891f9f1f
+ID:   55840d43-1132-417d-aaba-217d20feda97
+URL:  CohortAnalysisV2/sheets/KPICompare
+---------------------------------------------------
+Name: Install vs Cost
+Workbook: e59ab16e-8f40-4daa-8340-52d6891f9f1f
+ID:   b457f30f-a2a6-4521-830d-2c69c5341173
+URL:  CohortAnalysisV2/sheets/InstallvsCost
+---------------------------------------------------
+Name: Creative
+Workbook: e59ab16e-8f40-4daa-8340-52d6891f9f1f
+ID:   c506cfae-e8cc-43c9-abe0-475ef34e9a6f
+URL:  CohortAnalysisV2/sheets/Creative
+---------------------------------------------------
+Name: Creative&Country
+Workbook: e59ab16e-8f40-4daa-8340-52d6891f9f1f
+ID:   2502da91-a393-4ca1-9c50-c8a536e323d1
+URL:  CohortAnalysisV2/sheets/CreativeCountry
+---------------------------------------------------
+Name: Admost-Campaign
+Workbook: e59ab16e-8f40-4daa-8340-52d6891f9f1f
+ID:   19a3e3a1-0939-40f8-a206-51833e640815
+URL:  CohortAnalysisV2/sheets/Admost-Campaign
+---------------------------------------------------
+Name: Admost-CampaignSum
+Workbook: e59ab16e-8f40-4daa-8340-52d6891f9f1f
+ID:   52dc0fa4-b2eb-4d4c-be5b-ca51a1b21505
+URL:  CohortAnalysisV2/sheets/Admost-CampaignSum
+---------------------------------------------------
+Name: Performance Campaign - Country
+Workbook: e59ab16e-8f40-4daa-8340-52d6891f9f1f
+ID:   23d306a8-6ac4-40d5-93e2-ea526d25d5a9
+URL:  CohortAnalysisV2/sheets/PerformanceCampaign-Country
+---------------------------------------------------
+Name: Performance Date Country
+Workbook: e59ab16e-8f40-4daa-8340-52d6891f9f1f
+ID:   b3446338-7879-4a71-b316-435fd7b39308
+URL:  CohortAnalysisV2/sheets/PerformanceDateCountry
+---------------------------------------------------
+Name: Narcade Cohort Report
+Workbook: df622c9f-7af2-4ce0-b34d-51cb5be75d44
+ID:   c471b423-f8be-436a-a510-af1ba5ff93f5
+URL:  CohortReportQuarter/sheets/NarcadeCohortReport
+---------------------------------------------------
+Name: Narcade Cohort Report
+Workbook: cb41a280-39ce-4758-87bc-93c39db95f3c
+ID:   8cd19edc-8d55-47df-aa7a-fadc64b64d7f
+URL:  CohortReportMonthly/sheets/NarcadeCohortReport
+---------------------------------------------------
+Name: Ret+ARPU_LVL35
+Workbook: 08dc98f4-2f39-41e5-8fa0-2b0dd8ff3ea3
+ID:   b41116f5-d5b9-4a18-97f1-e0ff89b557f7
+URL:  ABTesting_Segmented/sheets/RetARPU_LVL35
+---------------------------------------------------
+Name: LVL_Complete_LVL35
+Workbook: 08dc98f4-2f39-41e5-8fa0-2b0dd8ff3ea3
+ID:   9452977a-d944-46d7-9048-f8dcd8f19343
+URL:  ABTesting_Segmented/sheets/LVL_Complete_LVL35
+---------------------------------------------------
+Name: InApp_LVL35
+Workbook: 08dc98f4-2f39-41e5-8fa0-2b0dd8ff3ea3
+ID:   f78921ff-ac75-4f3a-b1ab-4c58f4aea0c2
+URL:  ABTesting_Segmented/sheets/InApp_LVL35
+---------------------------------------------------
+Name: Performance Dashboard
+Workbook: 0c94db76-7278-4776-b71f-9b0152704425
+ID:   3bed7d32-0747-42c9-ac8e-ee591e1451c1
+URL:  PerformanceDashboards/sheets/PerformanceDashboard
+---------------------------------------------------
+Name: Performance Compare Dashboard
+Workbook: 0c94db76-7278-4776-b71f-9b0152704425
+ID:   c0d810d2-440c-4f03-8034-31b79b5ba483
+URL:  PerformanceDashboards/sheets/PerformanceCompareDashboard
+---------------------------------------------------
+Name: Top Metrics Dashboard
+Workbook: 0c94db76-7278-4776-b71f-9b0152704425
+ID:   5e7be211-4368-4f20-8a0e-af1077f53860
+URL:  PerformanceDashboards/sheets/TopMetricsDashboard
+---------------------------------------------------
+Name: Android - Finans-OrganikliROI
+Workbook: 31809e80-6530-404a-8773-12b4df96d5f5
+ID:   0dfa47d1-808f-47ed-92d5-90cc3f2daf98
+URL:  Finans-OrganikliROI_16488048806100/sheets/Android-Finans-OrganikliROI
+---------------------------------------------------
+Name: iOS - Finans-OrganikliROI
+Workbook: 31809e80-6530-404a-8773-12b4df96d5f5
+ID:   ae814f2d-0829-4868-b2be-ccb9343d9cdd
+URL:  Finans-OrganikliROI_16488048806100/sheets/iOS-Finans-OrganikliROI
+---------------------------------------------------
+Name: Narcade Cohort Report
+Workbook: 062efa09-9062-4db7-b31d-699b118a0da4
+ID:   fe795633-43c5-40e8-9eb2-d14534c7c65e
+URL:  CohortReport-Montly/sheets/NarcadeCohortReport
+---------------------------------------------------
+Name: Narcade Cohort Report
+Workbook: 6be958dd-9396-4c51-a566-961d5e7c0816
+ID:   e586ec58-f3ec-4462-83e7-7eb7ee2cbf86
+URL:  CohortReport-Weekly/sheets/NarcadeCohortReport
+---------------------------------------------------
+Name: Cost NETWORK
+Workbook: 6be958dd-9396-4c51-a566-961d5e7c0816
+ID:   7f5a3146-6b5b-4348-b569-7904e165a5ce
+URL:  CohortReport-Weekly/sheets/CostNETWORK
+---------------------------------------------------
+Name: SourceMain
+Workbook: 6c0a22e6-45ad-4cd4-ad72-b24648ee5b86
+ID:   fec9fc8c-58c2-4842-8416-e8213de525d0
+URL:  GameEconomy/sheets/SourceMain
+---------------------------------------------------
+Name: SourceByLevel
+Workbook: 6c0a22e6-45ad-4cd4-ad72-b24648ee5b86
+ID:   3178e52d-11f4-430f-834e-84f15ff8a546
+URL:  GameEconomy/sheets/SourceByLevel
+---------------------------------------------------
+Name: SourceByType
+Workbook: 6c0a22e6-45ad-4cd4-ad72-b24648ee5b86
+ID:   bffc264b-b0cd-4151-9aab-2d8b4116ccfe
+URL:  GameEconomy/sheets/SourceByType
+---------------------------------------------------
+Name: SinkMain
+Workbook: 6c0a22e6-45ad-4cd4-ad72-b24648ee5b86
+ID:   c6f4b860-d987-4891-a79d-05f0fd26c244
+URL:  GameEconomy/sheets/SinkMain
+---------------------------------------------------
+Name: SinkByLevel
+Workbook: 6c0a22e6-45ad-4cd4-ad72-b24648ee5b86
+ID:   60448bd7-d79d-473b-badc-82b9a701f7a7
+URL:  GameEconomy/sheets/SinkByLevel
+---------------------------------------------------
+Name: SinkByType
+Workbook: 6c0a22e6-45ad-4cd4-ad72-b24648ee5b86
+ID:   e3e05b27-18cc-4753-89b5-c4a61b95f8ba
+URL:  GameEconomy/sheets/SinkByType
+---------------------------------------------------
+Name: Coin Balance
+Workbook: 6c0a22e6-45ad-4cd4-ad72-b24648ee5b86
+ID:   c9affbf0-4879-4ef2-88f4-6d68a84a15db
+URL:  GameEconomy/sheets/CoinBalance
+---------------------------------------------------
+Name: Sink&Source
+Workbook: 6c0a22e6-45ad-4cd4-ad72-b24648ee5b86
+ID:   a992f396-808b-42b5-bd4b-33cb72a06855
+URL:  GameEconomy/sheets/SinkSource
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 3228bf25-5a41-4e33-bfe9-7d927b2b1c92
+ID:   5ca8de73-ce67-44f8-bce5-10632c3c4140
+URL:  FarmBlastChurnv4_0/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Main Churn AB Ayrık
+Workbook: 3228bf25-5a41-4e33-bfe9-7d927b2b1c92
+ID:   0ffb3cbf-cf2b-433a-a85e-d4863ddac187
+URL:  FarmBlastChurnv4_0/sheets/MainChurnABAyrk
+---------------------------------------------------
+Name: C_GameType
+Workbook: 436bbfe1-97cb-45f7-b521-3eb964112457
+ID:   bebf0bec-9b84-475b-a664-3789c8166667
+URL:  CreativeTypesDemo/sheets/C_GameType
+---------------------------------------------------
+Name: C_ColorBallCount
+Workbook: 436bbfe1-97cb-45f7-b521-3eb964112457
+ID:   54cfac4b-6fb0-4a7e-a0e4-ddfcbb8807fe
+URL:  CreativeTypesDemo/sheets/C_ColorBallCount
+---------------------------------------------------
+Name: C_Animals
+Workbook: 436bbfe1-97cb-45f7-b521-3eb964112457
+ID:   c1a80b9d-6750-4eae-97ed-fa5acd9d547c
+URL:  CreativeTypesDemo/sheets/C_Animals
+---------------------------------------------------
+Name: C_Booster
+Workbook: 436bbfe1-97cb-45f7-b521-3eb964112457
+ID:   e5a80fe5-0a66-4530-bcdc-cf0135765709
+URL:  CreativeTypesDemo/sheets/C_Booster
+---------------------------------------------------
+Name: Campaign/C_GameType
+Workbook: 436bbfe1-97cb-45f7-b521-3eb964112457
+ID:   c80b187a-8637-417d-aeb0-007abe0c3813
+URL:  CreativeTypesDemo/sheets/CampaignC_GameType
+---------------------------------------------------
+Name: Campaign/All C_ Dimensions
+Workbook: 436bbfe1-97cb-45f7-b521-3eb964112457
+ID:   53ab6906-8bda-444d-bdb3-8ad68c68bea7
+URL:  CreativeTypesDemo/sheets/CampaignAllC_Dimensions
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 776453ff-d669-4ea7-9a84-53dc419a24d7
+ID:   e6c46138-3bd6-4480-b78e-8c512b492ac8
+URL:  BubbleFriendsChurnv4_0/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Main Churn Toplu 3day
+Workbook: 776453ff-d669-4ea7-9a84-53dc419a24d7
+ID:   f7097d55-2f86-422a-ae98-651740cfcf5c
+URL:  BubbleFriendsChurnv4_0/sheets/MainChurnToplu3day
+---------------------------------------------------
+Name: Main Churn AB Ayrık
+Workbook: 776453ff-d669-4ea7-9a84-53dc419a24d7
+ID:   0caf5705-b82b-40e2-a273-09e9836b81b7
+URL:  BubbleFriendsChurnv4_0/sheets/MainChurnABAyrk
+---------------------------------------------------
+Name: Main Churn AB Ayrık 3day
+Workbook: 776453ff-d669-4ea7-9a84-53dc419a24d7
+ID:   e56b8118-83fb-4178-9165-6ce0a64307be
+URL:  BubbleFriendsChurnv4_0/sheets/MainChurnABAyrk3day
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 157f8624-9927-46d3-844d-735521b60ce1
+ID:   1ed117cd-9791-4b7d-84d0-0862db8dd11f
+URL:  FarmBubblesChurnv4_0/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Main Churn Toplu 3day
+Workbook: 157f8624-9927-46d3-844d-735521b60ce1
+ID:   86a12b77-8343-41b5-a99e-92e0b4409d1b
+URL:  FarmBubblesChurnv4_0/sheets/MainChurnToplu3day
+---------------------------------------------------
+Name: Main Churn AB Ayrık
+Workbook: 157f8624-9927-46d3-844d-735521b60ce1
+ID:   dc3893e4-f772-4f66-a0fe-788dd259a413
+URL:  FarmBubblesChurnv4_0/sheets/MainChurnABAyrk
+---------------------------------------------------
+Name: Main Churn AB Ayrık 3day
+Workbook: 157f8624-9927-46d3-844d-735521b60ce1
+ID:   4ae8ea21-40d4-44ab-9f62-9b1657b532c9
+URL:  FarmBubblesChurnv4_0/sheets/MainChurnABAyrk3day
+---------------------------------------------------
+Name: CPE All Campaign Report
+Workbook: 64cc371a-3883-4bf7-bf4c-38120c04062e
+ID:   ece6d600-1f4b-4d45-9cef-7c174d6d57ad
+URL:  CPEAllCampaignReport/sheets/CPEAllCampaignReport
+---------------------------------------------------
+Name: RewardGame
+Workbook: 776453ff-d669-4ea7-9a84-53dc419a24d7
+ID:   984e566f-4841-496f-a01d-2bc505b2120a
+URL:  BubbleFriendsChurnv4_0/sheets/RewardGame
+---------------------------------------------------
+Name: RewardGame
+Workbook: 157f8624-9927-46d3-844d-735521b60ce1
+ID:   dd01e6b7-2502-498e-ab69-cb3ea82d01bc
+URL:  FarmBubblesChurnv4_0/sheets/RewardGame
+---------------------------------------------------
+Name: Cohort-LD-Report
+Workbook: 2ec99c4b-640c-4418-a45a-facde31d1c64
+ID:   2e6a1968-8ea6-4e0a-87a1-48837e436814
+URL:  GameAnalytics_16490733391260/sheets/Cohort-LD-Report
+---------------------------------------------------
+Name: Dashboard
+Workbook: f6cebeb4-786e-44f4-9202-bd0a7f4631b7
+ID:   1f42119d-46ab-42f5-80ba-e0250c742d3b
+URL:  FarmBlast_16680847710220/sheets/Dashboard
+---------------------------------------------------
+Name: RatioCumulative(ByLevel)
+Workbook: f6cebeb4-786e-44f4-9202-bd0a7f4631b7
+ID:   cb830eb1-3825-4978-b9fd-78da12338c6a
+URL:  FarmBlast_16680847710220/sheets/RatioCumulativeByLevel
+---------------------------------------------------
+Name: RatioCumulative(Total)
+Workbook: f6cebeb4-786e-44f4-9202-bd0a7f4631b7
+ID:   157a371b-7626-49c9-a876-4262f138e62f
+URL:  FarmBlast_16680847710220/sheets/RatioCumulativeTotal
+---------------------------------------------------
+Name: RatioStep(ByLevel)
+Workbook: f6cebeb4-786e-44f4-9202-bd0a7f4631b7
+ID:   089ee267-43c0-44ab-be6a-485f0c84e791
+URL:  FarmBlast_16680847710220/sheets/RatioStepByLevel
+---------------------------------------------------
+Name: LevelsPassed(ByLevel)
+Workbook: f6cebeb4-786e-44f4-9202-bd0a7f4631b7
+ID:   a902417b-a071-4910-beb9-b5f0d85f43ff
+URL:  FarmBlast_16680847710220/sheets/LevelsPassedByLevel
+---------------------------------------------------
+Name: LevelsPass(Total)
+Workbook: f6cebeb4-786e-44f4-9202-bd0a7f4631b7
+ID:   c1f3bdf5-cd04-4b4b-b20f-9c6ccf79007f
+URL:  FarmBlast_16680847710220/sheets/LevelsPassTotal
+---------------------------------------------------
+Name: Daily#LevelsPassed
+Workbook: f6cebeb4-786e-44f4-9202-bd0a7f4631b7
+ID:   b89cb6cf-b153-402f-9e7b-c5af38f493bb
+URL:  FarmBlast_16680847710220/sheets/DailyLevelsPassed
+---------------------------------------------------
+Name: Dashboard
+Workbook: e7d521e5-af61-4c70-8667-ce6c56617f36
+ID:   253a26f0-4ed7-4d4a-9517-ea4da794e326
+URL:  FarmBubbles/sheets/Dashboard
+---------------------------------------------------
+Name: RatioCumulative(ByLevel)
+Workbook: e7d521e5-af61-4c70-8667-ce6c56617f36
+ID:   d6f060e9-30f5-47bd-b97d-ae3d0faeadae
+URL:  FarmBubbles/sheets/RatioCumulativeByLevel
+---------------------------------------------------
+Name: RatioCumulative(Total)
+Workbook: e7d521e5-af61-4c70-8667-ce6c56617f36
+ID:   d59793cb-1b89-454b-8a14-039803a97a4f
+URL:  FarmBubbles/sheets/RatioCumulativeTotal
+---------------------------------------------------
+Name: RatioStep(ByLevel)
+Workbook: e7d521e5-af61-4c70-8667-ce6c56617f36
+ID:   b7c46db2-c467-46d3-8bc6-b0538eefdd27
+URL:  FarmBubbles/sheets/RatioStepByLevel
+---------------------------------------------------
+Name: LevelsPassed(ByLevel)
+Workbook: e7d521e5-af61-4c70-8667-ce6c56617f36
+ID:   ff2a3fb2-e44d-4b17-b4bd-75ecf2e83dfa
+URL:  FarmBubbles/sheets/LevelsPassedByLevel
+---------------------------------------------------
+Name: LevelsPass(Total)
+Workbook: e7d521e5-af61-4c70-8667-ce6c56617f36
+ID:   025a8066-1334-405d-b873-71bf89dd2d57
+URL:  FarmBubbles/sheets/LevelsPassTotal
+---------------------------------------------------
+Name: Daily#LevelsPassed
+Workbook: e7d521e5-af61-4c70-8667-ce6c56617f36
+ID:   e4b52cab-b9f9-45a8-b1b8-be42a2ce90bb
+URL:  FarmBubbles/sheets/DailyLevelsPassed
+---------------------------------------------------
+Name: Graph Report
+Workbook: 776453ff-d669-4ea7-9a84-53dc419a24d7
+ID:   3f71ab3c-bfaa-431c-9a07-ad74fad07ab3
+URL:  BubbleFriendsChurnv4_0/sheets/GraphReport
+---------------------------------------------------
+Name: Graph Report
+Workbook: 157f8624-9927-46d3-844d-735521b60ce1
+ID:   cb5e6289-044e-49c8-8891-c03a32ae6444
+URL:  FarmBubblesChurnv4_0/sheets/GraphReport
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: e8761415-6d60-46f5-a784-ffea60519905
+ID:   419ea661-9bff-42e8-9053-3507e6fb79b2
+URL:  FarmBubblesChurnv4_2_1/sheets/MainChurnToplu
+---------------------------------------------------
+Name: RewardGame
+Workbook: e8761415-6d60-46f5-a784-ffea60519905
+ID:   8f7b1094-fa3d-4d0c-9af8-8714a5ca5beb
+URL:  FarmBubblesChurnv4_2_1/sheets/RewardGame
+---------------------------------------------------
+Name: Main Churn Toplu (ChurnChort)
+Workbook: e8761415-6d60-46f5-a784-ffea60519905
+ID:   064dc9ee-b6c3-4593-a655-ee8d8a745cff
+URL:  FarmBubblesChurnv4_2_1/sheets/MainChurnTopluChurnChort
+---------------------------------------------------
+Name: RewardGame
+Workbook: 2511d424-883b-4f30-a80c-9d24dbec1e36
+ID:   184929bf-3814-453e-bdca-86aec7007187
+URL:  BubbleFriendsChurnv4_2_1/sheets/RewardGame
+---------------------------------------------------
+Name: DAU
+Workbook: 5c2e2adf-803f-4323-8c84-aa1bffcde699
+ID:   b16a4ce2-ef65-4651-9ff6-74ceecd38be3
+URL:  FarmBlastPersonalization_v2/sheets/DAU
+---------------------------------------------------
+Name: Cohort
+Workbook: 5c2e2adf-803f-4323-8c84-aa1bffcde699
+ID:   ec10b078-b764-44ff-8a74-41ac70fdb021
+URL:  FarmBlastPersonalization_v2/sheets/Cohort
+---------------------------------------------------
+Name: DAU
+Workbook: b029ada9-29c3-4fb3-bc46-b94d4679bef7
+ID:   e0e2602a-8a5b-4dd3-9a5e-5791a2c85224
+URL:  FarmBubblesPersonalization_v2/sheets/DAU
+---------------------------------------------------
+Name: Cohort
+Workbook: b029ada9-29c3-4fb3-bc46-b94d4679bef7
+ID:   57d8840b-d2c6-4b13-a743-69cf03fac688
+URL:  FarmBubblesPersonalization_v2/sheets/Cohort
+---------------------------------------------------
+Name: Att Status Board
+Workbook: 5c46e7f4-00fd-48c6-9c65-7ef4b8880c7c
+ID:   43b92e45-9209-4ecd-b0b3-df57b66cac5f
+URL:  AttStatusBoard/sheets/AttStatusBoard
+---------------------------------------------------
+Name: Cohort || Takvim
+Workbook: 99c798aa-4e60-47a0-aca6-bf91857c5e58
+ID:   82ababe7-ad5d-4a41-b3ee-f4c23d0b9f91
+URL:  BubbleFriendsSimulation/sheets/CohortTakvim
+---------------------------------------------------
+Name: Main
+Workbook: 77a364ae-3a0f-445e-9278-105d5ceb3379
+ID:   644d4b8e-d9de-4245-8437-e24bd1b726a7
+URL:  Book3/sheets/Main
+---------------------------------------------------
+Name: Cohort Revenue Share
+Workbook: 2ec99c4b-640c-4418-a45a-facde31d1c64
+ID:   9badfed8-6e3c-47aa-8162-3f9f41ea253f
+URL:  GameAnalytics_16490733391260/sheets/CohortMainBoardLine2
+---------------------------------------------------
+Name: Cohort Revenue Ratio
+Workbook: 2ec99c4b-640c-4418-a45a-facde31d1c64
+ID:   ca409372-10c3-4794-888a-7795c2ddd8c3
+URL:  GameAnalytics_16490733391260/sheets/CohortRevenueRatio
+---------------------------------------------------
+Name: LevelPlayTime
+Workbook: 916ed29f-afb6-4950-9431-633f8bf84f15
+ID:   5b59369e-7e5e-4f5d-a874-979ae0c3697d
+URL:  LevelPlayTime_FarmBlast/sheets/LevelPlayTime
+---------------------------------------------------
+Name: Segmented Moves Dashboard
+Workbook: ffce3ddb-93ad-405d-9a83-e7518ea6b0c1
+ID:   05aeb09e-f17d-4be6-9ada-f5efa6e23078
+URL:  SegmentedMoves-ChurnDashboard/sheets/SegmentedMovesDashboard
+---------------------------------------------------
+Name: Organik/Paid
+Workbook: 2ec99c4b-640c-4418-a45a-facde31d1c64
+ID:   ceeec20d-c870-4f46-bbd4-1e644dbe4c29
+URL:  GameAnalytics_16490733391260/sheets/zgen
+---------------------------------------------------
+Name: GEO Install
+Workbook: 2ec99c4b-640c-4418-a45a-facde31d1c64
+ID:   4881374c-fb0c-4a7d-806d-bd7a25ff0087
+URL:  GameAnalytics_16490733391260/sheets/GEOInstall
+---------------------------------------------------
+Name: Summary_No_Segment
+Workbook: dbcbefb2-9a4a-45a7-9902-1232fcfe74b1
+ID:   83f83b0f-5f2c-4c5f-83fb-afa061ea833e
+URL:  FarmBubblesRewardedVideoABTest_Segmented/sheets/Summary_No_Segment
+---------------------------------------------------
+Name: Ret+ARPU_LVL5
+Workbook: dbcbefb2-9a4a-45a7-9902-1232fcfe74b1
+ID:   b24d599d-06ac-48cf-bbc5-a376618f14a8
+URL:  FarmBubblesRewardedVideoABTest_Segmented/sheets/RetARPU_LVL5
+---------------------------------------------------
+Name: Ret+ARPU_LVL35
+Workbook: dbcbefb2-9a4a-45a7-9902-1232fcfe74b1
+ID:   9bc460b4-c518-4ea2-bae8-62a63cbead0c
+URL:  FarmBubblesRewardedVideoABTest_Segmented/sheets/RetARPU_LVL35
+---------------------------------------------------
+Name: LVL_Complete_LVL5
+Workbook: dbcbefb2-9a4a-45a7-9902-1232fcfe74b1
+ID:   59256487-cf96-4252-9536-54ee1a17c294
+URL:  FarmBubblesRewardedVideoABTest_Segmented/sheets/LVL_Complete_LVL5
+---------------------------------------------------
+Name: LVL_Complete_LVL35
+Workbook: dbcbefb2-9a4a-45a7-9902-1232fcfe74b1
+ID:   4216cdb2-f318-4846-b2af-a98b525d7f1c
+URL:  FarmBubblesRewardedVideoABTest_Segmented/sheets/LVL_Complete_LVL35
+---------------------------------------------------
+Name: InApp_LVL5
+Workbook: dbcbefb2-9a4a-45a7-9902-1232fcfe74b1
+ID:   fc09925d-29c0-478c-ac9c-71d8f7ebca19
+URL:  FarmBubblesRewardedVideoABTest_Segmented/sheets/InApp_LVL5
+---------------------------------------------------
+Name: InApp_LVL35
+Workbook: dbcbefb2-9a4a-45a7-9902-1232fcfe74b1
+ID:   02426b7e-d8f7-4a0c-8197-4791fd686221
+URL:  FarmBubblesRewardedVideoABTest_Segmented/sheets/InApp_LVL35
+---------------------------------------------------
+Name: Segmented Moves Dashboard
+Workbook: 57417ba8-3e65-407f-9abd-eb34a72eeee5
+ID:   2283f644-45f4-4c6a-9cb3-b88b553181f7
+URL:  SegmentedMoves-ChurnDashboard_16811313874320/sheets/SegmentedMovesDashboard
+---------------------------------------------------
+Name: Ret+ARPU Overall + Install Date
+Workbook: dbcbefb2-9a4a-45a7-9902-1232fcfe74b1
+ID:   f0ade44e-3f84-4d05-ae69-5de6d120096c
+URL:  FarmBubblesRewardedVideoABTest_Segmented/sheets/RetARPUOverallInstallDate
+---------------------------------------------------
+Name: Barcharts
+Workbook: dbcbefb2-9a4a-45a7-9902-1232fcfe74b1
+ID:   87dd6e02-2715-4c60-9b26-b978e2710ee0
+URL:  FarmBubblesRewardedVideoABTest_Segmented/sheets/Barcharts
+---------------------------------------------------
+Name: Activity Main Board
+Workbook: eaee2a65-95cb-4397-bd4b-8d24e8ef5446
+ID:   31f4c591-84d5-42af-ba0a-ea61570249af
+URL:  FBu4_6_01vs4_6_0_2/sheets/ActivityMainBoard
+---------------------------------------------------
+Name: Activity Main Board GEO
+Workbook: eaee2a65-95cb-4397-bd4b-8d24e8ef5446
+ID:   1a41b0ee-f558-46a0-99f6-c8b330fec89d
+URL:  FBu4_6_01vs4_6_0_2/sheets/ActivityMainBoardGEO
+---------------------------------------------------
+Name: Activity Compare Board
+Workbook: eaee2a65-95cb-4397-bd4b-8d24e8ef5446
+ID:   3a9e1b1d-7edc-4035-9967-535e77f769e9
+URL:  FBu4_6_01vs4_6_0_2/sheets/ActivityCompareBoard
+---------------------------------------------------
+Name: Cohort Main Board
+Workbook: eaee2a65-95cb-4397-bd4b-8d24e8ef5446
+ID:   1d634ffd-ca7c-4f00-9aba-ac75f5791124
+URL:  FBu4_6_01vs4_6_0_2/sheets/CohortMainBoard
+---------------------------------------------------
+Name: Cohort Revenue Share
+Workbook: eaee2a65-95cb-4397-bd4b-8d24e8ef5446
+ID:   c07453e7-a256-44a6-bcc0-6e433a0c1033
+URL:  FBu4_6_01vs4_6_0_2/sheets/CohortRevenueShare
+---------------------------------------------------
+Name: Cohort Revenue Ratio
+Workbook: eaee2a65-95cb-4397-bd4b-8d24e8ef5446
+ID:   678a83a9-bcf5-43e2-a72e-db1be0fd0f83
+URL:  FBu4_6_01vs4_6_0_2/sheets/CohortRevenueRatio
+---------------------------------------------------
+Name: Cohort Version Compare Board
+Workbook: eaee2a65-95cb-4397-bd4b-8d24e8ef5446
+ID:   227a7dd0-e453-4acd-8945-0b7f449e74f7
+URL:  FBu4_6_01vs4_6_0_2/sheets/CohortVersionCompareBoard
+---------------------------------------------------
+Name: Cohort Version Compare Board//Static
+Workbook: eaee2a65-95cb-4397-bd4b-8d24e8ef5446
+ID:   d99eabee-09dd-4590-9faa-443403482d27
+URL:  FBu4_6_01vs4_6_0_2/sheets/CohortVersionCompareBoardStatic
+---------------------------------------------------
+Name: Activity Main Line
+Workbook: eaee2a65-95cb-4397-bd4b-8d24e8ef5446
+ID:   b69e99df-f295-41be-8adc-49e168385a15
+URL:  FBu4_6_01vs4_6_0_2/sheets/ActivityMainLine
+---------------------------------------------------
+Name: Activity Main Line Compare
+Workbook: eaee2a65-95cb-4397-bd4b-8d24e8ef5446
+ID:   beb9356f-28e0-4545-9ea4-3b6988c64895
+URL:  FBu4_6_01vs4_6_0_2/sheets/ActivityMainLineCompare
+---------------------------------------------------
+Name: Cohort-LD-Report
+Workbook: eaee2a65-95cb-4397-bd4b-8d24e8ef5446
+ID:   bc9e2413-f40f-47e2-b2d1-8c61b27c62fd
+URL:  FBu4_6_01vs4_6_0_2/sheets/Cohort-LD-Report
+---------------------------------------------------
+Name: AdmostActivity-MainBoard
+Workbook: eaee2a65-95cb-4397-bd4b-8d24e8ef5446
+ID:   fbb773f3-9a6b-4f9c-98cd-76d35a4555c9
+URL:  FBu4_6_01vs4_6_0_2/sheets/AdmostActivity-MainBoard
+---------------------------------------------------
+Name: Overall by Install Date
+Workbook: 08dc98f4-2f39-41e5-8fa0-2b0dd8ff3ea3
+ID:   66bbb57d-2f2e-47bb-830d-547d305ae3b8
+URL:  ABTesting_Segmented/sheets/OverallbyInstallDate
+---------------------------------------------------
+Name: Summary of A/B
+Workbook: 08dc98f4-2f39-41e5-8fa0-2b0dd8ff3ea3
+ID:   663f76f6-6260-4835-9ca0-f35c00171c1d
+URL:  ABTesting_Segmented/sheets/SummaryofAB
+---------------------------------------------------
+Name: Bar Charts
+Workbook: 08dc98f4-2f39-41e5-8fa0-2b0dd8ff3ea3
+ID:   245aff8c-7fc5-4e4f-bc52-1a3cb192b871
+URL:  ABTesting_Segmented/sheets/BarCharts
+---------------------------------------------------
+Name: Segmented Moves Dashboard
+Workbook: 12720d8b-f4a3-4d40-9e5b-9a3fba9dca4b
+ID:   e464cd8c-8baa-44e2-9781-d751b0a6e45b
+URL:  SegmentedMoves-ChurnDashboard_16826735520860/sheets/SegmentedMovesDashboard
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 4e64185c-1c50-4f7f-b13a-468fa2b52ad0
+ID:   1806f24c-75b9-47db-8ec3-53c785986965
+URL:  FarmBlastChampionsLeague/sheets/MainChurnToplu
+---------------------------------------------------
+Name: \wo Level Main Churn Toplu
+Workbook: 4e64185c-1c50-4f7f-b13a-468fa2b52ad0
+ID:   ddca8d18-f54e-4bc8-be35-01d5f51c2ef9
+URL:  FarmBlastChampionsLeague/sheets/woLevelMainChurnToplu
+---------------------------------------------------
+Name: Overall by Install Date
+Workbook: fed6136f-0c86-4e56-b280-c0f47eaf432c
+ID:   25281f9f-9cd3-4b83-bf9f-1c121831a330
+URL:  FarmBubblesSegment1Test/sheets/OverallbyInstallDate
+---------------------------------------------------
+Name: Summary of A/B
+Workbook: fed6136f-0c86-4e56-b280-c0f47eaf432c
+ID:   c66be54a-5166-4fc1-a968-f13a1ca1a296
+URL:  FarmBubblesSegment1Test/sheets/SummaryofAB
+---------------------------------------------------
+Name: Ret+ARPU_LVL5
+Workbook: fed6136f-0c86-4e56-b280-c0f47eaf432c
+ID:   afeb4dc0-df38-4f76-a9b4-16d459de7a88
+URL:  FarmBubblesSegment1Test/sheets/RetARPU_LVL5
+---------------------------------------------------
+Name: LVL_Complete_LVL5
+Workbook: fed6136f-0c86-4e56-b280-c0f47eaf432c
+ID:   ea041380-023a-4334-bbff-9ba79ea08d01
+URL:  FarmBubblesSegment1Test/sheets/LVL_Complete_LVL5
+---------------------------------------------------
+Name: InApp_LVL5
+Workbook: fed6136f-0c86-4e56-b280-c0f47eaf432c
+ID:   a7d2396c-1064-4fce-8daa-246e2b320500
+URL:  FarmBubblesSegment1Test/sheets/InApp_LVL5
+---------------------------------------------------
+Name: Ret+ARPU_LVL5
+Workbook: 758b932a-f90f-41b7-897d-a2b7b6e6564e
+ID:   03bf40ca-8c85-4bd9-885d-e7e785b55655
+URL:  FarmBubblesSegmentOverall/sheets/RetARPU_LVL5
+---------------------------------------------------
+Name: LVL_Complete_LVL5
+Workbook: 758b932a-f90f-41b7-897d-a2b7b6e6564e
+ID:   93b7f789-aa71-4336-82a3-069cf216fdad
+URL:  FarmBubblesSegmentOverall/sheets/LVL_Complete_LVL5
+---------------------------------------------------
+Name: InApp_LVL5
+Workbook: 758b932a-f90f-41b7-897d-a2b7b6e6564e
+ID:   5ed12102-8ace-42cc-b17c-39e16ea2a5bb
+URL:  FarmBubblesSegmentOverall/sheets/InApp_LVL5
+---------------------------------------------------
+Name: ARPDAU - Monthly
+Workbook: 6cd4b903-b3b9-4136-b8a7-034051371014
+ID:   f3b781e5-6d05-4abc-9494-1b9362ae01ff
+URL:  MontlyAnalysisReport/sheets/ARPDAU-Monthly
+---------------------------------------------------
+Name: ARPU - Monthly
+Workbook: 6cd4b903-b3b9-4136-b8a7-034051371014
+ID:   5c347d68-9d64-420a-a5b3-4798bbb5faf0
+URL:  MontlyAnalysisReport/sheets/ARPU-Monthly
+---------------------------------------------------
+Name: Retention Report - Monthly
+Workbook: 6cd4b903-b3b9-4136-b8a7-034051371014
+ID:   d7e4bd71-6a9c-4cff-8fbd-0147721a885b
+URL:  MontlyAnalysisReport/sheets/RetentionReport-Monthly
+---------------------------------------------------
+Name: Duration Report - Monthly
+Workbook: 6cd4b903-b3b9-4136-b8a7-034051371014
+ID:   c1ef6b2d-f317-4536-a82c-5b9c5107827c
+URL:  MontlyAnalysisReport/sheets/DurationReport-Monthly
+---------------------------------------------------
+Name: Country Report
+Workbook: 6cd4b903-b3b9-4136-b8a7-034051371014
+ID:   7432c730-b847-4b8f-ba82-d286f965d90f
+URL:  MontlyAnalysisReport/sheets/CountryReport
+---------------------------------------------------
+Name: Özgen abi
+Workbook: 2ec99c4b-640c-4418-a45a-facde31d1c64
+ID:   f9cbe750-9d41-450e-8141-524edff8b10a
+URL:  GameAnalytics_16490733391260/sheets/zgenabi
+---------------------------------------------------
+Name: Cohort Main Board - Monthly
+Workbook: 2ec99c4b-640c-4418-a45a-facde31d1c64
+ID:   7926a446-4046-463a-83a2-150a308da9bb
+URL:  GameAnalytics_16490733391260/sheets/CohortMainBoard-Monthly
+---------------------------------------------------
+Name: Forecast Data
+Workbook: 4a662fd5-03c9-49b0-8b02-b615eea6525a
+ID:   eed31ea4-3995-4412-ad6f-3420f78c21db
+URL:  ForecastData/sheets/ForecastData
+---------------------------------------------------
+Name: Performance Paid/Organic
+Workbook: 4a662fd5-03c9-49b0-8b02-b615eea6525a
+ID:   f1ead6cb-3e84-44de-bc57-037a702e2032
+URL:  ForecastData/sheets/PerformancePaidOrganic
+---------------------------------------------------
+Name: Cost- Graphic
+Workbook: 4a662fd5-03c9-49b0-8b02-b615eea6525a
+ID:   06061761-f10f-4d50-9dbd-efbbac766662
+URL:  ForecastData/sheets/Cost-Graphic
+---------------------------------------------------
+Name: KPI Graphic
+Workbook: 4a662fd5-03c9-49b0-8b02-b615eea6525a
+ID:   61e4a627-f6c4-4d84-8ce8-b27e7d35e816
+URL:  ForecastData/sheets/KPIGraphic
+---------------------------------------------------
+Name: KPI Compare
+Workbook: 4a662fd5-03c9-49b0-8b02-b615eea6525a
+ID:   b5f75de3-4141-4699-ab9d-09678bbc90fc
+URL:  ForecastData/sheets/KPICompare
+---------------------------------------------------
+Name: Install vs Cost
+Workbook: 4a662fd5-03c9-49b0-8b02-b615eea6525a
+ID:   bbdb2660-e2c2-4dab-9109-f7215c050d28
+URL:  ForecastData/sheets/InstallvsCost
+---------------------------------------------------
+Name: Admost-Campaign
+Workbook: 4a662fd5-03c9-49b0-8b02-b615eea6525a
+ID:   07518b8c-70a1-4014-9922-b5b7b84605ce
+URL:  ForecastData/sheets/Admost-Campaign
+---------------------------------------------------
+Name: Admost-CampaignSum
+Workbook: 4a662fd5-03c9-49b0-8b02-b615eea6525a
+ID:   9c57bfeb-3e28-4ed0-9b07-b82f1321f007
+URL:  ForecastData/sheets/Admost-CampaignSum
+---------------------------------------------------
+Name: Yatırım Retention
+Workbook: 4a662fd5-03c9-49b0-8b02-b615eea6525a
+ID:   f62f7a7e-1b32-4b91-83d0-5d294daff22e
+URL:  ForecastData/sheets/YatrmRetention
+---------------------------------------------------
+Name: Yatırım Revenue & DAU
+Workbook: 4a662fd5-03c9-49b0-8b02-b615eea6525a
+ID:   10590f2e-2805-4530-9b83-be16fc5713e5
+URL:  ForecastData/sheets/YatrmRevenueDAU
+---------------------------------------------------
+Name: Overall
+Workbook: 4a662fd5-03c9-49b0-8b02-b615eea6525a
+ID:   a0daeb6e-599d-41b9-a163-1200f5a5a957
+URL:  ForecastData/sheets/Overall
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 33f3c2d8-cca7-4c14-8ab6-9acf813413ba
+ID:   215c0105-57cc-4bfc-aa75-b1c39bb976aa
+URL:  TilePuzzleChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Main Churn Toplu (ChurnChort)
+Workbook: 33f3c2d8-cca7-4c14-8ab6-9acf813413ba
+ID:   91eb57c6-6073-42b0-bb0e-52140ead259b
+URL:  TilePuzzleChurn/sheets/MainChurnTopluChurnChort
+---------------------------------------------------
+Name: Segmented Moves Dashboard
+Workbook: ae9903f7-54da-4b3a-bb73-d4b6f3ae1101
+ID:   8490e356-40cc-4ec1-bdeb-c41989bbb9f3
+URL:  SegmentedMoves-ChurnDashboard_16875199717960/sheets/SegmentedMovesDashboard
+---------------------------------------------------
+Name: Level Complete Days
+Workbook: cae09446-3f1a-4bea-8f1e-f9f5ae1bcbb5
+ID:   fbb3feb9-dce4-4119-bfa4-2d20b996a482
+URL:  LevelCompleteDays-05_07_2023/sheets/LevelCompleteDays
+---------------------------------------------------
+Name: Monetization Template Page
+Workbook: b0c9f338-0d86-436f-928d-c09368f27675
+ID:   1eaefba6-d500-4880-a043-d9f3524055ea
+URL:  RewardedVideoAnalyse/sheets/MonetizationTemplatePage
+---------------------------------------------------
+Name: Monetization Template Page Line
+Workbook: b0c9f338-0d86-436f-928d-c09368f27675
+ID:   fe8d67db-1aa8-400d-bab9-8b36efc8b247
+URL:  RewardedVideoAnalyse/sheets/MonetizationTemplatePageLine
+---------------------------------------------------
+Name: Top Network Board
+Workbook: b0c9f338-0d86-436f-928d-c09368f27675
+ID:   aacac457-c4bb-4951-809e-0c53ec739217
+URL:  RewardedVideoAnalyse/sheets/TopNetworkBoard
+---------------------------------------------------
+Name: Top Level Board
+Workbook: b0c9f338-0d86-436f-928d-c09368f27675
+ID:   0aed5a15-8af5-48ba-9f60-c677bcc282e5
+URL:  RewardedVideoAnalyse/sheets/TopLevelBoard
+---------------------------------------------------
+Name: Level Complete Day
+Workbook: 34bf4a7e-e5d9-4cf9-90df-35738bbeffab
+ID:   deae67ca-65c0-47be-bf0b-195aedb2bc88
+URL:  FarmBlastLevelCompleteAnalyse12_07_2023/sheets/LevelCompleteDay
+---------------------------------------------------
+Name: Level Complete Ratios
+Workbook: 34bf4a7e-e5d9-4cf9-90df-35738bbeffab
+ID:   5e6c4971-ff57-4965-8073-ceec4fc33685
+URL:  FarmBlastLevelCompleteAnalyse12_07_2023/sheets/LevelCompleteRatios
+---------------------------------------------------
+Name: Overall by Install Date
+Workbook: 8599a6d9-2251-4439-9cfe-8d97e54a8531
+ID:   a7f39596-b873-4dc2-8a7a-dc33056ad825
+URL:  BubbleFriendsLevelTest/sheets/OverallbyInstallDate
+---------------------------------------------------
+Name: Summary of A/B
+Workbook: 8599a6d9-2251-4439-9cfe-8d97e54a8531
+ID:   2f4dc781-72c2-477d-8829-9a92898889b8
+URL:  BubbleFriendsLevelTest/sheets/SummaryofAB
+---------------------------------------------------
+Name: Ret+ARPU_LVL5
+Workbook: 8599a6d9-2251-4439-9cfe-8d97e54a8531
+ID:   762acafd-f7c3-488c-966c-70395bd673a8
+URL:  BubbleFriendsLevelTest/sheets/RetARPU_LVL5
+---------------------------------------------------
+Name: LVL_Complete_LVL5
+Workbook: 8599a6d9-2251-4439-9cfe-8d97e54a8531
+ID:   99fabd99-c9cb-4996-86d9-6d2ddc645286
+URL:  BubbleFriendsLevelTest/sheets/LVL_Complete_LVL5
+---------------------------------------------------
+Name: InApp_LVL5
+Workbook: 8599a6d9-2251-4439-9cfe-8d97e54a8531
+ID:   09b6a1c6-5b18-4335-933e-8377ef9175d0
+URL:  BubbleFriendsLevelTest/sheets/InApp_LVL5
+---------------------------------------------------
+Name: Ret+ARPU_LVL35
+Workbook: 8599a6d9-2251-4439-9cfe-8d97e54a8531
+ID:   4422bbd8-0f42-4a4d-81dd-36d636e39e90
+URL:  BubbleFriendsLevelTest/sheets/RetARPU_LVL35
+---------------------------------------------------
+Name: LVL_Complete_LVL35
+Workbook: 8599a6d9-2251-4439-9cfe-8d97e54a8531
+ID:   10d93c30-cdec-4d2e-ad5b-855ccc7f1f7e
+URL:  BubbleFriendsLevelTest/sheets/LVL_Complete_LVL35
+---------------------------------------------------
+Name: InApp_LVL35
+Workbook: 8599a6d9-2251-4439-9cfe-8d97e54a8531
+ID:   37c7cad0-851e-4d91-9a06-b3b451e6e1fa
+URL:  BubbleFriendsLevelTest/sheets/InApp_LVL35
+---------------------------------------------------
+Name: Bar Charts
+Workbook: 8599a6d9-2251-4439-9cfe-8d97e54a8531
+ID:   990912fb-764a-4d6d-8dfd-6600d7148c3c
+URL:  BubbleFriendsLevelTest/sheets/BarCharts
+---------------------------------------------------
+Name: Last X day
+Workbook: e59ab16e-8f40-4daa-8340-52d6891f9f1f
+ID:   7d839fe4-51e6-43e2-a1c3-8130c8307cfb
+URL:  CohortAnalysisV2/sheets/LastXday
+---------------------------------------------------
+Name: Tier
+Workbook: 0fcaefe4-cbf3-40ee-945d-0c157a20024e
+ID:   d52d72a4-b210-460e-bdf0-700f6dd3603b
+URL:  PredictionBeta/sheets/Tier
+---------------------------------------------------
+Name: Main
+Workbook: 0fcaefe4-cbf3-40ee-945d-0c157a20024e
+ID:   d5d14c08-af02-4029-848d-06fa6f27906d
+URL:  PredictionBeta/sheets/Tier3
+---------------------------------------------------
+Name: Creative
+Workbook: 0fcaefe4-cbf3-40ee-945d-0c157a20024e
+ID:   3ef69393-71de-4313-a2bd-9eb5ef0f32b9
+URL:  PredictionBeta/sheets/Creative
+---------------------------------------------------
+Name: Last X Day
+Workbook: 0fcaefe4-cbf3-40ee-945d-0c157a20024e
+ID:   f45f87c8-32ec-44e2-b974-24a9aec10303
+URL:  PredictionBeta/sheets/LastXDay
+---------------------------------------------------
+Name: Overall by Install Date
+Workbook: 4e4a2bcf-db4d-4b32-a097-576275f7039a
+ID:   2d55ae61-fcbe-49be-afb0-79c40b303472
+URL:  FarmBubblesforFriendsLevelAB/sheets/OverallbyInstallDate
+---------------------------------------------------
+Name: Overall
+Workbook: 4e4a2bcf-db4d-4b32-a097-576275f7039a
+ID:   76e2bfb8-1879-4f2e-bcf5-d8074135f98a
+URL:  FarmBubblesforFriendsLevelAB/sheets/Overall
+---------------------------------------------------
+Name: RecurringCustomers
+Workbook: 1ad2d43b-4a69-4318-b317-9e878c1ac683
+ID:   401f7ce8-f4e3-4663-bb8a-a28d32122078
+URL:  AdmostIAPLog/sheets/RecurringCustomers
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 400c00f6-b292-46e4-89f0-597ef8858216
+ID:   9271de4a-0a08-4f34-8227-5f2a623ff464
+URL:  FriendsAdventureChurn_16934843268990/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Main Churn AB Ayrık
+Workbook: 400c00f6-b292-46e4-89f0-597ef8858216
+ID:   7ca93b05-20a6-4733-9821-beaf749f0eb9
+URL:  FriendsAdventureChurn_16934843268990/sheets/MainChurnABAyrk
+---------------------------------------------------
+Name: SubLevel birleşik
+Workbook: 3665094e-e15e-4e1f-9d98-47dfa0386801
+ID:   55ac4bc5-4e74-4fcb-bc41-7d875430d089
+URL:  ZenMasterChurn/sheets/SubLevelbirleik
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 9c775bd1-e91b-41cf-8b72-a055e1e077e9
+ID:   5e7e4349-21ac-4623-9373-e95c8e8eaf52
+URL:  FarmBlastMiniGames/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: fd2074de-7502-48b9-86d3-560e312be0da
+ID:   b9bf5283-e946-489d-8be6-99e7d267c7ce
+URL:  FarmBubblesMiniGames/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Level Complete Days
+Workbook: 832b35e8-bc62-4cfc-9a2e-4c6ef0802718
+ID:   1133ad1e-ec00-44e4-a4a1-b81de55d0510
+URL:  LevelCompleteDays-19_09_2023/sheets/LevelCompleteDays
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 5511542d-197b-4f52-bb5c-1c55d280f5fa
+ID:   bd4c17ec-541f-45eb-a46c-cd3fdfdc451b
+URL:  FarmBubblesChampionsLeague/sheets/MainChurnToplu
+---------------------------------------------------
+Name: \wo Level Main Churn Toplu
+Workbook: 5511542d-197b-4f52-bb5c-1c55d280f5fa
+ID:   005561c5-6e5f-46be-9151-54ffd56ae31d
+URL:  FarmBubblesChampionsLeague/sheets/woLevelMainChurnToplu
+---------------------------------------------------
+Name: Activity Main Board Compare
+Workbook: 2ec99c4b-640c-4418-a45a-facde31d1c64
+ID:   dc7fe62a-37cb-4492-a243-dea7e298e1cd
+URL:  GameAnalytics_16490733391260/sheets/ActivityMainBoardCompare
+---------------------------------------------------
+Name: Rolling Retention
+Workbook: 08dc98f4-2f39-41e5-8fa0-2b0dd8ff3ea3
+ID:   789877eb-b143-419a-a32c-108a15a51579
+URL:  ABTesting_Segmented/sheets/RollingRetention
+---------------------------------------------------
+Name: Cohort
+Workbook: aff5d19f-2ba4-45b6-938e-b63aa32c15c1
+ID:   ed22301a-bae2-4eea-bff9-ab490c52b0e6
+URL:  ZenMasterIAPABTest/sheets/Cohort
+---------------------------------------------------
+Name: DAU
+Workbook: aff5d19f-2ba4-45b6-938e-b63aa32c15c1
+ID:   aa6f3c21-f4c4-4593-9ae5-24f901cd1d98
+URL:  ZenMasterIAPABTest/sheets/DAU
+---------------------------------------------------
+Name: Sheet 2
+Workbook: 5741b282-6a2e-4ab6-9d5e-912e73d8a320
+ID:   44de57d3-6645-4bfb-bc4c-c1dfd739482a
+URL:  ZenMasterGameAnalytics/sheets/Sheet2
+---------------------------------------------------
+Name: Sheet 3
+Workbook: 5741b282-6a2e-4ab6-9d5e-912e73d8a320
+ID:   693b48c4-15cc-4289-b54d-77cd176f312b
+URL:  ZenMasterGameAnalytics/sheets/Sheet3
+---------------------------------------------------
+Name: Sheet 4
+Workbook: 5741b282-6a2e-4ab6-9d5e-912e73d8a320
+ID:   64c38f48-46a2-41c8-aeef-11bb46d5ce11
+URL:  ZenMasterGameAnalytics/sheets/Sheet4
+---------------------------------------------------
+Name: Cohort Analysis
+Workbook: 5741b282-6a2e-4ab6-9d5e-912e73d8a320
+ID:   182e7373-c1f3-4be3-831f-d6deb5c68268
+URL:  ZenMasterGameAnalytics/sheets/CohortAnalysis
+---------------------------------------------------
+Name: Activity Analysis
+Workbook: 5741b282-6a2e-4ab6-9d5e-912e73d8a320
+ID:   c8a9a027-78c4-4f3c-b731-23651844fa68
+URL:  ZenMasterGameAnalytics/sheets/ActivityAnalysis
+---------------------------------------------------
+Name: Activity Analysis
+Workbook: 7fa0d568-d7b9-47ea-8b89-82e51e64e64f
+ID:   b229ebe4-6de0-4cc0-967e-405943d7fcaf
+URL:  ZenMasterGameAnalytics_17032525687120/sheets/ActivityAnalysis
+---------------------------------------------------
+Name: Cohort Analysis
+Workbook: 7fa0d568-d7b9-47ea-8b89-82e51e64e64f
+ID:   58db6fcb-b76f-431b-8cfb-3a66e39f7d0c
+URL:  ZenMasterGameAnalytics_17032525687120/sheets/CohortAnalysis
+---------------------------------------------------
+Name: Spend Based
+Workbook: b17825bd-412f-44b9-a9e3-5bd3d81d6478
+ID:   e34821de-a853-4cba-ab5d-9f9395eed045
+URL:  ZenKPIAnalytics/sheets/Dashboard1
+---------------------------------------------------
+Name: Install Based
+Workbook: b17825bd-412f-44b9-a9e3-5bd3d81d6478
+ID:   592a60c3-a7b4-46f4-a2af-253f92b24cb4
+URL:  ZenKPIAnalytics/sheets/InstallBased
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: c2f8aad5-e0ca-4bd7-b4bb-8c5a91f4111c
+ID:   b9e9084e-619b-4b1b-8562-a8d5139f6f11
+URL:  FriendsAdventureMatchChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Activity Analysis
+Workbook: b6c7f21d-4836-422d-8d03-1a0404de9c2b
+ID:   1f1e9421-72da-46ce-aaf0-677bfa08aaa2
+URL:  FriendsAdventureMatchGameAnalytics/sheets/ActivityAnalysis
+---------------------------------------------------
+Name: Cohort Analysis
+Workbook: b6c7f21d-4836-422d-8d03-1a0404de9c2b
+ID:   323949a1-e5fd-4ba4-a202-cdf08375bf12
+URL:  FriendsAdventureMatchGameAnalytics/sheets/CohortAnalysis
+---------------------------------------------------
+Name: Cohort Revenue Ratio
+Workbook: 7fa0d568-d7b9-47ea-8b89-82e51e64e64f
+ID:   b58b9d5d-47a2-496a-9a3a-d821ac5d8b6e
+URL:  ZenMasterGameAnalytics_17032525687120/sheets/CohortRevenueRatio
+---------------------------------------------------
+Name: RW Analysis-Mon. Template
+Workbook: 7fa0d568-d7b9-47ea-8b89-82e51e64e64f
+ID:   776b25a9-4f4b-465d-b049-b32dd21c53f4
+URL:  ZenMasterGameAnalytics_17032525687120/sheets/RWAnalysis-Mon_Template
+---------------------------------------------------
+Name: RW Analysis - DAU
+Workbook: 7fa0d568-d7b9-47ea-8b89-82e51e64e64f
+ID:   44270026-d4f2-44ba-acdb-ac7e0d82d459
+URL:  ZenMasterGameAnalytics_17032525687120/sheets/RWAnalysis-DAU
+---------------------------------------------------
+Name: Inter Analysis - DAU
+Workbook: 7fa0d568-d7b9-47ea-8b89-82e51e64e64f
+ID:   10052ba1-639e-4a7a-9af7-327025367666
+URL:  ZenMasterGameAnalytics_17032525687120/sheets/InterAnalysis-DAU
+---------------------------------------------------
+Name: Level Revenue
+Workbook: 7fa0d568-d7b9-47ea-8b89-82e51e64e64f
+ID:   53048a69-7195-446c-9d79-41e25a5edda0
+URL:  ZenMasterGameAnalytics_17032525687120/sheets/LevelRevenue
+---------------------------------------------------
+Name: Daily Revenue
+Workbook: 7fa0d568-d7b9-47ea-8b89-82e51e64e64f
+ID:   05eeffb7-60cc-49f7-a74a-7e55bae9ef84
+URL:  ZenMasterGameAnalytics_17032525687120/sheets/DailyRevenue
+---------------------------------------------------
+Name: Organic Install Act
+Workbook: 665e880d-a338-433e-9829-3ba5b29fc1d0
+ID:   ae7c63f4-03c5-4408-8772-47ecc5289014
+URL:  OrganicInstallRatio/sheets/OrganicInstallAct
+---------------------------------------------------
+Name: Organic Install Act (2)
+Workbook: 665e880d-a338-433e-9829-3ba5b29fc1d0
+ID:   0d929885-41c4-4cb0-a698-6088e82b1709
+URL:  OrganicInstallRatio/sheets/OrganicInstallAct2
+---------------------------------------------------
+Name: Level Based
+Workbook: 1ebb70f9-0c64-4243-9397-fe946e6493eb
+ID:   b3e3fd65-ca40-428a-81bc-53ba94ef7cc0
+URL:  LevelScore/sheets/LevelBased
+---------------------------------------------------
+Name: Version Based
+Workbook: 1ebb70f9-0c64-4243-9397-fe946e6493eb
+ID:   18903156-fa39-449a-95a6-88c8814f5cdc
+URL:  LevelScore/sheets/VersionBased
+---------------------------------------------------
+Name: Attribution Main
+Workbook: 06d82b05-fb53-4cc4-8ceb-e5ba7419428b
+ID:   6e53e48c-c2ec-4d34-90c2-01c855558b6f
+URL:  TyrAdsCPEAttributionTable/sheets/AttributionMain
+---------------------------------------------------
+Name: Sub Level Birleşik
+Workbook: 1ebb70f9-0c64-4243-9397-fe946e6493eb
+ID:   3037f319-647e-4e1a-8905-43b739692be0
+URL:  LevelScore/sheets/SubLevelBirleik
+---------------------------------------------------
+Name: Attribution Main
+Workbook: 4d932ff2-8b1c-4bb8-981a-25fc512bb580
+ID:   1b12f362-3b40-4b89-ac32-c72cbbf939f8
+URL:  ToroxCPE/sheets/AttributionMain
+---------------------------------------------------
+Name: Sheet 1
+Workbook: 3052de82-1337-49a2-ac44-c182374d71c3
+ID:   0a3daf6b-16ed-4ed8-8d64-eb14aac12618
+URL:  ZM_SinkSource_Prototype/sheets/Sheet1
+---------------------------------------------------
+Name: Sheet 2
+Workbook: 3052de82-1337-49a2-ac44-c182374d71c3
+ID:   42c0dde2-ab2e-4b3d-bee7-4533b8d99b06
+URL:  ZM_SinkSource_Prototype/sheets/Sheet2
+---------------------------------------------------
+Name: IAP Monthly Analysis
+Workbook: 7fa0d568-d7b9-47ea-8b89-82e51e64e64f
+ID:   356d65e4-0cfc-4b81-8624-4baa4a8438c7
+URL:  ZenMasterGameAnalytics_17032525687120/sheets/IAPMonthlyAnalysis
+---------------------------------------------------
+Name: IAP Perform - Packs
+Workbook: 7fa0d568-d7b9-47ea-8b89-82e51e64e64f
+ID:   50073378-bf42-4cf3-a347-d12a72bcec36
+URL:  ZenMasterGameAnalytics_17032525687120/sheets/IAPPerform-Packs
+---------------------------------------------------
+Name: Top 30 Levels Rewarded
+Workbook: 7fa0d568-d7b9-47ea-8b89-82e51e64e64f
+ID:   19312c6b-62bd-4c4f-abcf-f6f75d23284d
+URL:  ZenMasterGameAnalytics_17032525687120/sheets/Top30LevelsRewarded
+---------------------------------------------------
+Name: Top 30 Levels IAP
+Workbook: 7fa0d568-d7b9-47ea-8b89-82e51e64e64f
+ID:   c06e3f90-fa99-47c7-a303-a887b3599138
+URL:  ZenMasterGameAnalytics_17032525687120/sheets/Top30LevelsIAP
+---------------------------------------------------
+Name: Activity Analysis Segments
+Workbook: 9ecf3f9d-a23b-4c84-b8e5-7b1c284be973
+ID:   b83a0c1c-f4c5-4268-b2f6-36845f0394b6
+URL:  ZenMasterDeeplinkSegmentAnalytics/sheets/ActivityAnalysisSegments
+---------------------------------------------------
+Name: Activity Analysis Campaigns
+Workbook: 9ecf3f9d-a23b-4c84-b8e5-7b1c284be973
+ID:   71e3af68-41dd-4000-bf27-a0ecaf3975ab
+URL:  ZenMasterDeeplinkSegmentAnalytics/sheets/ActivityAnalysisCampaigns
+---------------------------------------------------
+Name: Daily Revenue Segments
+Workbook: 9ecf3f9d-a23b-4c84-b8e5-7b1c284be973
+ID:   d232c35c-8ae5-4424-831d-9f93c99e16f0
+URL:  ZenMasterDeeplinkSegmentAnalytics/sheets/DailyRevenueSegments
+---------------------------------------------------
+Name: Cohort Analysis Segments
+Workbook: 9ecf3f9d-a23b-4c84-b8e5-7b1c284be973
+ID:   855e9c0f-c2c2-4d8d-84cc-34983732613b
+URL:  ZenMasterDeeplinkSegmentAnalytics/sheets/CohortAnalysisSegments
+---------------------------------------------------
+Name: Cohort Analysis Campaigns
+Workbook: 9ecf3f9d-a23b-4c84-b8e5-7b1c284be973
+ID:   eee1f2cb-6621-46f6-908b-d322446bdb0c
+URL:  ZenMasterDeeplinkSegmentAnalytics/sheets/CohortAnalysisCampaigns
+---------------------------------------------------
+Name: Cohort Revenue Ratio
+Workbook: 9ecf3f9d-a23b-4c84-b8e5-7b1c284be973
+ID:   c111e964-8a8c-43a8-8e05-3f4ad95630c2
+URL:  ZenMasterDeeplinkSegmentAnalytics/sheets/CohortRevenueRatio
+---------------------------------------------------
+Name: Summary
+Workbook: 3052de82-1337-49a2-ac44-c182374d71c3
+ID:   5f333bda-fde4-4b77-881c-f553e7edb6e0
+URL:  ZM_SinkSource_Prototype/sheets/Summary
+---------------------------------------------------
+Name: Dashboard 2
+Workbook: 3052de82-1337-49a2-ac44-c182374d71c3
+ID:   2c5380a3-e956-4768-a128-8032b0523546
+URL:  ZM_SinkSource_Prototype/sheets/Dashboard2
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 7e466631-a60c-45b1-8955-af377cb7d6fd
+ID:   c03f02d0-3e69-484d-bdf1-854665e7ff9a
+URL:  Match3DChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 9b89e671-2bc8-4141-af56-ebbf50dbd4e6
+ID:   389e326d-73f4-43ca-b901-712f848dc27c
+URL:  Bus3DChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Level Revenue
+Workbook: 9b89e671-2bc8-4141-af56-ebbf50dbd4e6
+ID:   41294b07-1cff-4987-9186-0112600eb8db
+URL:  Bus3DChurn/sheets/LevelRevenue
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 6f46f2c8-dcb3-421e-bc4c-e9412947aabc
+ID:   d6979757-0530-4731-8812-69466ff130fc
+URL:  CanalTrafficChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Level Revenue
+Workbook: 6f46f2c8-dcb3-421e-bc4c-e9412947aabc
+ID:   caa24a96-1b42-4948-9270-bb230584078e
+URL:  CanalTrafficChurn/sheets/LevelRevenue
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 527c24e8-2099-4b9a-8df6-eea7093950bb
+ID:   4facb54c-39e7-47d7-b0ba-07883f50087c
+URL:  DreamDesignChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Daily Revenue
+Workbook: b6c7f21d-4836-422d-8d03-1a0404de9c2b
+ID:   198243c0-1603-4868-b478-172243f0f2b5
+URL:  FriendsAdventureMatchGameAnalytics/sheets/DailyRevenue
+---------------------------------------------------
+Name: Cohort Revenue Ratio
+Workbook: b6c7f21d-4836-422d-8d03-1a0404de9c2b
+ID:   3674fce3-03ab-4627-9b8c-62d44f15abca
+URL:  FriendsAdventureMatchGameAnalytics/sheets/CohortRevenueRatio
+---------------------------------------------------
+Name: IAP Monthly Analysis
+Workbook: b6c7f21d-4836-422d-8d03-1a0404de9c2b
+ID:   5418ae22-373a-4cde-9ca1-8d350164828c
+URL:  FriendsAdventureMatchGameAnalytics/sheets/IAPMonthlyAnalysis
+---------------------------------------------------
+Name: IAP Perform - Packs Groups
+Workbook: b6c7f21d-4836-422d-8d03-1a0404de9c2b
+ID:   e93b5298-55fa-4c32-89c8-7d162133e4fe
+URL:  FriendsAdventureMatchGameAnalytics/sheets/IAPPerform-Packs
+---------------------------------------------------
+Name: RW Analysis-Mon. Template
+Workbook: b6c7f21d-4836-422d-8d03-1a0404de9c2b
+ID:   5e1d91eb-353b-4919-ba84-5368620c49be
+URL:  FriendsAdventureMatchGameAnalytics/sheets/RWAnalysis-Mon_Template
+---------------------------------------------------
+Name: RW Analysis - DAU
+Workbook: b6c7f21d-4836-422d-8d03-1a0404de9c2b
+ID:   c9e8d7c1-33c6-40b6-9ed2-14535f533710
+URL:  FriendsAdventureMatchGameAnalytics/sheets/RWAnalysis-DAU
+---------------------------------------------------
+Name: Inter Analysis - DAU
+Workbook: b6c7f21d-4836-422d-8d03-1a0404de9c2b
+ID:   5e42dd8e-7a68-46cb-a70a-5d8d2ccbd492
+URL:  FriendsAdventureMatchGameAnalytics/sheets/InterAnalysis-DAU
+---------------------------------------------------
+Name: Level Revenue
+Workbook: b6c7f21d-4836-422d-8d03-1a0404de9c2b
+ID:   f7ed2e7a-99bb-4221-909e-c2b9a5123c8d
+URL:  FriendsAdventureMatchGameAnalytics/sheets/LevelRevenue
+---------------------------------------------------
+Name: Top 30 Levels Rewarded
+Workbook: b6c7f21d-4836-422d-8d03-1a0404de9c2b
+ID:   5dc99881-4780-4d69-a8bc-c076677885a1
+URL:  FriendsAdventureMatchGameAnalytics/sheets/Top30LevelsRewarded
+---------------------------------------------------
+Name: Top 30 Levels IAP
+Workbook: b6c7f21d-4836-422d-8d03-1a0404de9c2b
+ID:   627a58e6-da04-4451-8fac-202565e8c87b
+URL:  FriendsAdventureMatchGameAnalytics/sheets/Top30LevelsIAP
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: d1e64844-337e-42c2-a7d6-cb4b68234c1a
+ID:   4cf0596a-1d21-487a-9855-b99ae50e3116
+URL:  FarmTrafficChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Level Revenue
+Workbook: d1e64844-337e-42c2-a7d6-cb4b68234c1a
+ID:   d994f96e-d0ae-4ba6-82a9-caf8a9769ac8
+URL:  FarmTrafficChurn/sheets/LevelRevenue
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 6cbc389e-0231-4578-ad3f-8143d95c936a
+ID:   4c489699-ba43-492c-98cd-acf3d45f1ec5
+URL:  TrafficPuzzleChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Level Revenue
+Workbook: 6cbc389e-0231-4578-ad3f-8143d95c936a
+ID:   5fe06638-247f-446d-9a17-6028c5795936
+URL:  TrafficPuzzleChurn/sheets/LevelRevenue
+---------------------------------------------------
+Name: Retention
+Workbook: 9b89e671-2bc8-4141-af56-ebbf50dbd4e6
+ID:   3bbf1683-cd94-4681-ab8d-d543ec487716
+URL:  Bus3DChurn/sheets/Retention
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 0227f9b5-59cf-4d25-b89c-469aa23cbe00
+ID:   87c3393d-484f-46e4-8376-fdcf0d75d93c
+URL:  Goods3DChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Level Revenue
+Workbook: 0227f9b5-59cf-4d25-b89c-469aa23cbe00
+ID:   fc39b3f5-507a-4698-a5b9-2a24478e0e7d
+URL:  Goods3DChurn/sheets/LevelRevenue
+---------------------------------------------------
+Name: Activity Analysis
+Workbook: d030819c-f27b-4ff2-9a3c-2f52ca3f2946
+ID:   e2e40f64-0ca0-4e5e-89dc-349db85ec1b6
+URL:  DreamDesignGameAnalytics/sheets/ActivityAnalysis
+---------------------------------------------------
+Name: Daily Revenue
+Workbook: d030819c-f27b-4ff2-9a3c-2f52ca3f2946
+ID:   76e68af7-fc27-4003-b2c6-6a20ab4a53b7
+URL:  DreamDesignGameAnalytics/sheets/DailyRevenue
+---------------------------------------------------
+Name: Cohort Analysis
+Workbook: d030819c-f27b-4ff2-9a3c-2f52ca3f2946
+ID:   25ff0c92-f2ed-4d32-a5a2-3e66124c0793
+URL:  DreamDesignGameAnalytics/sheets/CohortAnalysis
+---------------------------------------------------
+Name: Cohort Revenue Ratio
+Workbook: d030819c-f27b-4ff2-9a3c-2f52ca3f2946
+ID:   675141b7-bfcd-4fb2-8c85-fbd9199f3773
+URL:  DreamDesignGameAnalytics/sheets/CohortRevenueRatio
+---------------------------------------------------
+Name: IAP Monthly Analysis
+Workbook: d030819c-f27b-4ff2-9a3c-2f52ca3f2946
+ID:   e2e77c0b-6c6d-4f7f-aee3-47d497f8fc97
+URL:  DreamDesignGameAnalytics/sheets/IAPMonthlyAnalysis
+---------------------------------------------------
+Name: IAP Perform - Packs
+Workbook: d030819c-f27b-4ff2-9a3c-2f52ca3f2946
+ID:   d0605f36-178a-4f1b-b8df-cd5b8fc44f3e
+URL:  DreamDesignGameAnalytics/sheets/IAPPerform-Packs
+---------------------------------------------------
+Name: RW Analysis-Mon. Template
+Workbook: d030819c-f27b-4ff2-9a3c-2f52ca3f2946
+ID:   46c58ed8-b29a-47cc-84f2-10994324a03a
+URL:  DreamDesignGameAnalytics/sheets/RWAnalysis-Mon_Template
+---------------------------------------------------
+Name: RW Analysis - DAU
+Workbook: d030819c-f27b-4ff2-9a3c-2f52ca3f2946
+ID:   b55f679e-cfa0-4541-a7ab-65c2543474cb
+URL:  DreamDesignGameAnalytics/sheets/RWAnalysis-DAU
+---------------------------------------------------
+Name: Inter Analysis - DAU
+Workbook: d030819c-f27b-4ff2-9a3c-2f52ca3f2946
+ID:   cdc760c6-b612-4ea3-bafc-b05f9fbc6a8a
+URL:  DreamDesignGameAnalytics/sheets/InterAnalysis-DAU
+---------------------------------------------------
+Name: Level Revenue
+Workbook: d030819c-f27b-4ff2-9a3c-2f52ca3f2946
+ID:   11d08fdb-58a8-47ae-aecc-d949d39c6bf5
+URL:  DreamDesignGameAnalytics/sheets/LevelRevenue
+---------------------------------------------------
+Name: Top 30 Levels Rewarded
+Workbook: d030819c-f27b-4ff2-9a3c-2f52ca3f2946
+ID:   b709d6fd-2c79-4984-b96e-a6ff65b9490b
+URL:  DreamDesignGameAnalytics/sheets/Top30LevelsRewarded
+---------------------------------------------------
+Name: Top 30 Levels IAP
+Workbook: d030819c-f27b-4ff2-9a3c-2f52ca3f2946
+ID:   a70dc209-7170-4441-a08f-2112a44b2304
+URL:  DreamDesignGameAnalytics/sheets/Top30LevelsIAP
+---------------------------------------------------
+Name: Executive Summary
+Workbook: c2f8aad5-e0ca-4bd7-b4bb-8c5a91f4111c
+ID:   485644f1-6fd7-44e6-99d6-bb9c72557d58
+URL:  FriendsAdventureMatchChurn/sheets/ExecutiveSummary
+---------------------------------------------------
+Name: Executive Summary
+Workbook: 3665094e-e15e-4e1f-9d98-47dfa0386801
+ID:   0b5213c3-72ab-417b-af59-3b2bdac48623
+URL:  ZenMasterChurn/sheets/ExecutiveSummary
+---------------------------------------------------
+Name: Executive Summary
+Workbook: 527c24e8-2099-4b9a-8df6-eea7093950bb
+ID:   4479e56c-a811-4dc0-8041-ad6312971284
+URL:  DreamDesignChurn/sheets/ExecutiveSummary
+---------------------------------------------------
+Name: Android
+Workbook: f9b851cb-3449-41dc-8e42-9af8b5444e99
+ID:   c549aff8-9eea-482d-9e33-2c523cd7f148
+URL:  DreamDesignInterstitialLevelTest-19_09_2024/sheets/Android
+---------------------------------------------------
+Name: iOS
+Workbook: f9b851cb-3449-41dc-8e42-9af8b5444e99
+ID:   0ff5db93-3099-400b-93d5-af0a9e00fe44
+URL:  DreamDesignInterstitialLevelTest-19_09_2024/sheets/iOS
+---------------------------------------------------
+Name: Level Design A/B
+Workbook: 527c24e8-2099-4b9a-8df6-eea7093950bb
+ID:   db54a883-9c82-49d1-86e0-02889aed4c43
+URL:  DreamDesignChurn/sheets/LevelDesignAB
+---------------------------------------------------
+Name: Revenue Distribution Dashboard
+Workbook: 2401afc0-ac06-4558-a830-56532f2cfda3
+ID:   0fb484bb-64d6-4811-900c-a255565bfb5b
+URL:  RWComparisoninZengiller/sheets/RevenueDistributionDashboard
+---------------------------------------------------
+Name: Level Design Versiyon A/B
+Workbook: d030819c-f27b-4ff2-9a3c-2f52ca3f2946
+ID:   e975ff20-90d9-41f7-990e-042b41214cde
+URL:  DreamDesignGameAnalytics/sheets/LevelDesignVersiyonAB
+---------------------------------------------------
+Name: Android
+Workbook: a90a99b6-08e0-4922-be96-cfa6140433de
+ID:   eb9db50d-8135-44c3-87b9-ff43d1509581
+URL:  Match3DInterstitialLevelTest-02_10_2024/sheets/Android
+---------------------------------------------------
+Name: ZM Event Health Check
+Workbook: c8ea6173-40bc-429e-b1e1-0daeb32bd584
+ID:   b09fee99-9849-48da-86f9-1147296f1692
+URL:  ZenMasterEventHealthCheck/sheets/ZMEventHealthCheck
+---------------------------------------------------
+Name: Executive Summary
+Workbook: 736ff3db-09a8-4a41-b0d9-75225c44d375
+ID:   c69bae18-9abe-4a67-8420-1616efef2f93
+URL:  ChristmasDesignChurn/sheets/ExecutiveSummary
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 736ff3db-09a8-4a41-b0d9-75225c44d375
+ID:   44f7a395-7194-4172-9161-fffbff63c7fa
+URL:  ChristmasDesignChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Level Design A/B
+Workbook: 736ff3db-09a8-4a41-b0d9-75225c44d375
+ID:   58d36f58-456e-4033-928f-864f7cddf264
+URL:  ChristmasDesignChurn/sheets/LevelDesignAB
+---------------------------------------------------
+Name: Activity Analysis
+Workbook: e2bc9103-052e-40ab-ba59-fbf5f9201ae6
+ID:   6b8c8d74-0209-4cc9-bc11-c8542222d5b3
+URL:  ChristmasDesignGameAnalytics/sheets/ActivityAnalysis
+---------------------------------------------------
+Name: Daily Revenue
+Workbook: e2bc9103-052e-40ab-ba59-fbf5f9201ae6
+ID:   1f0a1fea-3773-458e-ad70-a7830a27f263
+URL:  ChristmasDesignGameAnalytics/sheets/DailyRevenue
+---------------------------------------------------
+Name: Cohort Analysis
+Workbook: e2bc9103-052e-40ab-ba59-fbf5f9201ae6
+ID:   06615eeb-d4c4-4960-8917-adc63a810b9b
+URL:  ChristmasDesignGameAnalytics/sheets/CohortAnalysis
+---------------------------------------------------
+Name: Level Design Versiyon A/B
+Workbook: e2bc9103-052e-40ab-ba59-fbf5f9201ae6
+ID:   013b958d-6d33-4dc1-bde4-4984a633e703
+URL:  ChristmasDesignGameAnalytics/sheets/LevelDesignVersiyonAB
+---------------------------------------------------
+Name: Cohort Revenue Ratio
+Workbook: e2bc9103-052e-40ab-ba59-fbf5f9201ae6
+ID:   cef21544-68aa-43a4-80a3-e221abc82259
+URL:  ChristmasDesignGameAnalytics/sheets/CohortRevenueRatio
+---------------------------------------------------
+Name: IAP Monthly Analysis
+Workbook: e2bc9103-052e-40ab-ba59-fbf5f9201ae6
+ID:   8263904e-1ff5-405f-b2fe-63eeb8f0e9db
+URL:  ChristmasDesignGameAnalytics/sheets/IAPMonthlyAnalysis
+---------------------------------------------------
+Name: IAP Perform - Packs
+Workbook: e2bc9103-052e-40ab-ba59-fbf5f9201ae6
+ID:   c9a0ffe7-0f13-4143-9cad-f01ea4d032bd
+URL:  ChristmasDesignGameAnalytics/sheets/IAPPerform-Packs
+---------------------------------------------------
+Name: RW Analysis-Mon. Template
+Workbook: e2bc9103-052e-40ab-ba59-fbf5f9201ae6
+ID:   4ea6b381-4578-444b-938e-e68f7f737650
+URL:  ChristmasDesignGameAnalytics/sheets/RWAnalysis-Mon_Template
+---------------------------------------------------
+Name: RW Analysis - DAU
+Workbook: e2bc9103-052e-40ab-ba59-fbf5f9201ae6
+ID:   b5f12e31-48d9-497b-abb7-d36108a3e8bc
+URL:  ChristmasDesignGameAnalytics/sheets/RWAnalysis-DAU
+---------------------------------------------------
+Name: Inter Analysis - DAU
+Workbook: e2bc9103-052e-40ab-ba59-fbf5f9201ae6
+ID:   8a71c5e1-733f-409c-b5d8-a7f6bfec5a71
+URL:  ChristmasDesignGameAnalytics/sheets/InterAnalysis-DAU
+---------------------------------------------------
+Name: Level Revenue
+Workbook: e2bc9103-052e-40ab-ba59-fbf5f9201ae6
+ID:   85f4f166-82f7-469f-b5ef-53a3c22bf074
+URL:  ChristmasDesignGameAnalytics/sheets/LevelRevenue
+---------------------------------------------------
+Name: Top 30 Levels Rewarded
+Workbook: e2bc9103-052e-40ab-ba59-fbf5f9201ae6
+ID:   57103346-7d2d-457d-8f47-a54086a49e1c
+URL:  ChristmasDesignGameAnalytics/sheets/Top30LevelsRewarded
+---------------------------------------------------
+Name: Top 30 Levels IAP
+Workbook: e2bc9103-052e-40ab-ba59-fbf5f9201ae6
+ID:   09c0f8c8-a170-4a03-b3f2-c2964cde71f1
+URL:  ChristmasDesignGameAnalytics/sheets/Top30LevelsIAP
+---------------------------------------------------
+Name: Executive Summary
+Workbook: 955b6087-42fc-4909-8c71-afb1b952311c
+ID:   9ccf8a81-509f-49c4-a29a-77ad46e59f35
+URL:  Match3DBoxChurn/sheets/ExecutiveSummary
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 955b6087-42fc-4909-8c71-afb1b952311c
+ID:   a139cbe4-ec47-4406-b9f2-d54c707ebdcf
+URL:  Match3DBoxChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Activity Analysis
+Workbook: 0861efb3-6fea-44d8-a57c-28c8acce3e89
+ID:   9a6ee627-a1d9-4180-8dc9-e19062a144cc
+URL:  Match3DBoxGameAnalytics/sheets/ActivityAnalysis
+---------------------------------------------------
+Name: Daily Revenue
+Workbook: 0861efb3-6fea-44d8-a57c-28c8acce3e89
+ID:   65d751ba-2ace-4dae-a01c-ec1e2261580b
+URL:  Match3DBoxGameAnalytics/sheets/DailyRevenue
+---------------------------------------------------
+Name: Cohort Analysis
+Workbook: 0861efb3-6fea-44d8-a57c-28c8acce3e89
+ID:   5dae880c-282a-4147-aaf1-73dd0e3fba42
+URL:  Match3DBoxGameAnalytics/sheets/CohortAnalysis
+---------------------------------------------------
+Name: Cohort Revenue Ratio
+Workbook: 0861efb3-6fea-44d8-a57c-28c8acce3e89
+ID:   a792a0dd-aacd-4be9-a617-5d05f0a87215
+URL:  Match3DBoxGameAnalytics/sheets/CohortRevenueRatio
+---------------------------------------------------
+Name: IAP Monthly Analysis
+Workbook: 0861efb3-6fea-44d8-a57c-28c8acce3e89
+ID:   9b619935-8706-4aa8-8b8b-619d53aaecbb
+URL:  Match3DBoxGameAnalytics/sheets/IAPMonthlyAnalysis
+---------------------------------------------------
+Name: IAP Perform - Packs
+Workbook: 0861efb3-6fea-44d8-a57c-28c8acce3e89
+ID:   2a025d93-2f04-48b7-bb1f-d7088b9903c1
+URL:  Match3DBoxGameAnalytics/sheets/IAPPerform-Packs
+---------------------------------------------------
+Name: RW Analysis-Mon. Template
+Workbook: 0861efb3-6fea-44d8-a57c-28c8acce3e89
+ID:   33967938-074f-414b-a8a8-8ff25a691644
+URL:  Match3DBoxGameAnalytics/sheets/RWAnalysis-Mon_Template
+---------------------------------------------------
+Name: Level Revenue
+Workbook: 0861efb3-6fea-44d8-a57c-28c8acce3e89
+ID:   04e9f18b-d739-4536-808d-efc42031bf57
+URL:  Match3DBoxGameAnalytics/sheets/LevelRevenue
+---------------------------------------------------
+Name: Top 30 Levels Rewarded
+Workbook: 0861efb3-6fea-44d8-a57c-28c8acce3e89
+ID:   5be1ac8c-ee51-4e22-8ae2-161704a793d3
+URL:  Match3DBoxGameAnalytics/sheets/Top30LevelsRewarded
+---------------------------------------------------
+Name: Top 30 Levels IAP
+Workbook: 0861efb3-6fea-44d8-a57c-28c8acce3e89
+ID:   b26f0920-7807-4aca-a1b1-b357cfa7cb0f
+URL:  Match3DBoxGameAnalytics/sheets/Top30LevelsIAP
+---------------------------------------------------
+Name: Executive Summary
+Workbook: 38f7981c-9d18-4572-b5e9-a6cd56beca3d
+ID:   dcd7e7e2-63de-487c-9b9f-570942838f04
+URL:  Christmas3DMatchChurn/sheets/ExecutiveSummary
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 38f7981c-9d18-4572-b5e9-a6cd56beca3d
+ID:   2f5f139e-0831-4a93-9873-fa33900b33c4
+URL:  Christmas3DMatchChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Activity Analysis
+Workbook: adff8c3d-cd12-4318-b2b5-d9e5988b373d
+ID:   38191d72-170b-4746-91df-2e0dba7a2a5b
+URL:  Christmas3DMatchGameAnalytics/sheets/ActivityAnalysis
+---------------------------------------------------
+Name: Daily Revenue
+Workbook: adff8c3d-cd12-4318-b2b5-d9e5988b373d
+ID:   0838ecdd-3cae-44d2-9b67-969d650f0b17
+URL:  Christmas3DMatchGameAnalytics/sheets/DailyRevenue
+---------------------------------------------------
+Name: Cohort Analysis
+Workbook: adff8c3d-cd12-4318-b2b5-d9e5988b373d
+ID:   fe531933-bd7f-4118-9e91-8710d8ddb1a2
+URL:  Christmas3DMatchGameAnalytics/sheets/CohortAnalysis
+---------------------------------------------------
+Name: Cohort Revenue Ratio
+Workbook: adff8c3d-cd12-4318-b2b5-d9e5988b373d
+ID:   5f86cef7-cf42-49d1-b2c4-f04cb01010ee
+URL:  Christmas3DMatchGameAnalytics/sheets/CohortRevenueRatio
+---------------------------------------------------
+Name: IAP Monthly Analysis
+Workbook: adff8c3d-cd12-4318-b2b5-d9e5988b373d
+ID:   02888184-0eb1-400b-9ad1-7749bc94c41d
+URL:  Christmas3DMatchGameAnalytics/sheets/IAPMonthlyAnalysis
+---------------------------------------------------
+Name: IAP Perform - Packs
+Workbook: adff8c3d-cd12-4318-b2b5-d9e5988b373d
+ID:   1a299825-eed5-47a0-bcfa-eb6b69c131d8
+URL:  Christmas3DMatchGameAnalytics/sheets/IAPPerform-Packs
+---------------------------------------------------
+Name: RW Analysis-Mon. Template
+Workbook: adff8c3d-cd12-4318-b2b5-d9e5988b373d
+ID:   ba65b308-a5e2-4cf8-8188-a398b0938c04
+URL:  Christmas3DMatchGameAnalytics/sheets/RWAnalysis-Mon_Template
+---------------------------------------------------
+Name: Level Revenue
+Workbook: adff8c3d-cd12-4318-b2b5-d9e5988b373d
+ID:   452d40ca-3f9a-431c-a8c9-784a0c2a9d98
+URL:  Christmas3DMatchGameAnalytics/sheets/LevelRevenue
+---------------------------------------------------
+Name: Top 30 Levels Rewarded
+Workbook: adff8c3d-cd12-4318-b2b5-d9e5988b373d
+ID:   21a03cf0-6bf3-437a-954f-c120737c2d1b
+URL:  Christmas3DMatchGameAnalytics/sheets/Top30LevelsRewarded
+---------------------------------------------------
+Name: Top 30 Levels IAP
+Workbook: adff8c3d-cd12-4318-b2b5-d9e5988b373d
+ID:   e7a77007-3d45-47cd-9ea3-814fc0514ccb
+URL:  Christmas3DMatchGameAnalytics/sheets/Top30LevelsIAP
+---------------------------------------------------
+Name: Executive Summary
+Workbook: 2511d424-883b-4f30-a80c-9d24dbec1e36
+ID:   3cff4892-95ac-452b-8af8-07d98fb1e909
+URL:  BubbleFriendsChurnv4_2_1/sheets/ExecutiveSummary
+---------------------------------------------------
+Name: Android
+Workbook: 041c8b6a-b563-4406-8691-83ddbea4e3b6
+ID:   34afe48b-5ae4-4773-9452-e3952c41faf6
+URL:  DreamDesignPlayonRewardedTest-01_11_2024/sheets/Android
+---------------------------------------------------
+Name: iOS
+Workbook: 041c8b6a-b563-4406-8691-83ddbea4e3b6
+ID:   ed9fd0c8-19dd-4229-9e3d-b57e5dc3a19c
+URL:  DreamDesignPlayonRewardedTest-01_11_2024/sheets/iOS
+---------------------------------------------------
+Name: Executive Summary
+Workbook: f5216c76-1b6b-42b1-b62c-910ef7eada27
+ID:   6b51ddc5-5a8d-4901-aca1-cf27f1b384eb
+URL:  FarmMatchChurn/sheets/ExecutiveSummary
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: f5216c76-1b6b-42b1-b62c-910ef7eada27
+ID:   8856acc8-fd38-4379-8f65-e6c5c8c7ead4
+URL:  FarmMatchChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Activity Analysis
+Workbook: 8fb5ac6a-e1de-45e6-af63-f8a51ef516d9
+ID:   2a206ae7-e2c8-4d0c-835e-4e6f02da375c
+URL:  FarmMatchGameAnalytics/sheets/ActivityAnalysis
+---------------------------------------------------
+Name: Daily Revenue
+Workbook: 8fb5ac6a-e1de-45e6-af63-f8a51ef516d9
+ID:   96add770-b9db-4e6b-a532-c3ff5499fafe
+URL:  FarmMatchGameAnalytics/sheets/DailyRevenue
+---------------------------------------------------
+Name: Cohort Analysis
+Workbook: 8fb5ac6a-e1de-45e6-af63-f8a51ef516d9
+ID:   a509d6ea-0af9-4195-9221-61183ab1e314
+URL:  FarmMatchGameAnalytics/sheets/CohortAnalysis
+---------------------------------------------------
+Name: Level Design Versiyon A/B
+Workbook: 8fb5ac6a-e1de-45e6-af63-f8a51ef516d9
+ID:   a4503596-b4b4-4dbb-b667-950c17514b7c
+URL:  FarmMatchGameAnalytics/sheets/LevelDesignVersiyonAB
+---------------------------------------------------
+Name: Cohort Revenue Ratio
+Workbook: 8fb5ac6a-e1de-45e6-af63-f8a51ef516d9
+ID:   ce24506e-1dde-4254-835e-1d049a03e7a0
+URL:  FarmMatchGameAnalytics/sheets/CohortRevenueRatio
+---------------------------------------------------
+Name: IAP Monthly Analysis
+Workbook: 8fb5ac6a-e1de-45e6-af63-f8a51ef516d9
+ID:   e6de6578-e259-4a82-9349-3c598cb9ebef
+URL:  FarmMatchGameAnalytics/sheets/IAPMonthlyAnalysis
+---------------------------------------------------
+Name: IAP Perform - Packs
+Workbook: 8fb5ac6a-e1de-45e6-af63-f8a51ef516d9
+ID:   37dd6ffe-f40f-45a9-84f8-3648acf17dd1
+URL:  FarmMatchGameAnalytics/sheets/IAPPerform-Packs
+---------------------------------------------------
+Name: RW Analysis-Mon. Template
+Workbook: 8fb5ac6a-e1de-45e6-af63-f8a51ef516d9
+ID:   2f1efd80-b9aa-452c-960c-7fce35418266
+URL:  FarmMatchGameAnalytics/sheets/RWAnalysis-Mon_Template
+---------------------------------------------------
+Name: RW Analysis - DAU
+Workbook: 8fb5ac6a-e1de-45e6-af63-f8a51ef516d9
+ID:   4ddc9aa8-2e1c-49d1-be46-b377700b7a7b
+URL:  FarmMatchGameAnalytics/sheets/RWAnalysis-DAU
+---------------------------------------------------
+Name: Inter Analysis - DAU
+Workbook: 8fb5ac6a-e1de-45e6-af63-f8a51ef516d9
+ID:   4bfae739-a41a-4163-8162-ee313cfc8886
+URL:  FarmMatchGameAnalytics/sheets/InterAnalysis-DAU
+---------------------------------------------------
+Name: Level Revenue
+Workbook: 8fb5ac6a-e1de-45e6-af63-f8a51ef516d9
+ID:   5d0d8359-b090-41f5-a617-0672a15af154
+URL:  FarmMatchGameAnalytics/sheets/LevelRevenue
+---------------------------------------------------
+Name: Top 30 Levels Rewarded
+Workbook: 8fb5ac6a-e1de-45e6-af63-f8a51ef516d9
+ID:   23144787-1825-4944-9c12-1501eb7cc4b1
+URL:  FarmMatchGameAnalytics/sheets/Top30LevelsRewarded
+---------------------------------------------------
+Name: Top 30 Levels IAP
+Workbook: 8fb5ac6a-e1de-45e6-af63-f8a51ef516d9
+ID:   4e489c7e-3a59-44a4-8346-851c584255f1
+URL:  FarmMatchGameAnalytics/sheets/Top30LevelsIAP
+---------------------------------------------------
+Name: Executive Summary
+Workbook: 8ee0d04c-8f3a-4b19-ad7e-660ec6cf22b8
+ID:   f6933220-9a62-4bd6-a154-3b28f408c1c7
+URL:  FarmBubbles-FarmMatchChurn/sheets/ExecutiveSummary
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 8ee0d04c-8f3a-4b19-ad7e-660ec6cf22b8
+ID:   43f51296-9670-4ab6-82ab-389aaf5170fc
+URL:  FarmBubbles-FarmMatchChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Executive Summary
+Workbook: 3fafc67a-9a1f-4b2c-9485-1f6eef2af3cd
+ID:   5f990b59-cbde-4dea-ada1-9f9cdea38d29
+URL:  RoyalDecorChurn/sheets/ExecutiveSummary
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 3fafc67a-9a1f-4b2c-9485-1f6eef2af3cd
+ID:   dab7ebc5-e394-4ef4-aa2b-91ac87c12c7c
+URL:  RoyalDecorChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Executive Summary
+Workbook: 61f0f3be-a9db-48af-a2de-1d4113abe967
+ID:   7886fc56-aaae-4664-8d9f-0b505e9c624a
+URL:  TripleFarmChurn/sheets/ExecutiveSummary
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 61f0f3be-a9db-48af-a2de-1d4113abe967
+ID:   c950ca23-4e37-45ff-a872-6c5af684974f
+URL:  TripleFarmChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Activity Analysis
+Workbook: 1e9c1c8a-6f9b-4268-86d3-037cf9ab1ca7
+ID:   7c15f4c0-d98e-48ed-a8ad-22773aa1d282
+URL:  RoyalDecorGameAnalytics/sheets/ActivityAnalysis
+---------------------------------------------------
+Name: Daily Revenue
+Workbook: 1e9c1c8a-6f9b-4268-86d3-037cf9ab1ca7
+ID:   d832e80d-51e6-4ed1-804f-098c9843093c
+URL:  RoyalDecorGameAnalytics/sheets/DailyRevenue
+---------------------------------------------------
+Name: Cohort Analysis
+Workbook: 1e9c1c8a-6f9b-4268-86d3-037cf9ab1ca7
+ID:   2fcfc774-b530-41a1-8f2a-f0a57e764694
+URL:  RoyalDecorGameAnalytics/sheets/CohortAnalysis
+---------------------------------------------------
+Name: Level Design Versiyon A/B
+Workbook: 1e9c1c8a-6f9b-4268-86d3-037cf9ab1ca7
+ID:   9c573050-8ee6-492d-bdaa-81ed16ed2ae6
+URL:  RoyalDecorGameAnalytics/sheets/LevelDesignVersiyonAB
+---------------------------------------------------
+Name: Cohort Revenue Ratio
+Workbook: 1e9c1c8a-6f9b-4268-86d3-037cf9ab1ca7
+ID:   c2df06ee-f7df-4e70-b051-07d14c05128e
+URL:  RoyalDecorGameAnalytics/sheets/CohortRevenueRatio
+---------------------------------------------------
+Name: IAP Monthly Analysis
+Workbook: 1e9c1c8a-6f9b-4268-86d3-037cf9ab1ca7
+ID:   4d712f7b-2f44-4b5b-8a55-eca51130414f
+URL:  RoyalDecorGameAnalytics/sheets/IAPMonthlyAnalysis
+---------------------------------------------------
+Name: IAP Perform - Packs
+Workbook: 1e9c1c8a-6f9b-4268-86d3-037cf9ab1ca7
+ID:   6cfaf86b-4481-43af-94a3-8412b161dbe8
+URL:  RoyalDecorGameAnalytics/sheets/IAPPerform-Packs
+---------------------------------------------------
+Name: RW Analysis-Mon. Template
+Workbook: 1e9c1c8a-6f9b-4268-86d3-037cf9ab1ca7
+ID:   268b7ac8-426c-4e7c-b9a4-c093be2a928c
+URL:  RoyalDecorGameAnalytics/sheets/RWAnalysis-Mon_Template
+---------------------------------------------------
+Name: RW Analysis - DAU
+Workbook: 1e9c1c8a-6f9b-4268-86d3-037cf9ab1ca7
+ID:   1f7c693c-5b81-44b0-84d0-83f165d26cae
+URL:  RoyalDecorGameAnalytics/sheets/RWAnalysis-DAU
+---------------------------------------------------
+Name: Inter Analysis - DAU
+Workbook: 1e9c1c8a-6f9b-4268-86d3-037cf9ab1ca7
+ID:   1763b9ea-88ce-4ea3-9008-d843b05c1c21
+URL:  RoyalDecorGameAnalytics/sheets/InterAnalysis-DAU
+---------------------------------------------------
+Name: Level Revenue
+Workbook: 1e9c1c8a-6f9b-4268-86d3-037cf9ab1ca7
+ID:   1a6d3b3a-b813-4067-9f27-1ae18e1576c6
+URL:  RoyalDecorGameAnalytics/sheets/LevelRevenue
+---------------------------------------------------
+Name: Activity Analysis
+Workbook: 88a5490c-0da0-4734-a471-dbdcbe30adb0
+ID:   671a3631-677a-4e43-bad6-c332ff09631f
+URL:  TripleFarmGameAnalytics/sheets/ActivityAnalysis
+---------------------------------------------------
+Name: Daily Revenue
+Workbook: 88a5490c-0da0-4734-a471-dbdcbe30adb0
+ID:   d4f8c133-4b86-4dc4-96b7-8013c80a0901
+URL:  TripleFarmGameAnalytics/sheets/DailyRevenue
+---------------------------------------------------
+Name: Cohort Analysis
+Workbook: 88a5490c-0da0-4734-a471-dbdcbe30adb0
+ID:   bdbf4ca8-ea0e-429c-bd4e-579df64d182c
+URL:  TripleFarmGameAnalytics/sheets/CohortAnalysis
+---------------------------------------------------
+Name: Cohort Revenue Ratio
+Workbook: 88a5490c-0da0-4734-a471-dbdcbe30adb0
+ID:   17868d5f-ea6f-43d3-b6dc-45aba9b7d876
+URL:  TripleFarmGameAnalytics/sheets/CohortRevenueRatio
+---------------------------------------------------
+Name: IAP Monthly Analysis
+Workbook: 88a5490c-0da0-4734-a471-dbdcbe30adb0
+ID:   ad738885-43a4-4580-b9f8-e09f038a3676
+URL:  TripleFarmGameAnalytics/sheets/IAPMonthlyAnalysis
+---------------------------------------------------
+Name: IAP Perform - Packs
+Workbook: 88a5490c-0da0-4734-a471-dbdcbe30adb0
+ID:   dc2e355c-2d16-4f45-9496-4af3fb9c7bf3
+URL:  TripleFarmGameAnalytics/sheets/IAPPerform-Packs
+---------------------------------------------------
+Name: RW Analysis-Mon. Template
+Workbook: 88a5490c-0da0-4734-a471-dbdcbe30adb0
+ID:   686b4549-0899-404e-a922-56ebdc166499
+URL:  TripleFarmGameAnalytics/sheets/RWAnalysis-Mon_Template
+---------------------------------------------------
+Name: Level Revenue
+Workbook: 88a5490c-0da0-4734-a471-dbdcbe30adb0
+ID:   64c4fb17-d9fe-4245-b0d8-8e5a63c558da
+URL:  TripleFarmGameAnalytics/sheets/LevelRevenue
+---------------------------------------------------
+Name: IAP Perform - Packs
+Workbook: b6c7f21d-4836-422d-8d03-1a0404de9c2b
+ID:   b756cad8-d6cf-49b2-b528-126f724f2f7e
+URL:  FriendsAdventureMatchGameAnalytics/sheets/IAPPerform-Packs_1
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 2511d424-883b-4f30-a80c-9d24dbec1e36
+ID:   9c635089-4b75-40d3-bb3c-044c88500559
+URL:  BubbleFriendsChurnv4_2_1/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Executive Summary
+Workbook: d12e3e55-5135-4466-8c35-b55fa7069ede
+ID:   de5a3ae5-cb1f-4921-9aec-3e7a32b79e51
+URL:  BubbleFriendsFAM-Churn/sheets/ExecutiveSummary
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: d12e3e55-5135-4466-8c35-b55fa7069ede
+ID:   68b4604b-6dd5-4ead-a11d-aab1ff104e6f
+URL:  BubbleFriendsFAM-Churn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Dashboard
+Workbook: 5db4003f-d3b1-4025-907b-5b2fcc6ea75d
+ID:   035bd183-298b-4882-b9fe-cb21dbe79afb
+URL:  INCOMESTATEMENTDOLLAR/sheets/Dashboard
+---------------------------------------------------
+Name: Executive Summary
+Workbook: fb48ef92-ee52-4bfb-82ef-eaad238b2ae4
+ID:   01e08d93-0688-4e0f-afd1-70888f4a072a
+URL:  HomeMatch3DChurn/sheets/ExecutiveSummary
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: fb48ef92-ee52-4bfb-82ef-eaad238b2ae4
+ID:   5278b120-cf51-4381-b7fa-f40ada497eed
+URL:  HomeMatch3DChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Rahatlama tespiti
+Workbook: 475f922d-a510-4eeb-8aec-3555ce25346c
+ID:   75b3b462-e636-452e-b73b-87ebe7c40c24
+URL:  Match3DBoxLevelScoreAnalysis/sheets/Rahatlamatespiti
+---------------------------------------------------
+Name: Level Based
+Workbook: 475f922d-a510-4eeb-8aec-3555ce25346c
+ID:   90b17c71-ad9d-48e5-a868-709977696e9b
+URL:  Match3DBoxLevelScoreAnalysis/sheets/LevelBased
+---------------------------------------------------
+Name: Sub Level Birleşik
+Workbook: 475f922d-a510-4eeb-8aec-3555ce25346c
+ID:   996cec2a-e8f9-44a9-a0f7-07966537c160
+URL:  Match3DBoxLevelScoreAnalysis/sheets/SubLevelBirleik
+---------------------------------------------------
+Name: Version Based
+Workbook: 475f922d-a510-4eeb-8aec-3555ce25346c
+ID:   d7e6c127-41da-400c-8593-868b7d508b93
+URL:  Match3DBoxLevelScoreAnalysis/sheets/VersionBased
+---------------------------------------------------
+Name: Others
+Workbook: 475f922d-a510-4eeb-8aec-3555ce25346c
+ID:   81cc7b6d-6003-4dc7-b8ee-04309a9455cd
+URL:  Match3DBoxLevelScoreAnalysis/sheets/Others
+---------------------------------------------------
+Name: 1 - 30 Level
+Workbook: 475f922d-a510-4eeb-8aec-3555ce25346c
+ID:   b7e66e25-9edd-454b-a0ed-9bc6952a488c
+URL:  Match3DBoxLevelScoreAnalysis/sheets/1-30Level
+---------------------------------------------------
+Name: 31 - 100 Level
+Workbook: 475f922d-a510-4eeb-8aec-3555ce25346c
+ID:   674faa76-ff1a-4098-b831-f095a6d0aa5b
+URL:  Match3DBoxLevelScoreAnalysis/sheets/31-100Level
+---------------------------------------------------
+Name: Recently Opened Levels
+Workbook: 475f922d-a510-4eeb-8aec-3555ce25346c
+ID:   76a50ccc-e708-4197-b3ac-e96c917b9a4a
+URL:  Match3DBoxLevelScoreAnalysis/sheets/RecentlyOpenedLevels
+---------------------------------------------------
+Name: Tutorial Levels
+Workbook: 475f922d-a510-4eeb-8aec-3555ce25346c
+ID:   5a083322-3626-42c5-b9c1-039b068cf7c9
+URL:  Match3DBoxLevelScoreAnalysis/sheets/TutorialLevels
+---------------------------------------------------
+Name: Last Revised Levels
+Workbook: 475f922d-a510-4eeb-8aec-3555ce25346c
+ID:   5419a344-76ce-43b7-adfc-0b17c3c05cd1
+URL:  Match3DBoxLevelScoreAnalysis/sheets/LastRevisedLevels
+---------------------------------------------------
+Name: Sheet 13
+Workbook: 475f922d-a510-4eeb-8aec-3555ce25346c
+ID:   6f33009a-5d1f-4f5c-b01c-c3e2cad65f1a
+URL:  Match3DBoxLevelScoreAnalysis/sheets/Sheet13
+---------------------------------------------------
+Name: Sheet 17
+Workbook: 475f922d-a510-4eeb-8aec-3555ce25346c
+ID:   524ba31a-c951-4b9c-a9bb-3b333ced5fb8
+URL:  Match3DBoxLevelScoreAnalysis/sheets/Sheet17
+---------------------------------------------------
+Name: Sheet 17 (3)
+Workbook: 475f922d-a510-4eeb-8aec-3555ce25346c
+ID:   0ff64b93-84f9-4f4c-8d5b-6d045ee10ead
+URL:  Match3DBoxLevelScoreAnalysis/sheets/Sheet173
+---------------------------------------------------
+Name: Sheet 17 (4)
+Workbook: 475f922d-a510-4eeb-8aec-3555ce25346c
+ID:   0b5224b8-f09a-4f0f-9f0e-ef4a085a89c3
+URL:  Match3DBoxLevelScoreAnalysis/sheets/Sheet174
+---------------------------------------------------
+Name: Executive Summary
+Workbook: b78750ce-8f24-4e4f-883e-2a8b63b2b209
+ID:   3364ee24-74e2-48df-8355-a2ddeb87d0aa
+URL:  TripleSpotChurn/sheets/ExecutiveSummary
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: b78750ce-8f24-4e4f-883e-2a8b63b2b209
+ID:   dc3531c9-11ca-426c-b814-2399c025dfe3
+URL:  TripleSpotChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: AB Tests
+Workbook: 88a5490c-0da0-4734-a471-dbdcbe30adb0
+ID:   5fcf3669-2f39-41d3-a55a-dcb659ae0fbb
+URL:  TripleFarmGameAnalytics/sheets/ABTests
+---------------------------------------------------
+Name: AB Tests
+Workbook: 0861efb3-6fea-44d8-a57c-28c8acce3e89
+ID:   2ace9340-61d7-42ba-8fab-e63a4c76cef2
+URL:  Match3DBoxGameAnalytics/sheets/ABTests
+---------------------------------------------------
+Name: Activity Analysis
+Workbook: 62c05370-0c5d-4574-8bec-352e5d8ad75e
+ID:   a1f065d5-dfb0-4ba9-952a-c615541a8a39
+URL:  HomeMatch3DGameAnalytics/sheets/ActivityAnalysis
+---------------------------------------------------
+Name: Daily Revenue
+Workbook: 62c05370-0c5d-4574-8bec-352e5d8ad75e
+ID:   7c0ce744-3122-4d26-a7b4-ab44ebbf3fed
+URL:  HomeMatch3DGameAnalytics/sheets/DailyRevenue
+---------------------------------------------------
+Name: Cohort Analysis
+Workbook: 62c05370-0c5d-4574-8bec-352e5d8ad75e
+ID:   d51ce4f5-c8c9-45bc-8003-f8c72a130010
+URL:  HomeMatch3DGameAnalytics/sheets/CohortAnalysis
+---------------------------------------------------
+Name: Cohort Revenue Ratio
+Workbook: 62c05370-0c5d-4574-8bec-352e5d8ad75e
+ID:   457acf2d-0b03-4696-a47c-0bf47dcf2ad1
+URL:  HomeMatch3DGameAnalytics/sheets/CohortRevenueRatio
+---------------------------------------------------
+Name: IAP Monthly Analysis
+Workbook: 62c05370-0c5d-4574-8bec-352e5d8ad75e
+ID:   81b1a1dd-787c-47d4-8d6c-0e248868e36a
+URL:  HomeMatch3DGameAnalytics/sheets/IAPMonthlyAnalysis
+---------------------------------------------------
+Name: IAP Perform - Packs
+Workbook: 62c05370-0c5d-4574-8bec-352e5d8ad75e
+ID:   92035d4f-e129-489a-9f89-35ad5a63e6a5
+URL:  HomeMatch3DGameAnalytics/sheets/IAPPerform-Packs
+---------------------------------------------------
+Name: RW Analysis-Mon. Template
+Workbook: 62c05370-0c5d-4574-8bec-352e5d8ad75e
+ID:   eb8c00a9-363d-4975-af19-f86247f287df
+URL:  HomeMatch3DGameAnalytics/sheets/RWAnalysis-Mon_Template
+---------------------------------------------------
+Name: AB Tests
+Workbook: 62c05370-0c5d-4574-8bec-352e5d8ad75e
+ID:   1d50a382-42f7-44e0-8535-8b96c4c58b47
+URL:  HomeMatch3DGameAnalytics/sheets/ABTests
+---------------------------------------------------
+Name: Level A/B
+Workbook: 3fafc67a-9a1f-4b2c-9485-1f6eef2af3cd
+ID:   16f429db-f6f0-43b7-8cf1-fcc0e9169a31
+URL:  RoyalDecorChurn/sheets/LevelAB
+---------------------------------------------------
+Name: Level A/B Cohort
+Workbook: 3fafc67a-9a1f-4b2c-9485-1f6eef2af3cd
+ID:   9e58cd07-efcb-49d7-9a9d-fbe7b6882806
+URL:  RoyalDecorChurn/sheets/LevelABCohort
+---------------------------------------------------
+Name: Clusters
+Workbook: 70fd14bf-84a2-4269-8c8e-06f81944c69f
+ID:   3179c82f-2b72-46da-b252-7e86beaeb246
+URL:  ZenMasterLevelScoreAnalysis/sheets/Clusters
+---------------------------------------------------
+Name: Clusters
+Workbook: f926fc63-f524-4327-96f5-37915b02a83a
+ID:   4461db42-05ce-46fa-94bf-d531c901a69d
+URL:  DreamDesignLevelScoreAnalysis/sheets/Clusters
+---------------------------------------------------
+Name: Final Level Score
+Workbook: f926fc63-f524-4327-96f5-37915b02a83a
+ID:   5543f187-6e4b-47fb-b907-03594050ea87
+URL:  DreamDesignLevelScoreAnalysis/sheets/FinalLevelScore
+---------------------------------------------------
+Name: Cohort AB
+Workbook: 1e9c1c8a-6f9b-4268-86d3-037cf9ab1ca7
+ID:   e458496e-2b07-49d5-a1df-2530482053f5
+URL:  RoyalDecorGameAnalytics/sheets/CohortAB
+---------------------------------------------------
+Name: Final Level Score
+Workbook: 1775346d-d8a9-448b-b62d-02a810f15d34
+ID:   a5c743bf-a21c-47b8-b5be-9815148e4089
+URL:  RoyalDecorLevelScoreAnalysis/sheets/FinalLevelScore
+---------------------------------------------------
+Name: Clusters
+Workbook: 1775346d-d8a9-448b-b62d-02a810f15d34
+ID:   d65aa97d-6258-4293-a4e0-c7aca13ba28e
+URL:  RoyalDecorLevelScoreAnalysis/sheets/Clusters
+---------------------------------------------------
+Name: Activity Analysis
+Workbook: 647d744f-925b-4ebb-9931-8295532bce45
+ID:   50d7859a-289b-477f-a825-24cc6ceadd4e
+URL:  TripleSpotGameAnalytics/sheets/ActivityAnalysis
+---------------------------------------------------
+Name: Daily Revenue
+Workbook: 647d744f-925b-4ebb-9931-8295532bce45
+ID:   dded692b-f703-4548-a4ec-7518d96b176a
+URL:  TripleSpotGameAnalytics/sheets/DailyRevenue
+---------------------------------------------------
+Name: Cohort Analysis
+Workbook: 647d744f-925b-4ebb-9931-8295532bce45
+ID:   e494762b-c6a3-4b57-9b49-773dd46e44b3
+URL:  TripleSpotGameAnalytics/sheets/CohortAnalysis
+---------------------------------------------------
+Name: Cohort Revenue Ratio
+Workbook: 647d744f-925b-4ebb-9931-8295532bce45
+ID:   206c1082-c7e5-49f4-86bd-d185f50803a7
+URL:  TripleSpotGameAnalytics/sheets/CohortRevenueRatio
+---------------------------------------------------
+Name: IAP Monthly Analysis
+Workbook: 647d744f-925b-4ebb-9931-8295532bce45
+ID:   11d59127-17c3-40dc-a1d7-15598347dbf4
+URL:  TripleSpotGameAnalytics/sheets/IAPMonthlyAnalysis
+---------------------------------------------------
+Name: IAP Perform - Packs
+Workbook: 647d744f-925b-4ebb-9931-8295532bce45
+ID:   dff2bdea-e9ee-4e7b-9fa7-99e8f4d8d469
+URL:  TripleSpotGameAnalytics/sheets/IAPPerform-Packs
+---------------------------------------------------
+Name: RW Analysis-Mon. Template
+Workbook: 647d744f-925b-4ebb-9931-8295532bce45
+ID:   fe3a8831-0ae5-4f90-95a3-78ee38b35c1d
+URL:  TripleSpotGameAnalytics/sheets/RWAnalysis-Mon_Template
+---------------------------------------------------
+Name: Level Revenue
+Workbook: 647d744f-925b-4ebb-9931-8295532bce45
+ID:   4971830e-d951-48cd-9640-ed83eee5a9ff
+URL:  TripleSpotGameAnalytics/sheets/LevelRevenue
+---------------------------------------------------
+Name: Final Level Score
+Workbook: 23b337c6-f088-4e63-a469-844e740bd85c
+ID:   7d23b782-5716-488a-a9a8-4c1b174e230c
+URL:  ChristmasDesignLevelScoreAnalysis/sheets/FinalLevelScore
+---------------------------------------------------
+Name: Clusters
+Workbook: 23b337c6-f088-4e63-a469-844e740bd85c
+ID:   feb99d71-93fd-49b5-8a20-ffe1869cee98
+URL:  ChristmasDesignLevelScoreAnalysis/sheets/Clusters
+---------------------------------------------------
+Name: Difficulty Seed Android A/B Testi
+Workbook: fb48ef92-ee52-4bfb-82ef-eaad238b2ae4
+ID:   0f23c3de-9b9e-4e38-b3b3-a7c4be757275
+URL:  HomeMatch3DChurn/sheets/DifficultySeedAndroidABTesti
+---------------------------------------------------
+Name: Difficulty Seed iOS A/B Testi
+Workbook: fb48ef92-ee52-4bfb-82ef-eaad238b2ae4
+ID:   f0087f19-6ae7-4de5-8bc4-2da154aca4a8
+URL:  HomeMatch3DChurn/sheets/DifficultySeediOSABTesti
+---------------------------------------------------
+Name: Difficulty Seed
+Workbook: fb48ef92-ee52-4bfb-82ef-eaad238b2ae4
+ID:   0be92c12-4b71-4795-b898-44e52dc6ef05
+URL:  HomeMatch3DChurn/sheets/DifficultySeed
+---------------------------------------------------
+Name: Cohort Difficulty Seed Android A/B Android
+Workbook: fb48ef92-ee52-4bfb-82ef-eaad238b2ae4
+ID:   d3733af7-eac2-4c78-8620-a4255c9d5f9d
+URL:  HomeMatch3DChurn/sheets/CohortDifficultySeedAndroidABAndroid
+---------------------------------------------------
+Name: Cohort Difficulty Seed iOS A/B
+Workbook: fb48ef92-ee52-4bfb-82ef-eaad238b2ae4
+ID:   7a9a4e4a-e06c-4785-b4a4-82b49b265143
+URL:  HomeMatch3DChurn/sheets/CohortDifficultySeediOSAB_1
+---------------------------------------------------
+Name: Level Score
+Workbook: 70fd14bf-84a2-4269-8c8e-06f81944c69f
+ID:   b8a85462-a0b6-410a-925c-73503d2cd30b
+URL:  ZenMasterLevelScoreAnalysis/sheets/LevelScore
+---------------------------------------------------
+Name: Activity Analysis
+Workbook: 661dac06-8612-4f7c-9bd1-4ba183550625
+ID:   c29e3f52-1425-48f7-95ba-2dacb7f4e0d1
+URL:  Match3DManiaGameAnalytics/sheets/ActivityAnalysis
+---------------------------------------------------
+Name: Daily Revenue
+Workbook: 661dac06-8612-4f7c-9bd1-4ba183550625
+ID:   520ae2e5-e4ef-48bc-aaae-7493e000f6e1
+URL:  Match3DManiaGameAnalytics/sheets/DailyRevenue
+---------------------------------------------------
+Name: Cohort Analysis
+Workbook: 661dac06-8612-4f7c-9bd1-4ba183550625
+ID:   52606c89-ec35-4910-a436-37f5d5a9b4c9
+URL:  Match3DManiaGameAnalytics/sheets/CohortAnalysis
+---------------------------------------------------
+Name: Cohort Revenue Ratio
+Workbook: 661dac06-8612-4f7c-9bd1-4ba183550625
+ID:   262c831f-3622-4fa1-9bab-e736904b25b9
+URL:  Match3DManiaGameAnalytics/sheets/CohortRevenueRatio
+---------------------------------------------------
+Name: IAP Monthly Analysis
+Workbook: 661dac06-8612-4f7c-9bd1-4ba183550625
+ID:   d139f1a4-a81c-43d1-8236-42b73dafded0
+URL:  Match3DManiaGameAnalytics/sheets/IAPMonthlyAnalysis
+---------------------------------------------------
+Name: IAP Perform - Packs
+Workbook: 661dac06-8612-4f7c-9bd1-4ba183550625
+ID:   93ff7a20-50d5-4396-9582-25375665e153
+URL:  Match3DManiaGameAnalytics/sheets/IAPPerform-Packs
+---------------------------------------------------
+Name: RW Analysis-Mon. Template
+Workbook: 661dac06-8612-4f7c-9bd1-4ba183550625
+ID:   9d943aab-0f78-4c25-a587-d78227ecca45
+URL:  Match3DManiaGameAnalytics/sheets/RWAnalysis-Mon_Template
+---------------------------------------------------
+Name: Level Revenue
+Workbook: 661dac06-8612-4f7c-9bd1-4ba183550625
+ID:   92097746-9580-4772-8fda-d4833238f466
+URL:  Match3DManiaGameAnalytics/sheets/LevelRevenue
+---------------------------------------------------
+Name: Top 30 Levels Rewarded
+Workbook: 661dac06-8612-4f7c-9bd1-4ba183550625
+ID:   edf59fc4-90f7-4e0c-b67b-88406216bf02
+URL:  Match3DManiaGameAnalytics/sheets/Top30LevelsRewarded
+---------------------------------------------------
+Name: Top 30 Levels IAP
+Workbook: 661dac06-8612-4f7c-9bd1-4ba183550625
+ID:   aacccf72-191c-48cc-83bf-02fd92856929
+URL:  Match3DManiaGameAnalytics/sheets/Top30LevelsIAP
+---------------------------------------------------
+Name: AB Tests
+Workbook: 661dac06-8612-4f7c-9bd1-4ba183550625
+ID:   ae45a85a-afbe-42ce-a2a2-68c97cce038e
+URL:  Match3DManiaGameAnalytics/sheets/ABTests
+---------------------------------------------------
+Name: Summary - Graphs
+Workbook: e3ffe3bc-23d5-4ad6-90c5-2cff24dd7f3d
+ID:   daac0a7b-fcc6-4d73-ba09-867fb59f6cc8
+URL:  LDReports2025Jan-Apr/sheets/Summary-Graphs
+---------------------------------------------------
+Name: Instant Churn Cohort
+Workbook: e3ffe3bc-23d5-4ad6-90c5-2cff24dd7f3d
+ID:   4b3d544c-3a4d-4a3c-807e-164c5bb2dda8
+URL:  LDReports2025Jan-Apr/sheets/InstantChurnCohort
+---------------------------------------------------
+Name: Difficulty 
+Workbook: e3ffe3bc-23d5-4ad6-90c5-2cff24dd7f3d
+ID:   2503d330-004c-4a93-b015-94ad41c3a0a7
+URL:  LDReports2025Jan-Apr/sheets/Difficulty
+---------------------------------------------------
+Name: First Try Win Percent
+Workbook: e3ffe3bc-23d5-4ad6-90c5-2cff24dd7f3d
+ID:   4ab2d907-cb1c-4988-bb54-ff12a36f95ec
+URL:  LDReports2025Jan-Apr/sheets/FirstTryWinPercent
+---------------------------------------------------
+Name: Level A/B
+Workbook: 3665094e-e15e-4e1f-9d98-47dfa0386801
+ID:   bdea1210-39fa-4a11-9e61-aa8b6d990eb7
+URL:  ZenMasterChurn/sheets/LevelAB
+---------------------------------------------------
+Name: Level A/B Cohort
+Workbook: 3665094e-e15e-4e1f-9d98-47dfa0386801
+ID:   76003023-cb54-4271-985e-92517a32d167
+URL:  ZenMasterChurn/sheets/LevelABCohort
+---------------------------------------------------
+Name: Dashboard Load Times
+Workbook: c267ab9e-69dd-4248-b965-b2958091b3de
+ID:   ad67b4ca-022c-4fad-92a8-8127a512b3ca
+URL:  AdminInsightsStarter/sheets/DashboardLoadTimes
+---------------------------------------------------
+Name: Executive Summary
+Workbook: 318f0c18-c122-4d35-a545-e5f16447e0eb
+ID:   beec3d22-62e7-4abd-a5c7-266e1e2cd7fa
+URL:  GardenDesignChurn/sheets/ExecutiveSummary
+---------------------------------------------------
+Name: SubLevel birleşik
+Workbook: 318f0c18-c122-4d35-a545-e5f16447e0eb
+ID:   ee76a515-b5c9-44e4-a157-827d47813a00
+URL:  GardenDesignChurn/sheets/SubLevelbirleik
+---------------------------------------------------
+Name: Level A/B
+Workbook: 318f0c18-c122-4d35-a545-e5f16447e0eb
+ID:   0ac592aa-4905-484b-b1a3-eb41466f5b6e
+URL:  GardenDesignChurn/sheets/LevelAB
+---------------------------------------------------
+Name: Level A/B Cohort
+Workbook: 318f0c18-c122-4d35-a545-e5f16447e0eb
+ID:   47c0cf6a-8a15-485b-b78b-1a445cb319c5
+URL:  GardenDesignChurn/sheets/LevelABCohort
+---------------------------------------------------
+Name: Summary Cohort A/B 
+Workbook: 7fa0d568-d7b9-47ea-8b89-82e51e64e64f
+ID:   0d005bdc-44a6-4032-a6fd-52c00d502b9c
+URL:  ZenMasterGameAnalytics_17032525687120/sheets/SummaryCohortAB
+---------------------------------------------------
+Name: Retention A/B
+Workbook: 7fa0d568-d7b9-47ea-8b89-82e51e64e64f
+ID:   c8401819-5101-487b-9437-260dd887bb35
+URL:  ZenMasterGameAnalytics_17032525687120/sheets/RetentionAB
+---------------------------------------------------
+Name: ARPU A/B
+Workbook: 7fa0d568-d7b9-47ea-8b89-82e51e64e64f
+ID:   0686968b-c28b-4fb0-9d6a-8dc5bc3c50cf
+URL:  ZenMasterGameAnalytics_17032525687120/sheets/ARPUAB
+---------------------------------------------------
+Name: Activity Analysis A/B
+Workbook: 7fa0d568-d7b9-47ea-8b89-82e51e64e64f
+ID:   de92b410-379f-423a-99b6-4eaa21b37c0c
+URL:  ZenMasterGameAnalytics_17032525687120/sheets/ActivityAnalysisAB
+---------------------------------------------------
+Name: Summary Cohort A/B
+Workbook: d030819c-f27b-4ff2-9a3c-2f52ca3f2946
+ID:   f89ad0f7-0d2c-4a07-8e08-e64f72872c37
+URL:  DreamDesignGameAnalytics/sheets/SummaryCohortAB
+---------------------------------------------------
+Name: Retention A/B
+Workbook: d030819c-f27b-4ff2-9a3c-2f52ca3f2946
+ID:   04f5b459-4efc-47d1-9767-d7b3ce156046
+URL:  DreamDesignGameAnalytics/sheets/RetentionAB
+---------------------------------------------------
+Name: ARPU A/B
+Workbook: d030819c-f27b-4ff2-9a3c-2f52ca3f2946
+ID:   f4c98ba1-91ad-4715-ad14-1546126eea84
+URL:  DreamDesignGameAnalytics/sheets/ARPUAB
+---------------------------------------------------
+Name: Activity Analysis A/B
+Workbook: d030819c-f27b-4ff2-9a3c-2f52ca3f2946
+ID:   2a87457d-343d-4912-8ff2-67cd613eb24f
+URL:  DreamDesignGameAnalytics/sheets/ActivityAnalysisAB
+---------------------------------------------------
+Name: Summary Cohort A/B
+Workbook: e2bc9103-052e-40ab-ba59-fbf5f9201ae6
+ID:   0da45f2b-3531-4a9f-854e-62273deb0ef4
+URL:  ChristmasDesignGameAnalytics/sheets/SummaryCohortAB
+---------------------------------------------------
+Name: Retention A/B
+Workbook: e2bc9103-052e-40ab-ba59-fbf5f9201ae6
+ID:   0d5292ab-0e2c-4ce9-802a-b1752a7749ca
+URL:  ChristmasDesignGameAnalytics/sheets/RetentionAB
+---------------------------------------------------
+Name: ARPU A/B
+Workbook: e2bc9103-052e-40ab-ba59-fbf5f9201ae6
+ID:   62d39bdc-fbff-46ad-bb67-2134d68871fa
+URL:  ChristmasDesignGameAnalytics/sheets/ARPUAB
+---------------------------------------------------
+Name: Activity Analysis A/B
+Workbook: e2bc9103-052e-40ab-ba59-fbf5f9201ae6
+ID:   debaabd2-ac64-4fab-8695-7557d466804a
+URL:  ChristmasDesignGameAnalytics/sheets/ActivityAnalysisAB
+---------------------------------------------------
+Name: Activity Analysis
+Workbook: 95c1a4f1-7dcb-4144-b250-1e2aeec2b88e
+ID:   b6c1ae3c-8b0e-4a67-8034-cdfaf8c13e7c
+URL:  GardenDesignGameAnalytics/sheets/ActivityAnalysis
+---------------------------------------------------
+Name: Daily Revenue
+Workbook: 95c1a4f1-7dcb-4144-b250-1e2aeec2b88e
+ID:   442fd12e-2d6d-4bf3-b6fc-cf3bd9318663
+URL:  GardenDesignGameAnalytics/sheets/DailyRevenue
+---------------------------------------------------
+Name: Cohort Analysis
+Workbook: 95c1a4f1-7dcb-4144-b250-1e2aeec2b88e
+ID:   8a9c0795-b9bc-4c9b-8522-14fa51454a51
+URL:  GardenDesignGameAnalytics/sheets/CohortAnalysis
+---------------------------------------------------
+Name: Level Design Versiyon A/B
+Workbook: 95c1a4f1-7dcb-4144-b250-1e2aeec2b88e
+ID:   3377bd81-7781-4d7d-9e30-9971240e7c23
+URL:  GardenDesignGameAnalytics/sheets/LevelDesignVersiyonAB
+---------------------------------------------------
+Name: Cohort Revenue Ratio
+Workbook: 95c1a4f1-7dcb-4144-b250-1e2aeec2b88e
+ID:   b8a0885c-73b4-46d3-be3e-86c390467842
+URL:  GardenDesignGameAnalytics/sheets/CohortRevenueRatio
+---------------------------------------------------
+Name: IAP Monthly Analysis
+Workbook: 95c1a4f1-7dcb-4144-b250-1e2aeec2b88e
+ID:   061dbe82-d9c0-4fe8-a6de-05ab4be22613
+URL:  GardenDesignGameAnalytics/sheets/IAPMonthlyAnalysis
+---------------------------------------------------
+Name: IAP Perform - Packs
+Workbook: 95c1a4f1-7dcb-4144-b250-1e2aeec2b88e
+ID:   06cd3a57-9902-491e-a240-f7d86b5f9ffd
+URL:  GardenDesignGameAnalytics/sheets/IAPPerform-Packs
+---------------------------------------------------
+Name: RW Analysis-Mon. Template
+Workbook: 95c1a4f1-7dcb-4144-b250-1e2aeec2b88e
+ID:   6bf204b8-396b-4e1a-b954-82623d3711af
+URL:  GardenDesignGameAnalytics/sheets/RWAnalysis-Mon_Template
+---------------------------------------------------
+Name: RW Analysis - DAU
+Workbook: 95c1a4f1-7dcb-4144-b250-1e2aeec2b88e
+ID:   24432ef0-aca3-40e0-86ee-ab56ea9ca79e
+URL:  GardenDesignGameAnalytics/sheets/RWAnalysis-DAU
+---------------------------------------------------
+Name: Inter Analysis - DAU
+Workbook: 95c1a4f1-7dcb-4144-b250-1e2aeec2b88e
+ID:   05875104-f910-487b-9e21-a59d064a0125
+URL:  GardenDesignGameAnalytics/sheets/InterAnalysis-DAU
+---------------------------------------------------
+Name: Level Revenue
+Workbook: 95c1a4f1-7dcb-4144-b250-1e2aeec2b88e
+ID:   658493a4-3c19-412f-9558-42116d60bc52
+URL:  GardenDesignGameAnalytics/sheets/LevelRevenue
+---------------------------------------------------
+Name: Top 30 Levels Rewarded
+Workbook: 95c1a4f1-7dcb-4144-b250-1e2aeec2b88e
+ID:   21a89c2a-654d-4fba-9dce-e243a0ea6c62
+URL:  GardenDesignGameAnalytics/sheets/Top30LevelsRewarded
+---------------------------------------------------
+Name: Top 30 Levels IAP
+Workbook: 95c1a4f1-7dcb-4144-b250-1e2aeec2b88e
+ID:   2a5d35db-b276-4809-8d11-941dc0a7cbbc
+URL:  GardenDesignGameAnalytics/sheets/Top30LevelsIAP
+---------------------------------------------------
+Name: Summary Cohort A/B
+Workbook: 95c1a4f1-7dcb-4144-b250-1e2aeec2b88e
+ID:   566ca138-bc98-4607-bfeb-de48659ea53c
+URL:  GardenDesignGameAnalytics/sheets/SummaryCohortAB
+---------------------------------------------------
+Name: Retention A/B
+Workbook: 95c1a4f1-7dcb-4144-b250-1e2aeec2b88e
+ID:   dda16ff6-05ca-4d58-a968-6bb9872c26a7
+URL:  GardenDesignGameAnalytics/sheets/RetentionAB
+---------------------------------------------------
+Name: ARPU A/B
+Workbook: 95c1a4f1-7dcb-4144-b250-1e2aeec2b88e
+ID:   afc48403-e241-4f51-845a-57a64830f7d2
+URL:  GardenDesignGameAnalytics/sheets/ARPUAB
+---------------------------------------------------
+Name: Activity Analysis A/B
+Workbook: 95c1a4f1-7dcb-4144-b250-1e2aeec2b88e
+ID:   fc387f09-b9c6-4f04-9d56-28bbdc4deff7
+URL:  GardenDesignGameAnalytics/sheets/ActivityAnalysisAB
+---------------------------------------------------
+Name: DiffSeedAndroid
+Workbook: 527c24e8-2099-4b9a-8df6-eea7093950bb
+ID:   1f543fee-5642-4cf4-82ca-644d2a477256
+URL:  DreamDesignChurn/sheets/DiffSeedAndroid
+---------------------------------------------------
+Name: DiffSeediOS
+Workbook: 527c24e8-2099-4b9a-8df6-eea7093950bb
+ID:   2427700b-0c54-4987-87a8-420b29f17770
+URL:  DreamDesignChurn/sheets/DiffSeediOS
+---------------------------------------------------
+Name: Summary DAU A/B
+Workbook: d030819c-f27b-4ff2-9a3c-2f52ca3f2946
+ID:   24479c0b-9f7d-407e-8cb6-d46f20c56672
+URL:  DreamDesignGameAnalytics/sheets/SummaryDAUAB
+---------------------------------------------------
+Name: Daily DAU A/B
+Workbook: d030819c-f27b-4ff2-9a3c-2f52ca3f2946
+ID:   01629967-db64-47c0-afd7-07f911d67a29
+URL:  DreamDesignGameAnalytics/sheets/DailyDAUAB
+---------------------------------------------------
+Name: Level Score - Diff Seed Android
+Workbook: f926fc63-f524-4327-96f5-37915b02a83a
+ID:   aa830640-2e5a-4b42-a695-e9b5aaabbf3e
+URL:  DreamDesignLevelScoreAnalysis/sheets/LevelScore-DiffSeedAndroid
+---------------------------------------------------
+Name: Level Score - Diff Seed iOS
+Workbook: f926fc63-f524-4327-96f5-37915b02a83a
+ID:   b814a2ee-b671-477c-9236-423984c67243
+URL:  DreamDesignLevelScoreAnalysis/sheets/LevelScore-DiffSeediOS
+---------------------------------------------------
+Name: Executive Summary
+Workbook: 98cbe73b-e0d1-4a0d-9a76-986c119dfa79
+ID:   ba87cf1f-5281-4699-8405-327c5958cdb0
+URL:  MatchLandChurn/sheets/ExecutiveSummary
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 98cbe73b-e0d1-4a0d-9a76-986c119dfa79
+ID:   1e4420cc-7e72-40f1-a300-6163dc07817d
+URL:  MatchLandChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Level Score Diff Seed Android
+Workbook: 70fd14bf-84a2-4269-8c8e-06f81944c69f
+ID:   de3b1972-66a6-4058-9b2e-51b9d0ba7010
+URL:  ZenMasterLevelScoreAnalysis/sheets/LevelScoreDiffSeedAndroid
+---------------------------------------------------
+Name: Level Score Diff Seed iOS
+Workbook: 70fd14bf-84a2-4269-8c8e-06f81944c69f
+ID:   db6f3ddf-a0e6-4e38-9d03-47fa82422877
+URL:  ZenMasterLevelScoreAnalysis/sheets/LevelScoreDiffSeediOS
+---------------------------------------------------
+Name: Level Score - Diff Seed HAKAN
+Workbook: f926fc63-f524-4327-96f5-37915b02a83a
+ID:   bae95ed9-1569-47de-82e6-312d94196f9b
+URL:  DreamDesignLevelScoreAnalysis/sheets/LevelScore-DiffSeedHAKAN
+---------------------------------------------------
+Name: Summary DAU A/B
+Workbook: 7fa0d568-d7b9-47ea-8b89-82e51e64e64f
+ID:   73e29c3d-2585-4321-b00a-8bfe6e089f2d
+URL:  ZenMasterGameAnalytics_17032525687120/sheets/SummaryDAUAB
+---------------------------------------------------
+Name: Daily DAU A/B
+Workbook: 7fa0d568-d7b9-47ea-8b89-82e51e64e64f
+ID:   fb21ffb3-1f67-4889-8b1b-cc5f0410273c
+URL:  ZenMasterGameAnalytics_17032525687120/sheets/DailyDAUAB
+---------------------------------------------------
+Name: Level Score Diff Seed Detailed
+Workbook: 70fd14bf-84a2-4269-8c8e-06f81944c69f
+ID:   cad07c52-9dd6-44d1-be80-2f445930b7a5
+URL:  ZenMasterLevelScoreAnalysis/sheets/LevelScoreDiffSeedDetailed
+---------------------------------------------------
+Name: Level Score Diff Seed
+Workbook: 70fd14bf-84a2-4269-8c8e-06f81944c69f
+ID:   bdbbc51d-4551-485b-a304-652a68c7dda4
+URL:  ZenMasterLevelScoreAnalysis/sheets/LevelScoreDiffSeed
+---------------------------------------------------
+Name: Level Score Diff Seed - Variant A
+Workbook: 70fd14bf-84a2-4269-8c8e-06f81944c69f
+ID:   72bc5318-ac57-4331-9b17-fd6049fe3e96
+URL:  ZenMasterLevelScoreAnalysis/sheets/LevelScoreDiffSeed-VariantA
+---------------------------------------------------
+Name: Level Revize
+Workbook: 318f0c18-c122-4d35-a545-e5f16447e0eb
+ID:   73a331f9-7261-4da8-bbb4-75f9034459cc
+URL:  GardenDesignChurn/sheets/LevelRevize
+---------------------------------------------------
+Name: Level Score - Diff Seed Android
+Workbook: 23b337c6-f088-4e63-a469-844e740bd85c
+ID:   ff3f4d1a-81a8-498f-9e9a-949445a5e53b
+URL:  ChristmasDesignLevelScoreAnalysis/sheets/LevelScore-DiffSeedAndroid
+---------------------------------------------------
+Name: Level Score - Diff Seed iOS
+Workbook: 23b337c6-f088-4e63-a469-844e740bd85c
+ID:   08450c53-55e9-42c5-bc20-f5d482da4eb5
+URL:  ChristmasDesignLevelScoreAnalysis/sheets/LevelScore-DiffSeediOS
+---------------------------------------------------
+Name: Level Score - Diff Seed Detailed
+Workbook: 23b337c6-f088-4e63-a469-844e740bd85c
+ID:   fe90873a-525c-49ee-be57-5fc9a2c46d5b
+URL:  ChristmasDesignLevelScoreAnalysis/sheets/LevelScore-DiffSeedDetailed
+---------------------------------------------------
+Name: Level Score - Diff Seed
+Workbook: 23b337c6-f088-4e63-a469-844e740bd85c
+ID:   da38d7bb-6116-4b05-9103-cf6ccf470a73
+URL:  ChristmasDesignLevelScoreAnalysis/sheets/LevelScore-DiffSeed
+---------------------------------------------------
+Name: Level Score - Diff Seed Variant A
+Workbook: 23b337c6-f088-4e63-a469-844e740bd85c
+ID:   b9e55326-3d24-45fe-a89c-4b8c60905f6c
+URL:  ChristmasDesignLevelScoreAnalysis/sheets/LevelScore-DiffSeedVariantA
+---------------------------------------------------
+Name: Diff Seed Actions
+Workbook: 23b337c6-f088-4e63-a469-844e740bd85c
+ID:   4e9961c1-310c-4191-9afd-6373afb8dcd7
+URL:  ChristmasDesignLevelScoreAnalysis/sheets/DiffSeedActions
+---------------------------------------------------
+Name: Final Level Score
+Workbook: 2e62c988-bdef-467f-906c-838a2e3b6639
+ID:   3d1b69a2-9cd4-4c65-bedf-22b97cbfb4c5
+URL:  FAMLevelScoreAnalysis/sheets/FinalLevelScore
+---------------------------------------------------
+Name: Clusters
+Workbook: 2e62c988-bdef-467f-906c-838a2e3b6639
+ID:   928a5cfe-1bbf-476c-a185-c349932c8bc1
+URL:  FAMLevelScoreAnalysis/sheets/Clusters
+---------------------------------------------------
+Name: Level Revize
+Workbook: 1775346d-d8a9-448b-b62d-02a810f15d34
+ID:   ac2b59d8-3d5a-4ba6-b3cb-8563924dbe61
+URL:  RoyalDecorLevelScoreAnalysis/sheets/LevelRevize
+---------------------------------------------------
+Name: Level Revize
+Workbook: 2e62c988-bdef-467f-906c-838a2e3b6639
+ID:   1954b104-a450-487e-bada-7de7ba189d78
+URL:  FAMLevelScoreAnalysis/sheets/LevelRevize
+---------------------------------------------------
+Name: Level Revize
+Workbook: 2511d424-883b-4f30-a80c-9d24dbec1e36
+ID:   2cfe95a7-118c-4132-9426-bd500648deec
+URL:  BubbleFriendsChurnv4_2_1/sheets/LevelRevize
+---------------------------------------------------
+Name: Level Revize
+Workbook: e8761415-6d60-46f5-a784-ffea60519905
+ID:   06eca52a-0b52-4bf4-b4d6-040c920fce4d
+URL:  FarmBubblesChurnv4_2_1/sheets/LevelRevize
+---------------------------------------------------
+Name: Level Score - Diff Seed
+Workbook: f926fc63-f524-4327-96f5-37915b02a83a
+ID:   a8005067-f29b-41fb-99a3-4a025c771972
+URL:  DreamDesignLevelScoreAnalysis/sheets/LevelScore-DiffSeed
+---------------------------------------------------
+Name: Level Revize
+Workbook: 70fd14bf-84a2-4269-8c8e-06f81944c69f
+ID:   a0922468-c466-4019-a764-627dfa4e207d
+URL:  ZenMasterLevelScoreAnalysis/sheets/LevelRevize
+---------------------------------------------------
+Name: Summary Cohort Version A/B
+Workbook: 95c1a4f1-7dcb-4144-b250-1e2aeec2b88e
+ID:   00fd6b0c-a668-4cd1-ad6e-0b63f66bb570
+URL:  GardenDesignGameAnalytics/sheets/SummaryCohortVersionAB
+---------------------------------------------------
+Name: Retention Version A/B
+Workbook: 95c1a4f1-7dcb-4144-b250-1e2aeec2b88e
+ID:   30f08028-4549-41fa-b3e8-f728ff83e520
+URL:  GardenDesignGameAnalytics/sheets/RetentionVersionAB
+---------------------------------------------------
+Name: Executive Summary
+Workbook: 5a4916fd-670e-43f0-865a-ed8020e5756f
+ID:   bf08961a-6d2b-41b9-b609-9295d5dbcb73
+URL:  WishWonderChurn/sheets/ExecutiveSummary
+---------------------------------------------------
+Name: SubLevel birleşik
+Workbook: 5a4916fd-670e-43f0-865a-ed8020e5756f
+ID:   f5ef932a-b1b9-4479-bb48-b279506c5416
+URL:  WishWonderChurn/sheets/SubLevelbirleik
+---------------------------------------------------
+Name: Level Revize
+Workbook: 5a4916fd-670e-43f0-865a-ed8020e5756f
+ID:   07838618-43c2-4901-baef-81a68785bc35
+URL:  WishWonderChurn/sheets/LevelRevize
+---------------------------------------------------
+Name: Level A/B
+Workbook: 5a4916fd-670e-43f0-865a-ed8020e5756f
+ID:   58f25a59-852b-4426-bd31-83a27aee848d
+URL:  WishWonderChurn/sheets/LevelAB
+---------------------------------------------------
+Name: Level A/B Cohort
+Workbook: 5a4916fd-670e-43f0-865a-ed8020e5756f
+ID:   9263b957-d347-4a5a-a3bd-bb5728b78476
+URL:  WishWonderChurn/sheets/LevelABCohort
+---------------------------------------------------
+Name: Level A/B Report
+Workbook: 5a4916fd-670e-43f0-865a-ed8020e5756f
+ID:   40000075-f722-4bd4-ae93-b73d8a5f8d44
+URL:  WishWonderChurn/sheets/LevelABReport
+---------------------------------------------------
+Name: Level Revize
+Workbook: 23b337c6-f088-4e63-a469-844e740bd85c
+ID:   99b6db23-884c-45e2-a56b-2e1322f90129
+URL:  ChristmasDesignLevelScoreAnalysis/sheets/LevelRevize
+---------------------------------------------------
+Name: Activity Analysis
+Workbook: d330c471-8770-4a8d-9820-a67d4f413a8e
+ID:   5cd5f073-c055-4714-bd24-c1214cc4bfac
+URL:  WishAndWonderGameAnalytics/sheets/ActivityAnalysis
+---------------------------------------------------
+Name: Daily Revenue
+Workbook: d330c471-8770-4a8d-9820-a67d4f413a8e
+ID:   f83ece4f-0b8b-47d5-9a38-2c2821f398fa
+URL:  WishAndWonderGameAnalytics/sheets/DailyRevenue
+---------------------------------------------------
+Name: Cohort Analysis
+Workbook: d330c471-8770-4a8d-9820-a67d4f413a8e
+ID:   f560a030-cec0-406f-870e-6b12a3a45d79
+URL:  WishAndWonderGameAnalytics/sheets/CohortAnalysis
+---------------------------------------------------
+Name: Level Design Versiyon A/B
+Workbook: d330c471-8770-4a8d-9820-a67d4f413a8e
+ID:   6847312c-54f4-4fcd-ac79-33ac6a761496
+URL:  WishAndWonderGameAnalytics/sheets/LevelDesignVersiyonAB
+---------------------------------------------------
+Name: Cohort Revenue Ratio
+Workbook: d330c471-8770-4a8d-9820-a67d4f413a8e
+ID:   7052cf73-7885-474a-b8ad-d4da8455e7e1
+URL:  WishAndWonderGameAnalytics/sheets/CohortRevenueRatio
+---------------------------------------------------
+Name: IAP Monthly Analysis
+Workbook: d330c471-8770-4a8d-9820-a67d4f413a8e
+ID:   a19049b3-1215-45d1-ba13-0d6d16a0b1ce
+URL:  WishAndWonderGameAnalytics/sheets/IAPMonthlyAnalysis
+---------------------------------------------------
+Name: IAP Perform - Packs
+Workbook: d330c471-8770-4a8d-9820-a67d4f413a8e
+ID:   3c9c11c8-7709-467a-94cb-aea5c4a7335d
+URL:  WishAndWonderGameAnalytics/sheets/IAPPerform-Packs
+---------------------------------------------------
+Name: RW Analysis-Mon. Template
+Workbook: d330c471-8770-4a8d-9820-a67d4f413a8e
+ID:   dc997c5a-80dd-488b-ac32-94d63d7e6b74
+URL:  WishAndWonderGameAnalytics/sheets/RWAnalysis-Mon_Template
+---------------------------------------------------
+Name: Summary Cohort A/B
+Workbook: d330c471-8770-4a8d-9820-a67d4f413a8e
+ID:   555b30be-2644-4032-9426-4d5eadbbb486
+URL:  WishAndWonderGameAnalytics/sheets/SummaryCohortAB
+---------------------------------------------------
+Name: Retention A/B
+Workbook: d330c471-8770-4a8d-9820-a67d4f413a8e
+ID:   06029fc5-b36b-4f36-82a8-bf36fc734bb0
+URL:  WishAndWonderGameAnalytics/sheets/RetentionAB
+---------------------------------------------------
+Name: ARPU A/B
+Workbook: d330c471-8770-4a8d-9820-a67d4f413a8e
+ID:   ec140a56-0b58-48fd-be65-e539eea74d27
+URL:  WishAndWonderGameAnalytics/sheets/ARPUAB
+---------------------------------------------------
+Name: Activity Analysis A/B
+Workbook: d330c471-8770-4a8d-9820-a67d4f413a8e
+ID:   5d841ce5-3022-49dc-ac8f-53f9b8138b43
+URL:  WishAndWonderGameAnalytics/sheets/ActivityAnalysisAB
+---------------------------------------------------
+Name: Main Churn Toplu Champ League Levels
+Workbook: 736ff3db-09a8-4a41-b0d9-75225c44d375
+ID:   defa3d79-4fc6-4e91-90a2-6f764c95de70
+URL:  ChristmasDesignChurn/sheets/MainChurnTopluChampLeagueLevels
+---------------------------------------------------
+Name: Main Churn Toplu
+Workbook: 5ed961f6-543a-4cf4-b315-8ee856d1ea84
+ID:   ea170b2b-bbf3-4648-92ff-dbec72bd8ff1
+URL:  SantaQuestChurn/sheets/MainChurnToplu
+---------------------------------------------------
+Name: Champ League Revenues
+Workbook: 736ff3db-09a8-4a41-b0d9-75225c44d375
+ID:   33b32ffc-27c4-424e-b952-2526e0737537
+URL:  ChristmasDesignChurn/sheets/ChampLeagueRevenues
+---------------------------------------------------
+Name: Champ League Levels
+Workbook: 5a4916fd-670e-43f0-865a-ed8020e5756f
+ID:   27a16561-5a87-40a6-83a7-4708c58d7c72
+URL:  WishWonderChurn/sheets/ChampLeagueLevels
+---------------------------------------------------
+Name: Activity Analysis
+Workbook: 098a123a-7219-4a2c-985d-3892cccc5c49
+ID:   3a6cbc7a-842e-4547-9b9b-43149740eff4
+URL:  SantaQuestGameAnalytics/sheets/ActivityAnalysis
+---------------------------------------------------
+Name: Daily Revenue
+Workbook: 098a123a-7219-4a2c-985d-3892cccc5c49
+ID:   c487abbf-bd6d-4838-a561-29252f62838c
+URL:  SantaQuestGameAnalytics/sheets/DailyRevenue
+---------------------------------------------------
+Name: Cohort Analysis
+Workbook: 098a123a-7219-4a2c-985d-3892cccc5c49
+ID:   1f0673b9-32bd-405a-98bf-2a1fb57100f1
+URL:  SantaQuestGameAnalytics/sheets/CohortAnalysis
+---------------------------------------------------
+Name: Cohort Revenue Ratio
+Workbook: 098a123a-7219-4a2c-985d-3892cccc5c49
+ID:   49e7eed4-1c2c-4488-80f0-ddc8a90671b9
+URL:  SantaQuestGameAnalytics/sheets/CohortRevenueRatio
+---------------------------------------------------
+Name: IAP Monthly Analysis
+Workbook: 098a123a-7219-4a2c-985d-3892cccc5c49
+ID:   18ddcc79-e7ed-4ee2-a1da-8cc08e7a02b1
+URL:  SantaQuestGameAnalytics/sheets/IAPMonthlyAnalysis
+---------------------------------------------------
+Name: IAP Perform - Packs
+Workbook: 098a123a-7219-4a2c-985d-3892cccc5c49
+ID:   96b372af-00b8-466c-8dea-73569759162a
+URL:  SantaQuestGameAnalytics/sheets/IAPPerform-Packs
+---------------------------------------------------
+Name: RW Analysis-Mon. Template
+Workbook: 098a123a-7219-4a2c-985d-3892cccc5c49
+ID:   18afb23f-5dcc-450e-a8d7-0fda1b389593
+URL:  SantaQuestGameAnalytics/sheets/RWAnalysis-Mon_Template
+---------------------------------------------------
+Name: Top 30 Levels IAP
+Workbook: 098a123a-7219-4a2c-985d-3892cccc5c49
+ID:   ed4184e7-4eae-4196-8414-7d33ae122710
+URL:  SantaQuestGameAnalytics/sheets/Top30LevelsIAP
+---------------------------------------------------
+Name: AB Tests
+Workbook: 098a123a-7219-4a2c-985d-3892cccc5c49
+ID:   1f27ba90-5434-4135-8cd7-900bfa3c18be
+URL:  SantaQuestGameAnalytics/sheets/ABTests
+---------------------------------------------------
+Name: Level Revize
+Workbook: f926fc63-f524-4327-96f5-37915b02a83a
+ID:   770fcbc9-059e-403c-8156-fb8e9115550d
+URL:  DreamDesignLevelScoreAnalysis/sheets/LevelRevize
+---------------------------------------------------
+Name: Cohort Based Revenue
+Workbook: e2bc9103-052e-40ab-ba59-fbf5f9201ae6
+ID:   23897285-8667-467f-8302-4dae3cc78480
+URL:  ChristmasDesignGameAnalytics/sheets/CohortBasedRevenue
+---------------------------------------------------
+Name: Level Based Revenue
+Workbook: e2bc9103-052e-40ab-ba59-fbf5f9201ae6
+ID:   9c50c5fa-2da5-4f16-961b-d1bd6f4fef58
+URL:  ChristmasDesignGameAnalytics/sheets/LevelBasedRevenue
+---------------------------------------------------
