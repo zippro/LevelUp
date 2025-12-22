@@ -15,12 +15,16 @@ interface TableauAuthResponse {
     };
 }
 
-const MOCK_MODE = process.env.MOCK_TABLEAU === 'true' || !TABLEAU_SERVER_URL;
+const MOCK_MODE = process.env.MOCK_TABLEAU === 'true'; // Strict mock mode
 
 export async function authenticateTableau(): Promise<{ token: string; siteId: string }> {
     if (MOCK_MODE) {
         console.log('Returning MOCK Tableau authentication');
         return { token: 'mock-token-123', siteId: 'mock-site-id' };
+    }
+
+    if (!TABLEAU_SERVER_URL) {
+        throw new Error("Configuration Error: TABLEAU_SERVER_URL is missing or empty. Please check Vercel Environment Variables.");
     }
 
     const endpoint = `${TABLEAU_SERVER_URL}/api/${TABLEAU_API_VERSION}/auth/signin`;
