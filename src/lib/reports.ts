@@ -79,7 +79,56 @@ function findBucket(buckets: Bucket[], level: number): Bucket | null {
     return null;
 }
 
-export function generateBolgeselReport(data: LevelRow[]): any[] {
+/**
+ * Detects if data is in 'Long Format' (has Metrics and Value columns) and pivots it to 'Wide Format'.
+ */
+function transformToWideFormat(data: LevelRow[]): LevelRow[] {
+    if (!data || data.length === 0) return [];
+
+    // Check if it's long format
+    const sample = data[0];
+    const hasMetrics = 'Metrics' in sample || 'Metric Result' in sample; // 'Metric Result' is sometimes used by Tableau
+    const hasValue = 'Value' in sample || 'Measure Values' in sample;
+
+    if (!hasMetrics || !hasValue) {
+        return data; // Assume already wide or unknown format
+    }
+
+    const valueKey = 'Value' in sample ? 'Value' : 'Measure Values';
+    const metricsKey = 'Metrics' in sample ? 'Metrics' : 'Metric Result';
+    const levelKey = 'LevelID' in sample ? 'LevelID' : ('Level' in sample ? 'Level' : null);
+
+    if (!levelKey) return data; // Can't pivot without a grouping key
+
+    const pivoted: Record<string, LevelRow> = {};
+
+    for (const row of data) {
+        const lvl = row[levelKey];
+        if (typeof lvl === 'undefined') continue;
+
+        if (!pivoted[lvl]) {
+            pivoted[lvl] = { 'Level': lvl }; // Standardize on 'Level'
+        }
+
+        const metricName = row[metricsKey];
+        const val = row[valueKey];
+
+        if (metricName) {
+            // Handle TotalUser specifically if it appears as a metric
+            if (metricName === 'Total User' || metricName === 'TotalUser') {
+                pivoted[lvl]['TotalUser'] = val;
+            } else {
+                pivoted[lvl][metricName] = val;
+            }
+        }
+    }
+
+    return Object.values(pivoted);
+}
+
+export function generateBolgeselReport(rawData: LevelRow[]): any[] {
+    const data = transformToWideFormat(rawData);
+
     if (!data || data.length === 0) return [];
 
     // Filter valid rows and parse numbers
