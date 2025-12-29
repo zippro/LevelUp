@@ -95,6 +95,7 @@ export default function AnalyzePage() {
         // Define alternative names for metrics
         const alternatives: Record<string, string[]> = {
             'repeat rate': ['repeat rate', 'repeat ratio', 'avg. repeat rate', 'avg. repeat ratio', 'repeatrate', 'repeatratio'],
+            'total user': ['total user', 'total users', 'user count', 'users', 'count of users', 'distinct count of user id', 'cntd(user id)', 'user_count', 'totaluser'],
         };
 
         // Get search terms - metric itself plus any alternatives
@@ -107,8 +108,10 @@ export default function AnalyzePage() {
 
         for (const key of keys) {
             const lowerKey = key.toLowerCase();
+            const cleanLowerKey = lowerKey.replace(/\s+/g, '');
             for (const term of searchTerms) {
-                if (lowerKey.includes(term) || term.includes(lowerKey.replace('avg. ', ''))) {
+                const cleanTerm = term.replace(/\s+/g, '');
+                if (lowerKey.includes(term) || term.includes(lowerKey.replace('avg. ', '')) || cleanLowerKey === cleanTerm) {
                     const val = parseFloat(String(row[key]).replace(/[%,]/g, ''));
                     return isNaN(val) ? 0 : val;
                 }
@@ -290,6 +293,8 @@ export default function AnalyzePage() {
                     const row = gd.data.find(r => r.Level === level);
                     if (row) {
                         point[gd.gameName] = findMetricValue(row, selectedMetric);
+                        // Store total user count for tooltip
+                        point[`${gd.gameName}_TotalUser`] = findMetricValue(row, 'Total User');
                     }
                 });
                 return point;
@@ -506,13 +511,18 @@ export default function AnalyzePage() {
                                     />
                                     <Tooltip
                                         contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
-                                        formatter={(value: any, name: any) => {
+                                        formatter={(value: any, name: any, props: any) => {
                                             if (value === undefined || value === null) return ['-', name];
+
+                                            // Get total users from payload
+                                            const totalUsers = props.payload[`${name}_TotalUser`];
+                                            const userSuffix = totalUsers ? ` (${totalUsers} users)` : '';
+
                                             // Format as percentage for churn metrics
                                             if (selectedMetric.includes('Churn')) {
-                                                return [`${(Number(value) * 100).toFixed(2)}%`, name];
+                                                return [`${(Number(value) * 100).toFixed(2)}%${userSuffix}`, name];
                                             }
-                                            return [Number(value).toFixed(4), name];
+                                            return [`${Number(value).toFixed(4)}${userSuffix}`, name];
                                         }}
                                     />
                                     <Legend />

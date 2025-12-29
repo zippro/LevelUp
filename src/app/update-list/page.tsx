@@ -1,6 +1,5 @@
-"use client";
-
 import { useState, useEffect, useRef } from "react";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -15,7 +14,11 @@ import {
     ChevronUp,
     CheckCircle2,
     Pencil,
-    Loader2
+    Loader2,
+    Paperclip,
+    Image as ImageIcon,
+    Link as LinkIcon,
+    X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,8 +27,16 @@ interface TodoItem {
     title: string;
     type: 'new' | 'bug';
     done: boolean;
-    versionId?: string | null; // Added to track parent
+    versionId?: string | null;
     position?: number;
+    attachments?: Attachment[];
+}
+
+export interface Attachment {
+    id: string;
+    type: 'image' | 'link';
+    url: string;
+    name: string;
 }
 
 interface VersionBlock {
@@ -61,6 +72,7 @@ export default function UpdateListPage() {
     const [editingTodo, setEditingTodo] = useState<{ versionId: string; todoId: string; title: string } | null>(null);
     const [editingVersion, setEditingVersion] = useState<{ id: string; title: string } | null>(null);
     const [editingBacklog, setEditingBacklog] = useState<{ id: string; title: string } | null>(null);
+    const [showCompletedVersions, setShowCompletedVersions] = useState(true);
 
     // Initial Fetch
     useEffect(() => {
@@ -462,9 +474,99 @@ export default function UpdateListPage() {
         setDropTargetVersionId(null);
     };
 
+    // --- Attachments ---
+
+    const addAttachment = async (todoId: string, attachment: Attachment, versionId: string | null) => {
+        // Find todo to get current attachments
+        let currentAttachments: Attachment[] = [];
+
+        if (versionId) {
+            const v = versions.find(v => v.id === versionId);
+            const t = v?.todos.find(t => t.id === todoId);
+            if (t) currentAttachments = t.attachments || [];
+        } else {
+            const t = backlog.find(t => t.id === todoId);
+            if (t) currentAttachments = t.attachments || [];
+        }
+
+        const newAttachments = [...currentAttachments, attachment];
+
+        // Optimistic Update
+        if (versionId) {
+            setVersions(prev => prev.map(v =>
+                v.id === versionId
+                    ? { ...v, todos: v.todos.map(t => t.id === todoId ? { ...t, attachments: newAttachments } : t) }
+                    : v
+            ));
+        } else {
+            setBacklog(prev => prev.map(t => t.id === todoId ? { ...t, attachments: newAttachments } : t));
+        }
+
+        // API Update
+        await apiUpdateTodo(todoId, { attachments: newAttachments });
+    };
+
+    const deleteAttachment = async (todoId: string, attachmentId: string, versionId: string | null) => {
+        // Find todo
+        let currentAttachments: Attachment[] = [];
+        if (versionId) {
+            const v = versions.find(v => v.id === versionId);
+            const t = v?.todos.find(t => t.id === todoId);
+            if (t) currentAttachments = t.attachments || [];
+        } else {
+            const t = backlog.find(t => t.id === todoId);
+            if (t) currentAttachments = t.attachments || [];
+        }
+
+        const newAttachments = currentAttachments.filter(a => a.id !== attachmentId);
+
+        // Optimistic Update
+        if (versionId) {
+            setVersions(prev => prev.map(v =>
+                v.id === versionId
+                    ? { ...v, todos: v.todos.map(t => t.id === todoId ? { ...t, attachments: newAttachments } : t) }
+                    : v
+            ));
+        } else {
+            setBacklog(prev => prev.map(t => t.id === todoId ? { ...t, attachments: newAttachments } : t));
+        }
+
+        // API Update
+        await apiUpdateTodo(todoId, { attachments: newAttachments });
+    };
+
+    const handleImageUpload = async (file: File, todoId: string, versionId: string | null) => {
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+            const filePath = `${todoId}/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('attachments')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data } = supabase.storage.from('attachments').getPublicUrl(filePath);
+
+            const attachment: Attachment = {
+                id: generateId(),
+                type: 'image',
+                url: data.publicUrl,
+                name: file.name
+            };
+
+            await addAttachment(todoId, attachment, versionId);
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            alert('Failed to upload image');
+        }
+    };
+
+
     // Separate active and done versions
     const activeVersions = versions.filter(v => !v.done);
-    // const doneVersions = versions.filter(v => v.done); // Not used currently
+    const doneVersions = versions.filter(v => v.done); // Not used currently
 
     if (isLoading) {
         return (
@@ -714,43 +816,83 @@ export default function UpdateListPage() {
                                                         </span>
 
                                                         {/* Todo title - editable or static */}
-                                                        {editingTodo?.todoId === todo.id && editingTodo?.versionId === version.id ? (
-                                                            <Input
-                                                                value={editingTodo.title}
-                                                                onChange={(e) => setEditingTodo({ ...editingTodo, title: e.target.value })}
-                                                                onKeyDown={(e) => {
-                                                                    if (e.key === 'Enter') saveTodoEdit();
-                                                                    if (e.key === 'Escape') setEditingTodo(null);
-                                                                }}
-                                                                onBlur={saveTodoEdit}
-                                                                autoFocus
-                                                                className="flex-1 h-7"
-                                                            />
-                                                        ) : (
-                                                            <span className={cn("flex-1", todo.done && "line-through text-muted-foreground")}>
-                                                                {todo.title}
-                                                            </span>
-                                                        )}
+                                                        <div className="flex-1 min-w-0">
+                                                            {editingTodo?.todoId === todo.id && editingTodo?.versionId === version.id ? (
+                                                                <Input
+                                                                    value={editingTodo.title}
+                                                                    onChange={(e) => setEditingTodo({ ...editingTodo, title: e.target.value })}
+                                                                    onKeyDown={(e) => {
+                                                                        if (e.key === 'Enter') saveTodoEdit();
+                                                                        if (e.key === 'Escape') setEditingTodo(null);
+                                                                    }}
+                                                                    onBlur={saveTodoEdit}
+                                                                    autoFocus
+                                                                    className="h-7 text-sm"
+                                                                />
+                                                            ) : (
+                                                                <div className="flex flex-col gap-1">
+                                                                    <span className={cn("truncate", todo.done && "line-through text-muted-foreground")}>
+                                                                        {todo.title}
+                                                                    </span>
 
-                                                        {/* Edit button */}
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => setEditingTodo({ versionId: version.id, todoId: todo.id, title: todo.title })}
-                                                            className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
-                                                        >
-                                                            <Pencil className="h-3 w-3" />
-                                                        </Button>
+                                                                    {/* Attachments List */}
+                                                                    {todo.attachments && todo.attachments.length > 0 && (
+                                                                        <div className="flex flex-wrap gap-2 mt-1">
+                                                                            {todo.attachments.map(att => (
+                                                                                <div key={att.id} className="group/att flex items-center gap-1 bg-muted/50 px-1.5 py-0.5 rounded text-[10px] text-muted-foreground hover:bg-muted transition-colors">
+                                                                                    {att.type === 'image' ? <ImageIcon className="h-3 w-3" /> : <LinkIcon className="h-3 w-3" />}
+                                                                                    <a href={att.url} target="_blank" rel="noopener noreferrer" className="hover:underline max-w-[100px] truncate">
+                                                                                        {att.name}
+                                                                                    </a>
+                                                                                    <button
+                                                                                        onClick={() => deleteAttachment(todo.id, att.id, version.id)}
+                                                                                        className="opacity-0 group-hover/att:opacity-100 p-0.5 hover:text-destructive"
+                                                                                    >
+                                                                                        <X className="h-2.5 w-2.5" />
+                                                                                    </button>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </div>
 
-                                                        {/* Delete button */}
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => deleteTodo(version.id, todo.id)}
-                                                            className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive h-6 w-6 p-0"
-                                                        >
-                                                            <Trash2 className="h-3 w-3" />
-                                                        </Button>
+                                                        {/* Actions */}
+                                                        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => setEditingTodo({ versionId: version.id, todoId: todo.id, title: todo.title })}
+                                                                className="h-6 w-6 p-0"
+                                                            >
+                                                                <Pencil className="h-3 w-3" />
+                                                            </Button>
+
+                                                            <div className="relative">
+                                                                <input
+                                                                    type="file"
+                                                                    className="absolute inset-0 opacity-0 cursor-pointer w-6 h-6"
+                                                                    onChange={(e) => {
+                                                                        const file = e.target.files?.[0];
+                                                                        if (file) handleImageUpload(file, todo.id, version.id);
+                                                                    }}
+                                                                    accept="image/*"
+                                                                />
+                                                                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                                                    <ImageIcon className="h-3 w-3" />
+                                                                </Button>
+                                                            </div>
+
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => deleteTodo(version.id, todo.id)}
+                                                                className="text-destructive hover:text-destructive h-6 w-6 p-0"
+                                                            >
+                                                                <Trash2 className="h-3 w-3" />
+                                                            </Button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             ))}
@@ -853,7 +995,8 @@ export default function UpdateListPage() {
                     >
                         <CardHeader className="py-3">
                             <CardTitle className="text-lg flex items-center gap-2">
-                                📦 Backlog
+                                <GripVertical className="h-5 w-5 text-muted-foreground" />
+                                Backlog
                                 <span className="text-sm font-normal text-muted-foreground">({backlog.length})</span>
                             </CardTitle>
                         </CardHeader>
@@ -911,66 +1054,159 @@ export default function UpdateListPage() {
                                             }}
                                             onDragEnd={clearDragState}
                                             className={cn(
-                                                "flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors group",
+                                                "flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors group text-sm",
                                                 item.done && "opacity-60",
                                                 dragType === 'backlog' && dragId === item.id && "opacity-30 scale-[0.98]"
                                             )}
                                         >
-                                            <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab active:cursor-grabbing" />
+                                            <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab active:cursor-grabbing flex-shrink-0" />
                                             <Checkbox
                                                 checked={item.done}
                                                 onChange={() => toggleBacklogDone(item.id)}
                                             />
-                                            <span className={cn(
-                                                "inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium",
-                                                item.type === 'new' ? "bg-emerald-500/20 text-emerald-600" : "bg-red-500/20 text-red-600"
-                                            )}>
-                                                {item.type === 'new' ? <Sparkles className="h-3 w-3" /> : <Bug className="h-3 w-3" />}
-                                                {item.type}
-                                            </span>
 
-                                            {/* Editable title */}
-                                            {editingBacklog?.id === item.id ? (
-                                                <Input
-                                                    value={editingBacklog.title}
-                                                    onChange={(e) => setEditingBacklog({ ...editingBacklog, title: e.target.value })}
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === 'Enter') saveBacklogEdit();
-                                                        if (e.key === 'Escape') setEditingBacklog(null);
-                                                    }}
-                                                    onBlur={saveBacklogEdit}
-                                                    autoFocus
-                                                    className="flex-1 h-7"
-                                                />
-                                            ) : (
-                                                <span className={cn("flex-1 text-sm", item.done && "line-through text-muted-foreground")}>
-                                                    {item.title}
-                                                </span>
-                                            )}
+                                            <div className="flex-1 min-w-0">
+                                                {editingBacklog?.id === item.id ? (
+                                                    <Input
+                                                        value={editingBacklog.title}
+                                                        onChange={(e) => setEditingBacklog({ ...editingBacklog, title: e.target.value })}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') saveBacklogEdit();
+                                                            if (e.key === 'Escape') setEditingBacklog(null);
+                                                        }}
+                                                        onBlur={saveBacklogEdit}
+                                                        autoFocus
+                                                        className="h-6 text-sm px-1"
+                                                    />
+                                                ) : (
+                                                    <div className="flex flex-col">
+                                                        <span className={cn("truncate", item.done && "line-through text-muted-foreground")}>
+                                                            {item.title}
+                                                        </span>
+                                                        <div className="flex items-center gap-2 mt-0.5">
+                                                            <span className={cn(
+                                                                "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] text-[10px] font-medium leading-none",
+                                                                item.type === 'new' ? "bg-emerald-500/10 text-emerald-600" : "bg-red-500/10 text-red-600"
+                                                            )}>
+                                                                {item.type === 'new' ? <Sparkles className="h-2.5 w-2.5" /> : <Bug className="h-2.5 w-2.5" />}
+                                                                {item.type}
+                                                            </span>
+                                                            {/* Attachments Indicator */}
+                                                            {item.attachments && item.attachments.length > 0 && (
+                                                                <div className="flex items-center gap-0.5 text-muted-foreground text-[10px]">
+                                                                    <Paperclip className="h-2.5 w-2.5" />
+                                                                    {item.attachments.length}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        {/* Backlog Attachments List */}
+                                                        {item.attachments && item.attachments.length > 0 && (
+                                                            <div className="flex flex-wrap gap-1 mt-1">
+                                                                {item.attachments.map(att => (
+                                                                    <div key={att.id} className="group/att flex items-center gap-1 bg-muted/50 px-1 py-0.5 rounded text-[9px] text-muted-foreground hover:bg-muted transition-colors">
+                                                                        {att.type === 'image' ? <ImageIcon className="h-2.5 w-2.5" /> : <LinkIcon className="h-2.5 w-2.5" />}
+                                                                        <a href={att.url} target="_blank" rel="noopener noreferrer" className="hover:underline max-w-[80px] truncate">
+                                                                            {att.name}
+                                                                        </a>
+                                                                        <button
+                                                                            onClick={() => deleteAttachment(item.id, att.id, null)}
+                                                                            className="opacity-0 group-hover/att:opacity-100 p-0.5 hover:text-destructive"
+                                                                        >
+                                                                            <X className="h-2 w-2" />
+                                                                        </button>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
 
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => setEditingBacklog({ id: item.id, title: item.title })}
-                                                className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
-                                            >
-                                                <Pencil className="h-3 w-3" />
-                                            </Button>
+                                            <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => setEditingBacklog({ id: item.id, title: item.title })}
+                                                    className="h-6 w-6 p-0"
+                                                >
+                                                    <Pencil className="h-3 w-3" />
+                                                </Button>
 
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => deleteBacklogItem(item.id)}
-                                                className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive h-6 w-6 p-0"
-                                            >
-                                                <Trash2 className="h-3 w-3" />
-                                            </Button>
+                                                <div className="relative">
+                                                    <input
+                                                        type="file"
+                                                        className="absolute inset-0 opacity-0 cursor-pointer w-6 h-6"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) handleImageUpload(file, item.id, null);
+                                                        }}
+                                                        accept="image/*"
+                                                    />
+                                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                                        <ImageIcon className="h-3 w-3" />
+                                                    </Button>
+                                                </div>
+
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => deleteBacklogItem(item.id)}
+                                                    className="text-destructive hover:text-destructive h-6 w-6 p-0"
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </Button>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
+                                {backlog.length === 0 && (
+                                    <div className="text-sm text-muted-foreground text-center py-8 border-2 border-dashed rounded-lg">
+                                        Backlog is empty
+                                    </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
+
+                    {/* Done Versions Section */}
+                    {doneVersions.length > 0 && (
+                        <div className="pt-2 border-t mt-4">
+                            <Button
+                                variant="ghost"
+                                className="w-full flex items-center justify-between p-2 h-auto text-muted-foreground hover:text-foreground group"
+                                onClick={() => setShowCompletedVersions(!showCompletedVersions)}
+                            >
+                                <div className="flex items-center gap-2">
+                                    <CheckCircle2 className="h-4 w-4" />
+                                    <span className="font-semibold text-sm">Completed Versions</span>
+                                    <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full">{doneVersions.length}</span>
+                                </div>
+                                {showCompletedVersions ? <ChevronUp className="h-4 w-4 opacity-50" /> : <ChevronDown className="h-4 w-4 opacity-50" />}
+                            </Button>
+
+                            {showCompletedVersions && (
+                                <div className="space-y-2 mt-2 opacity-75 animate-in slide-in-from-top-2 fade-in duration-200">
+                                    {doneVersions.map(version => (
+                                        <Card key={version.id} className="bg-muted/30 border-dashed">
+                                            <CardHeader className="py-2 px-3 flex flex-row items-center gap-3 space-y-0">
+                                                <Checkbox
+                                                    checked={version.done}
+                                                    onChange={() => toggleVersionDone(version.id)}
+                                                    className="data-[state=checked]:bg-muted-foreground data-[state=checked]:border-muted-foreground"
+                                                />
+                                                <div className="flex-1 min-w-0">
+                                                    <CardTitle className="text-sm line-through text-muted-foreground truncate">{version.title}</CardTitle>
+                                                </div>
+                                                <div className="text-xs text-muted-foreground whitespace-nowrap">
+                                                    {version.todos.length} items
+                                                </div>
+                                            </CardHeader>
+                                        </Card>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

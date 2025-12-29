@@ -28,7 +28,9 @@ export async function GET() {
         // 2. Versions with their todos attached
         const versionsWithTodos = versions.map((v: any) => ({
             ...v,
-            todos: todos.filter((t: any) => t.version_id === v.id),
+            todos: todos
+                .filter((t: any) => t.version_id === v.id)
+                .map((t: any) => ({ ...t, done: t.is_done })),
             // Convert DB columns to frontend expected format if needed
             // is_done -> done, is_collapsed -> collapsed
             done: v.is_done,

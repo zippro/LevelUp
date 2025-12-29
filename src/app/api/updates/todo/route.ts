@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { title, type, versionId, position } = body;
+        const { title, type, versionId, position, attachments } = body;
 
         if (!title || !type) {
             return NextResponse.json({ error: 'Title and type are required' }, { status: 400 });
@@ -18,7 +18,8 @@ export async function POST(request: Request) {
                 type,
                 version_id: versionId || null, // null means backlog
                 position: position || 0,
-                is_done: false
+                is_done: false,
+                attachments: attachments || []
             })
             .select()
             .single();
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
     try {
         const body = await request.json();
-        const { id, title, done, position, versionId } = body;
+        const { id, title, done, position, versionId, attachments } = body;
 
         if (!id) {
             return NextResponse.json({ error: 'ID is required' }, { status: 400 });
@@ -50,6 +51,7 @@ export async function PUT(request: Request) {
         if (position !== undefined) updates.position = position;
         // Allow explicitly setting versionId (including to null)
         if (versionId !== undefined) updates.version_id = versionId;
+        if (attachments !== undefined) updates.attachments = attachments;
 
         const { data, error } = await supabase
             .from('app_todos')
