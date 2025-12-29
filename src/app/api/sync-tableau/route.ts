@@ -53,9 +53,75 @@ function pivotTableauData(csvText: string): string {
     return papa.unparse(pivotedData);
 }
 
+// Helper to filter CSV data by date range
+function filterByDateRange(csvText: string, startDate?: string, endDate?: string): string {
+    if (!startDate && !endDate) {
+        return csvText; // No filtering needed
+    }
+
+    const parseResult = papa.parse(csvText, { header: true, skipEmptyLines: true });
+    if (parseResult.errors.length > 0) {
+        console.error("CSV Parse Errors during date filter:", parseResult.errors);
+        return csvText;
+    }
+
+    const data = parseResult.data as Record<string, any>[];
+    const headers = parseResult.meta.fields || [];
+
+    // Find date column - try common names including Tableau's 'First Open', 'Time Event'
+    const dateColumnNames = ['Date', 'Tarih', 'date', 'tarih', 'EventDate', 'Created Date', 'event_date',
+        'First Open', 'Time Event', 'FirstOpen', 'TimeEvent', 'Event Time'];
+    let dateColumn: string | null = null;
+
+    // First try exact matches
+    for (const name of dateColumnNames) {
+        if (headers.includes(name)) {
+            dateColumn = name;
+            break;
+        }
+    }
+
+    // If no exact match, try fuzzy matching
+    if (!dateColumn) {
+        dateColumn = headers.find(h =>
+            h.toLowerCase().includes('date') ||
+            h.toLowerCase().includes('time') ||
+            h.toLowerCase().includes('open')
+        ) || null;
+    }
+
+    if (!dateColumn) {
+        console.log('[DateFilter] No date column found in:', headers.join(', '));
+        return csvText; // No date column found
+    }
+
+    console.log(`[DateFilter] Using column: ${dateColumn}, Range: ${startDate} to ${endDate}`);
+
+    // Parse filter dates
+    const startTime = startDate ? new Date(startDate).getTime() : null;
+    const endTime = endDate ? new Date(endDate).getTime() : null;
+
+    // Filter data
+    const filtered = data.filter(row => {
+        const dateValue = row[dateColumn!];
+        if (!dateValue) return true; // Keep rows without date
+
+        const rowTime = new Date(dateValue).getTime();
+        if (isNaN(rowTime)) return true; // Keep rows with unparseable dates
+
+        if (startTime && rowTime < startTime) return false;
+        if (endTime && rowTime > endTime) return false;
+        return true;
+    });
+
+    console.log(`[DateFilter] Filtered from ${data.length} to ${filtered.length} rows`);
+
+    return papa.unparse(filtered);
+}
+
 export async function POST(request: Request) {
     try {
-        const { viewId, tableName } = await request.json();
+        const { viewId, tableName, startDate, endDate } = await request.json();
 
         if (!viewId || !tableName) {
             return NextResponse.json({ error: 'Missing viewId or tableName' }, { status: 400 });
@@ -64,8 +130,8 @@ export async function POST(request: Request) {
         // 1. Authenticate with Tableau
         const { token, siteId } = await authenticateTableau();
 
-        // 2. Fetch data (CSV)
-        const response = await fetchTableauData(viewId, token, siteId);
+        // 2. Fetch data (CSV) - with date filters at API level
+        const response = await fetchTableauData(viewId, token, siteId, { startDate, endDate });
 
         if (!response.ok) {
             throw new Error(`Failed to fetch data from Tableau: ${response.statusText}`);
@@ -74,7 +140,10 @@ export async function POST(request: Request) {
         const csvText = await response.text();
 
         // 3. Process Data (Pivot if necessary)
-        const finalCsv = pivotTableauData(csvText);
+        let finalCsv = pivotTableauData(csvText);
+
+        // 4. Apply date filtering (client-side)
+        finalCsv = filterByDateRange(finalCsv, startDate, endDate);
 
         return NextResponse.json({ message: 'Data fetched successfully', data: finalCsv });
 

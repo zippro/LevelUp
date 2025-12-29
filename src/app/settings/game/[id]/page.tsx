@@ -10,7 +10,12 @@ import { useParams, useRouter } from "next/navigation";
 
 interface Config {
     variables: string[];
-    games: { id: string; name: string; viewMappings: Record<string, string> }[];
+    games: {
+        id: string;
+        name: string;
+        viewMappings: Record<string, string>;
+        urlMappings?: Record<string, string>;
+    }[];
 }
 
 export default function GameDetailsPage() {
@@ -23,6 +28,10 @@ export default function GameDetailsPage() {
     const [mappings, setMappings] = useState<Record<string, string>>({});
     const [saving, setSaving] = useState(false);
 
+    // State for URL inputs
+    const [urls, setUrls] = useState<Record<string, string>>({});
+    const [lookingUp, setLookingUp] = useState<Record<string, boolean>>({});
+
     useEffect(() => {
         fetch("/api/config")
             .then((res) => res.json())
@@ -31,6 +40,7 @@ export default function GameDetailsPage() {
                 const game = data.games.find((g) => g.id === gameId);
                 if (game) {
                     setMappings(game.viewMappings || {});
+                    setUrls(game.urlMappings || {});
                 } else {
                     // Handle not found?
                 }
@@ -45,7 +55,7 @@ export default function GameDetailsPage() {
 
         const updatedGames = config.games.map((g) => {
             if (g.id === gameId) {
-                return { ...g, viewMappings: mappings };
+                return { ...g, viewMappings: mappings, urlMappings: urls };
             }
             return g;
         });
@@ -64,6 +74,30 @@ export default function GameDetailsPage() {
 
     const updateMapping = (variable: string, viewId: string) => {
         setMappings((prev) => ({ ...prev, [variable]: viewId }));
+    };
+
+    const handleLookup = async (variable: string) => {
+        const url = urls[variable];
+        if (!url) return;
+
+        setLookingUp(prev => ({ ...prev, [variable]: true }));
+        try {
+            const res = await fetch('/api/tableau-lookup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+
+            updateMapping(variable, data.id);
+            // Optional: clear URL or show success?
+            alert(`Found View ID: ${data.id}`);
+        } catch (e: any) {
+            alert(`Lookup failed: ${e.message}`);
+        } finally {
+            setLookingUp(prev => ({ ...prev, [variable]: false }));
+        }
     };
 
     if (loading || !config) return <div>Loading...</div>;
@@ -100,8 +134,25 @@ export default function GameDetailsPage() {
                                     value={mappings[variable] || ""}
                                     onChange={(e) => updateMapping(variable, e.target.value)}
                                     placeholder={`View ID for ${variable}`}
-                                    className="font-mono text-xs"
+                                    className="font-mono text-xs mb-2"
                                 />
+                                <div className="flex gap-2">
+                                    <Input
+                                        placeholder="Paste Tableau View URL to auto-fill..."
+                                        className="text-xs h-8"
+                                        value={urls[variable] || ""}
+                                        onChange={(e) => setUrls(prev => ({ ...prev, [variable]: e.target.value }))}
+                                    />
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleLookup(variable)}
+                                        disabled={!urls[variable] || lookingUp[variable]}
+                                        className="h-8"
+                                    >
+                                        {lookingUp[variable] ? "..." : "Get ID"}
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     ))}

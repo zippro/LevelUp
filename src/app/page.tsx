@@ -8,7 +8,7 @@ import { Loader2, Download, Database } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import papa from 'papaparse';
-import { generateBolgeselReport, downloadCSV } from "@/lib/reports";
+import { generateBolgeselReport, generateLevelScoreReportWorkbook, generateExcelBlobFromWorkbook, generateExcelBlob, downloadExcel } from "@/lib/reports";
 import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 
@@ -17,6 +17,13 @@ interface Config {
   reports?: Record<string, string[]>;
   games: { id: string; name: string; viewMappings: Record<string, string> }[];
 }
+
+// Map Variables to Available Reports
+const VARIABLE_REPORTS: Record<string, string[]> = {
+  "Level Revize": ["3 Day Churn Analysis"],
+  "Bolgesel Rapor": ["Bölgesel Revize"], // Alias if used
+  "Level Score AB": ["Level Score Analysis"]
+};
 
 export default function Home() {
   const [config, setConfig] = useState<Config | null>(null);
@@ -30,6 +37,14 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Date Range Filter (for Level Score AB)
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+
+  // Cache dialog state
+  const [showCacheDialog, setShowCacheDialog] = useState(false);
+  const [cachedDataInfo, setCachedDataInfo] = useState<{ fileName: string; createdAt: Date } | null>(null);
 
   // Fetch Config on Mount
   useEffect(() => {
@@ -64,50 +79,116 @@ export default function Home() {
       return null;
     }
 
+    // Check for cached data first
+    const game = config?.games.find(g => g.id === selectedGameId);
+    const gameName = game ? game.name : selectedGameId;
+
+    const { data: files } = await supabase.storage
+      .from('data-repository')
+      .list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } });
+
+    const matchingFile = files?.find(f =>
+      f.name.includes(gameName || '') && f.name.includes(selectedVariable || '')
+    );
+
+    if (matchingFile) {
+      setCachedDataInfo({
+        fileName: matchingFile.name,
+        createdAt: new Date(matchingFile.created_at)
+      });
+      setShowCacheDialog(true);
+      return null;
+    } else {
+      // No cached data, fetch fresh
+      return await doSync(true);
+    }
+  };
+
+  // Actually perform the sync
+  const doSync = async (forceFresh: boolean) => {
+    const viewId = getActiveViewId();
+    if (!viewId) {
+      setError("No View ID found for this selection. Please configure it in Settings.");
+      return null;
+    }
+
     setLoading(true);
     setError(null);
     setData(null);
+    setShowCacheDialog(false);
+
     try {
-      const response = await fetch("/api/sync-tableau", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          viewId: viewId,
-          tableName: "level_design_data",
-        }),
-      });
+      let csvData: string | null = null;
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to fetch data");
-      }
-
-      setData(result.data);
-
-      // Save to Supabase Storage
-      if (selectedGameId && selectedVariable && result.data) {
+      if (!forceFresh) {
+        // Try to use cached data
         const game = config?.games.find(g => g.id === selectedGameId);
         const gameName = game ? game.name : selectedGameId;
-        const timestamp = format(new Date(), "yyyy-MM-dd HH-mm-ss");
-        const fileName = `${gameName} - ${selectedVariable} - ${timestamp}.csv`;
 
-        const { error: uploadError } = await supabase.storage
+        const { data: files } = await supabase.storage
           .from('data-repository')
-          .upload(fileName, result.data, {
-            contentType: 'text/csv',
-            upsert: false
-          });
+          .list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } });
 
-        if (uploadError) {
-          console.error("Failed to auto-save to repository:", uploadError);
-          // We don't block the user, just log it. Or maybe show a toast?
-        } else {
-          console.log("Auto-saved to repository:", fileName);
+        const matchingFile = files?.find(f =>
+          f.name.includes(gameName || '') && f.name.includes(selectedVariable || '')
+        );
+
+        if (matchingFile) {
+          const { data: fileData } = await supabase.storage
+            .from('data-repository')
+            .download(matchingFile.name);
+
+          if (fileData) {
+            csvData = await fileData.text();
+          }
         }
       }
 
-      return result.data;
+      // If no cached data or force fresh, fetch from Tableau
+      if (!csvData) {
+        const response = await fetch("/api/sync-tableau", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            viewId: viewId,
+            tableName: "level_design_data",
+            startDate: startDate || undefined,
+            endDate: endDate || undefined,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || "Failed to fetch data");
+        }
+
+        csvData = result.data;
+
+        // Save to Supabase Storage
+        if (selectedGameId && selectedVariable && csvData) {
+          const game = config?.games.find(g => g.id === selectedGameId);
+          const gameName = game ? game.name : selectedGameId;
+          const timestamp = format(new Date(), "yyyy-MM-dd HH-mm-ss");
+          const fileName = `${gameName} - ${selectedVariable} - ${timestamp}.csv`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('data-repository')
+            .upload(fileName, csvData, {
+              contentType: 'text/csv',
+              upsert: false
+            });
+
+          if (uploadError) {
+            console.error("Failed to auto-save to repository:", uploadError);
+          } else {
+            console.log("Auto-saved to repository:", fileName);
+          }
+        }
+      }
+
+      setData(csvData);
+      return csvData;
     } catch (err: any) {
       setError(err.message);
       return null;
@@ -116,28 +197,129 @@ export default function Home() {
     }
   };
 
-  const handleReportDownload = async (reportName: string) => {
-    let currentData = data;
 
-    // If no data yet, fetch it first
-    if (!currentData) {
-      currentData = await handleSync();
+
+  const handleReportDownload = async (reportName: string) => {
+    const game = config?.games.find(g => g.id === selectedGameId);
+    let currentData = data;
+    setError(null);
+
+    // If date range is set, always fetch fresh data with date filter
+    // Otherwise use cached data
+    if (!currentData || (startDate || endDate)) {
+      currentData = await doSync(startDate || endDate ? true : false); // Force fresh if dates set
       if (!currentData) return; // Error happened
     }
 
     // Parse CSV
-    const parsed = papa.parse(currentData, { header: true, skipEmptyLines: true });
+    let parsed = papa.parse(currentData, { header: true, skipEmptyLines: true });
+    let filteredData = parsed.data as any[];
 
-    let reportData: any[] = [];
-    if (reportName === "Bölgesel Revize") {
-      reportData = generateBolgeselReport(parsed.data as any[]);
+    // Apply local date filtering if dates are set and data has date column
+    if ((startDate || endDate) && parsed.meta.fields) {
+      // Exact date column names only (fuzzy 'time' matching was incorrectly matching metric columns like 'Avg. Level Play Time')
+      const dateColumns = ['Date', 'Tarih', 'date', 'tarih', 'EventDate', 'Created Date',
+        'First Open', 'Time Event', 'first open', 'time event',
+        'FirstOpen', 'TimeEvent', 'Event Time', 'Event_Time', 'event_time',
+        'Cohort Day', 'cohort day', 'CohortDay'];
+      // Only exact match - don't use fuzzy matching as it matches non-date columns
+      const dateColumn = parsed.meta.fields.find(f => dateColumns.includes(f));
+
+      // Also check for YEAR/MONTH/DAY pattern in column name
+      const datePatternColumn = !dateColumn ? parsed.meta.fields.find(f =>
+        /^(year|month|day|date)/i.test(f) ||
+        /(year|month|day)$/i.test(f) ||
+        /\d{4}/.test(f) // Contains 4 digits (likely a year)
+      ) : null;
+      const finalDateColumn = dateColumn || datePatternColumn;
+
+      if (finalDateColumn) {
+        const startTime = startDate ? new Date(startDate).getTime() : null;
+        const endTime = endDate ? new Date(endDate).getTime() : null;
+
+        filteredData = filteredData.filter(row => {
+          const dateValue = row[finalDateColumn];
+          if (!dateValue) return true;
+          const rowTime = new Date(dateValue).getTime();
+          if (isNaN(rowTime)) return true;
+          if (startTime && rowTime < startTime) return false;
+          if (endTime && rowTime > endTime) return false;
+          return true;
+        });
+
+        console.log(`[Report] Filtered by ${finalDateColumn}: ${(parsed.data as any[]).length} -> ${filteredData.length} rows`);
+        // Update parsed data with filtered results
+        parsed = { ...parsed, data: filteredData };
+      } else {
+        // Tableau API should have filtered the data at source
+        // Just log a note - don't block the report
+        console.log(`[Report] No client-side date filtering (Tableau API should have filtered)`);
+      }
     }
-    // Add other reports here if needed
 
-    if (reportData.length > 0) {
-      downloadCSV(reportData, `Report_${reportName}_${selectedGameId}_${new Date().toISOString()}.csv`);
-    } else {
-      setError("Report generation failed or no valid data found.");
+    let workbookBlob: Blob | null = null;
+    let fileName = "";
+
+    try {
+      setLoading(true);
+      const timestamp = format(new Date(), "yyyy-MM-dd_HH-mm-ss");
+      const rawName = `Report_${reportName}_${game?.name || selectedGameId}_${timestamp}`;
+      // Sanitize
+      const safeName = rawName
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9._-]/g, "_");
+
+      fileName = `${safeName}.xlsx`;
+
+      if (reportName === "Bölgesel Revize") {
+        // Use ExcelJS with full styling (yellow headers, percentage formatting)
+        const { generateBolgeselExcelJSFromRaw } = await import("@/lib/excel-report");
+        workbookBlob = await generateBolgeselExcelJSFromRaw(parsed.data as any[]);
+      }
+      else if (reportName === "Level Score Analysis") {
+        // Use ExcelJS with full styling (yellow headers, percentage formatting)
+        const { generateLevelScoreExcelJSFromRaw } = await import("@/lib/excel-report");
+        workbookBlob = await generateLevelScoreExcelJSFromRaw(parsed.data as any[]);
+      }
+      else if (reportName === "3 Day Churn Analysis") {
+        // Use ExcelJS with full styling (yellow headers, percentage formatting)
+        const { generate3DayChurnExcelJSFromRaw } = await import("@/lib/excel-report");
+        workbookBlob = await generate3DayChurnExcelJSFromRaw(parsed.data as any[]);
+      }
+
+      if (workbookBlob) {
+        // 1. Upload to Supabase Storage
+        const { error: uploadError } = await supabase.storage
+          .from('data-repository')
+          .upload(fileName, workbookBlob, {
+            contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            upsert: false
+          });
+
+        if (uploadError) {
+          console.error("Failed to auto-save report to repository:", uploadError);
+          setError(`Report generated but failed to save to repository: ${uploadError.message}`);
+        } else {
+          console.log("Auto-saved report to repository:", fileName);
+        }
+
+        // 2. Trigger Download
+        // Create URL from Blob and click
+        const url = window.URL.createObjectURL(workbookBlob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } else {
+        setError("Failed to generate report blob.");
+      }
+
+    } catch (e: any) {
+      setError("An error occurred during report generation: " + e.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -157,6 +339,49 @@ export default function Home() {
 
   return (
     <div className="space-y-8">
+      {/* Cache Dialog */}
+      {showCacheDialog && cachedDataInfo && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-in fade-in duration-200">
+          <div className="bg-card rounded-xl shadow-2xl border p-6 max-w-md w-full mx-4 animate-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-semibold mb-2">Existing Data Found</h3>
+            <p className="text-muted-foreground mb-4">
+              Data for this selection was saved on:
+            </p>
+            <div className="bg-muted/50 rounded-lg p-3 mb-4">
+              <p className="font-medium text-sm">{cachedDataInfo.fileName}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {format(cachedDataInfo.createdAt, "MMMM d, yyyy 'at' HH:mm")}
+              </p>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Would you like to use this saved data or fetch new data from Tableau?
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => doSync(false)}
+              >
+                Use Saved Data
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={() => doSync(true)}
+              >
+                Fetch New Data
+              </Button>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full mt-2 text-muted-foreground"
+              onClick={() => { setShowCacheDialog(false); setCachedDataInfo(null); }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Selection Area */}
       <Card>
@@ -210,6 +435,45 @@ export default function Home() {
             </Select>
           </div>
 
+          {/* Date Range Filter (visible for Level Score AB) */}
+          {selectedVariable === "Level Score AB" && (
+            <div className="space-y-3">
+              <label className="text-sm font-medium leading-none">
+                3. Select Date Range (Optional)
+              </label>
+              <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1 sm:flex-none">
+                  <span className="text-sm text-muted-foreground">From:</span>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="border rounded px-3 py-2 text-sm bg-background w-full sm:w-auto"
+                  />
+                </div>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1 sm:flex-none">
+                  <span className="text-sm text-muted-foreground">To:</span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="border rounded px-3 py-2 text-sm bg-background w-full sm:w-auto"
+                  />
+                </div>
+                {(startDate || endDate) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => { setStartDate(''); setEndDate(''); }}
+                    className="self-end sm:self-center"
+                  >
+                    Clear Dates
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* 3. Action */}
           <div className="pt-2 flex flex-wrap gap-4">
             <Button
@@ -230,15 +494,13 @@ export default function Home() {
             </Button>
 
             {/* Reports */}
-            {selectedVariable && config.reports?.[selectedVariable] && (
+            {selectedVariable && (VARIABLE_REPORTS[selectedVariable] || config.reports?.[selectedVariable]) && (
               <div className="flex flex-wrap gap-2 items-center">
                 <span className="text-sm font-medium text-muted-foreground mr-1">Reports:</span>
-                {config.reports[selectedVariable].map(report => (
+                {(VARIABLE_REPORTS[selectedVariable] || config.reports?.[selectedVariable] || []).map(report => (
                   <Button
                     key={report}
                     variant="secondary"
-                    // disabled={loading || !selectedGameId} 
-                    // Actually allow clicking even if not loaded, logic handles it. But need game selected.
                     disabled={loading || !selectedGameId}
                     onClick={() => handleReportDownload(report)}
                     className="h-10"
@@ -256,7 +518,7 @@ export default function Home() {
       {/* Results Area */}
       {(data || error) && (
         <Card className={cn(error ? "border-destructive/50" : "")}>
-          <CardHeader className="flex items-center justify-between flex-row">
+          <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
               <CardTitle>{error ? "Error Occurred" : "Data Ready"}</CardTitle>
               <CardDescription>

@@ -1,0 +1,978 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Plus,
+    GripVertical,
+    Trash2,
+    Bug,
+    Sparkles,
+    ChevronDown,
+    ChevronUp,
+    CheckCircle2,
+    Pencil,
+    Loader2
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface TodoItem {
+    id: string;
+    title: string;
+    type: 'new' | 'bug';
+    done: boolean;
+    versionId?: string | null; // Added to track parent
+    position?: number;
+}
+
+interface VersionBlock {
+    id: string;
+    title: string;
+    todos: TodoItem[];
+    done: boolean;
+    collapsed: boolean;
+    position?: number;
+}
+
+// Use randomUUID for temp IDs (optimistic) or real IDs if we want to send them
+const generateId = () => crypto.randomUUID();
+
+export default function UpdateListPage() {
+    const [isLoading, setIsLoading] = useState(true);
+    const [versions, setVersions] = useState<VersionBlock[]>([]);
+    const [newVersionTitle, setNewVersionTitle] = useState('');
+    const [newTodoInputs, setNewTodoInputs] = useState<Record<string, string>>({});
+
+    // Backlog - standalone todos not assigned to any version
+    const [backlog, setBacklog] = useState<TodoItem[]>([]);
+    const [backlogInput, setBacklogInput] = useState('');
+
+    // Drag state
+    const [dragType, setDragType] = useState<'todo' | 'version' | 'backlog' | null>(null);
+    const [dragId, setDragId] = useState<string | null>(null);
+    const [dragSourceVersionId, setDragSourceVersionId] = useState<string | null>(null);
+    const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
+    const [dropTargetVersionId, setDropTargetVersionId] = useState<string | null>(null);
+
+    // Editing state
+    const [editingTodo, setEditingTodo] = useState<{ versionId: string; todoId: string; title: string } | null>(null);
+    const [editingVersion, setEditingVersion] = useState<{ id: string; title: string } | null>(null);
+    const [editingBacklog, setEditingBacklog] = useState<{ id: string; title: string } | null>(null);
+
+    // Initial Fetch
+    useEffect(() => {
+        fetchUpdates();
+    }, []);
+
+    const fetchUpdates = async () => {
+        try {
+            setIsLoading(true);
+            const res = await fetch('/api/updates');
+            const data = await res.json();
+
+            if (data.versions) {
+                setVersions(data.versions);
+            }
+            if (data.backlog) {
+                setBacklog(data.backlog);
+            }
+        } catch (error) {
+            console.error("Failed to fetch updates:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // --- API Helpers ---
+
+    const apiCreateVersion = async (version: VersionBlock) => {
+        await fetch('/api/updates/version', {
+            method: 'POST',
+            body: JSON.stringify({
+                title: version.title,
+                position: versions.length // Append to end
+            })
+        });
+        // We could replace the temp ID with real ID here if we waited, 
+        // but for now we'll just let the next fetch sync it up or assume consistency.
+        // Ideally we should update the local state with the real ID from DB.
+        fetchUpdates(); // Refresh to get real IDs and ensure consistency
+    };
+
+    const apiUpdateVersion = async (id: string, updates: Partial<VersionBlock>) => {
+        await fetch('/api/updates/version', {
+            method: 'PUT',
+            body: JSON.stringify({ id, ...updates })
+        });
+    };
+
+    const apiDeleteVersion = async (id: string) => {
+        await fetch(`/api/updates/version?id=${id}`, { method: 'DELETE' });
+    };
+
+    const apiCreateTodo = async (todo: TodoItem, versionId: string | null) => {
+        await fetch('/api/updates/todo', {
+            method: 'POST',
+            body: JSON.stringify({
+                title: todo.title,
+                type: todo.type,
+                versionId: versionId,
+                position: 9999 // Append
+            })
+        });
+        fetchUpdates();
+    };
+
+    const apiUpdateTodo = async (id: string, updates: Partial<TodoItem>) => {
+        await fetch('/api/updates/todo', {
+            method: 'PUT',
+            body: JSON.stringify({ id, ...updates })
+        });
+    };
+
+    const apiDeleteTodo = async (id: string) => {
+        await fetch(`/api/updates/todo?id=${id}`, { method: 'DELETE' });
+    };
+
+    const apiReorder = async (items: { id: string, position: number }[], type: 'version' | 'todo') => {
+        await fetch('/api/updates/reorder', {
+            method: 'POST',
+            body: JSON.stringify({ items, type })
+        });
+    };
+
+    // --- Actions ---
+
+    // Add new version
+    const addVersion = () => {
+        if (!newVersionTitle.trim()) return;
+        const newVersion: VersionBlock = {
+            id: generateId(), // Temp ID
+            title: newVersionTitle.trim(),
+            todos: [],
+            done: false,
+            collapsed: false
+        };
+        // Optimistic
+        setVersions(prev => [...prev, newVersion]);
+        setNewVersionTitle('');
+        // API
+        apiCreateVersion(newVersion);
+    };
+
+    // Add todo to version
+    const addTodo = (versionId: string, type: 'new' | 'bug') => {
+        const title = newTodoInputs[versionId]?.trim();
+        if (!title) return;
+
+        const newTodo: TodoItem = {
+            id: generateId(),
+            title,
+            type,
+            done: false
+        };
+
+        // Optimistic
+        setVersions(prev => prev.map(v =>
+            v.id === versionId
+                ? { ...v, todos: [...v.todos, newTodo] }
+                : v
+        ));
+        setNewTodoInputs(prev => ({ ...prev, [versionId]: '' }));
+        // API
+        apiCreateTodo(newTodo, versionId);
+    };
+
+    // Toggle todo done
+    const toggleTodoDone = (versionId: string, todoId: string) => {
+        let newDone = false;
+
+        setVersions(prev => prev.map(v => {
+            if (v.id !== versionId) return v;
+            const todo = v.todos.find(t => t.id === todoId);
+            if (!todo) return v;
+
+            newDone = !todo.done;
+            return {
+                ...v,
+                todos: v.todos.map(t => t.id === todoId ? { ...t, done: newDone } : t)
+            };
+        }));
+
+        apiUpdateTodo(todoId, { done: newDone });
+    };
+
+    // Toggle version done
+    const toggleVersionDone = (versionId: string) => {
+        let newDone = false;
+        setVersions(prev => {
+            const v = prev.find(v => v.id === versionId);
+            if (!v) return prev;
+            newDone = !v.done;
+            return prev.map(v => v.id === versionId ? { ...v, done: newDone } : v);
+        });
+
+        apiUpdateVersion(versionId, { done: newDone });
+    };
+
+    // Delete todo
+    const deleteTodo = (versionId: string, todoId: string) => {
+        setVersions(prev => prev.map(v =>
+            v.id === versionId
+                ? { ...v, todos: v.todos.filter(t => t.id !== todoId) }
+                : v
+        ));
+        apiDeleteTodo(todoId);
+    };
+
+    // Save todo edit
+    const saveTodoEdit = () => {
+        if (!editingTodo) return;
+        const { versionId, todoId, title } = editingTodo;
+        if (!title.trim()) {
+            setEditingTodo(null);
+            return;
+        }
+        setVersions(prev => prev.map(v =>
+            v.id === versionId
+                ? { ...v, todos: v.todos.map(t => t.id === todoId ? { ...t, title: title.trim() } : t) }
+                : v
+        ));
+        setEditingTodo(null);
+        apiUpdateTodo(todoId, { title: title.trim() });
+    };
+
+    // Save version edit
+    const saveVersionEdit = () => {
+        if (!editingVersion) return;
+        const { id, title } = editingVersion;
+        if (!title.trim()) {
+            setEditingVersion(null);
+            return;
+        }
+        setVersions(prev => prev.map(v =>
+            v.id === id ? { ...v, title: title.trim() } : v
+        ));
+        setEditingVersion(null);
+        apiUpdateVersion(id, { title: title.trim() });
+    };
+
+    // Backlog functions
+    const addBacklogItem = (type: 'new' | 'bug') => {
+        if (!backlogInput.trim()) return;
+        const item: TodoItem = {
+            id: generateId(),
+            title: backlogInput.trim(),
+            type,
+            done: false
+        };
+        setBacklog(prev => [...prev, item]);
+        setBacklogInput('');
+        apiCreateTodo(item, null);
+    };
+
+    const toggleBacklogDone = (todoId: string) => {
+        let newDone = false;
+        setBacklog(prev => {
+            const item = prev.find(t => t.id === todoId);
+            if (!item) return prev;
+            newDone = !item.done;
+            return prev.map(t => t.id === todoId ? { ...t, done: newDone } : t);
+        });
+        apiUpdateTodo(todoId, { done: newDone });
+    };
+
+    const deleteBacklogItem = (todoId: string) => {
+        setBacklog(prev => prev.filter(t => t.id !== todoId));
+        apiDeleteTodo(todoId);
+    };
+
+    // Save backlog edit
+    const saveBacklogEdit = () => {
+        if (!editingBacklog) return;
+        const { id, title } = editingBacklog;
+        if (!title.trim()) {
+            setEditingBacklog(null);
+            return;
+        }
+        setBacklog(prev => prev.map(t =>
+            t.id === id ? { ...t, title: title.trim() } : t
+        ));
+        setEditingBacklog(null);
+        apiUpdateTodo(id, { title: title.trim() });
+    };
+
+    // Move backlog item by drag
+    const moveBacklogItem = (todoId: string, toIndex: number) => {
+        setBacklog(prev => {
+            const fromIndex = prev.findIndex(t => t.id === todoId);
+            if (fromIndex === -1 || fromIndex === toIndex) return prev;
+            const newBacklog = [...prev];
+            const [item] = newBacklog.splice(fromIndex, 1);
+            newBacklog.splice(toIndex > fromIndex ? toIndex - 1 : toIndex, 0, item);
+
+            // API reorder
+            const itemsToReorder = newBacklog.map((t, i) => ({ id: t.id, position: i }));
+            apiReorder(itemsToReorder, 'todo');
+
+            return newBacklog;
+        });
+    };
+
+    // Move backlog item to a version
+    const moveBacklogToVersion = (todoId: string, versionId: string) => {
+        const item = backlog.find(t => t.id === todoId);
+        if (!item) return;
+
+        // Optimistic
+        setBacklog(prev => prev.filter(t => t.id !== todoId));
+        setVersions(prev => prev.map(v =>
+            v.id === versionId ? { ...v, todos: [...v.todos, item] } : v
+        ));
+
+        // API
+        // We need to fetch the version to know where to put it or just put it at end.
+        // Putting it at end is safest for now.
+        const targetVersion = versions.find(v => v.id === versionId);
+        const newPos = targetVersion ? targetVersion.todos.length : 0;
+
+        apiUpdateTodo(todoId, { versionId, position: newPos });
+    };
+
+    // Move version todo item to backlog
+    const moveVersionTodoToBacklog = (todoId: string, sourceVersionId: string) => {
+        // Find the item first from current state
+        const sourceVersion = versions.find(v => v.id === sourceVersionId);
+        const item = sourceVersion?.todos.find(t => t.id === todoId);
+        if (!item) return;
+
+        // Optimistic
+        setVersions(prev => prev.map(v =>
+            v.id === sourceVersionId
+                ? { ...v, todos: v.todos.filter(t => t.id !== todoId) }
+                : v
+        ));
+
+        // Add to backlog
+        setBacklog(prev => {
+            const newBacklog = [...prev, item];
+            // API Call inside callback to get new length
+            const newPos = newBacklog.length - 1;
+            apiUpdateTodo(todoId, { versionId: null, position: newPos });
+            return newBacklog;
+        });
+    };
+
+    // Delete version
+    const deleteVersion = (versionId: string) => {
+        if (!confirm('Delete this version and all its todos?')) return;
+        setVersions(prev => prev.filter(v => v.id !== versionId));
+        apiDeleteVersion(versionId);
+    };
+
+    // Toggle version collapse
+    const toggleCollapse = (versionId: string) => {
+        let newCollapsed = false;
+        setVersions(prev => prev.map(v => {
+            if (v.id === versionId) {
+                newCollapsed = !v.collapsed;
+                return { ...v, collapsed: newCollapsed };
+            }
+            return v;
+        }));
+        apiUpdateVersion(versionId, { collapsed: newCollapsed });
+    };
+
+    // Move todo to new position
+    const moveTodo = (fromVersionId: string, todoId: string, toVersionId: string, toIndex: number) => {
+        setVersions(prev => {
+            const newVersions = prev.map(v => ({ ...v, todos: [...v.todos] }));
+
+            const fromVersion = newVersions.find(v => v.id === fromVersionId);
+            const toVersion = newVersions.find(v => v.id === toVersionId);
+
+            if (!fromVersion || !toVersion) return prev;
+
+            const todoIndex = fromVersion.todos.findIndex(t => t.id === todoId);
+            if (todoIndex === -1) return prev;
+
+            const [todo] = fromVersion.todos.splice(todoIndex, 1);
+
+            // Adjust target index if moving within same version and from lower to higher index
+            let adjustedIndex = toIndex;
+            if (fromVersionId === toVersionId && todoIndex < toIndex) {
+                adjustedIndex = Math.max(0, toIndex - 1);
+            }
+
+            toVersion.todos.splice(adjustedIndex, 0, todo);
+
+            // API Logic
+            // If moved to different version or same version reorder
+            if (fromVersionId !== toVersionId) {
+                // Moved to new version
+                // We also need to reorder the target version's todos
+                const reorderItems = toVersion.todos.map((t, i) => ({ id: t.id, position: i }));
+                apiReorder(reorderItems, 'todo');
+                // And update the moved item's version
+                apiUpdateTodo(todoId, { versionId: toVersionId });
+            } else {
+                // Same version reorder
+                const reorderItems = toVersion.todos.map((t, i) => ({ id: t.id, position: i }));
+                apiReorder(reorderItems, 'todo');
+            }
+
+            return newVersions;
+        });
+    };
+
+    // Move version to new position
+    const moveVersion = (versionId: string, toIndex: number) => {
+        setVersions(prev => {
+            const fromIndex = prev.findIndex(v => v.id === versionId);
+            if (fromIndex === -1 || fromIndex === toIndex) return prev;
+
+            const newVersions = [...prev];
+            const [version] = newVersions.splice(fromIndex, 1);
+
+            // Adjust index if moving from lower to higher
+            let adjustedIndex = toIndex;
+            if (fromIndex < toIndex) {
+                adjustedIndex = Math.max(0, toIndex - 1);
+            }
+
+            newVersions.splice(adjustedIndex, 0, version);
+
+            // API sync order
+            const reorderItems = newVersions.map((v, i) => ({ id: v.id, position: i }));
+            apiReorder(reorderItems, 'version');
+
+            return newVersions;
+        });
+    };
+
+    // Clear drag state
+    const clearDragState = () => {
+        setDragType(null);
+        setDragId(null);
+        setDragSourceVersionId(null);
+        setDropTargetIndex(null);
+        setDropTargetVersionId(null);
+    };
+
+    // Separate active and done versions
+    const activeVersions = versions.filter(v => !v.done);
+    // const doneVersions = versions.filter(v => v.done); // Not used currently
+
+    if (isLoading) {
+        return (
+            <div className="flex h-[50vh] items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Header */}
+            <div className="space-y-2">
+                <h1 className="text-2xl font-bold">Update List</h1>
+                <p className="text-muted-foreground">Track version updates and feature todo lists</p>
+            </div>
+
+            {/* Add New Version */}
+            <div className="flex gap-2">
+                <Input
+                    placeholder="New version number (e.g. v1.2.0)"
+                    value={newVersionTitle}
+                    onChange={(e) => setNewVersionTitle(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && addVersion()}
+                    className="max-w-xs"
+                />
+                <Button onClick={addVersion} disabled={!newVersionTitle.trim()}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Version
+                </Button>
+            </div>
+
+            {/* Two Column Layout - stacks on mobile */}
+            <div className="flex flex-col md:flex-row gap-6 items-start">
+                {/* Left Column - Versions */}
+                <div className="flex-1 w-full space-y-2">
+                    {activeVersions.map((version, versionIndex) => (
+                        <div key={version.id}>
+                            {/* Drop zone before version */}
+                            <div
+                                className={cn(
+                                    "h-3 rounded transition-all",
+                                    dragType === 'version' && dropTargetIndex === versionIndex && dropTargetVersionId === null
+                                        ? "bg-primary/40 h-6 border-2 border-dashed border-primary"
+                                        : dragType === 'version' ? "bg-muted/30" : ""
+                                )}
+                                onDragOver={(e) => {
+                                    e.preventDefault();
+                                    if (dragType === 'version') {
+                                        setDropTargetIndex(versionIndex);
+                                        setDropTargetVersionId(null);
+                                    }
+                                }}
+                                onDragLeave={() => {
+                                    if (dropTargetIndex === versionIndex && dropTargetVersionId === null) {
+                                        setDropTargetIndex(null);
+                                    }
+                                }}
+                                onDrop={(e) => {
+                                    e.preventDefault();
+                                    if (dragType === 'version' && dragId) {
+                                        moveVersion(dragId, versionIndex);
+                                    }
+                                    clearDragState();
+                                }}
+                            />
+
+                            <Card
+                                draggable
+                                onDragStart={(e) => {
+                                    setDragType('version');
+                                    setDragId(version.id);
+                                    e.dataTransfer.effectAllowed = 'move';
+                                }}
+                                onDragOver={(e) => {
+                                    e.preventDefault();
+                                    // Allow dropping backlog items or reordering versions
+                                    if (dragType === 'version' && dragId !== version.id) {
+                                        setDropTargetIndex(versionIndex + 1);
+                                        setDropTargetVersionId(null);
+                                    } else if (dragType === 'backlog') {
+                                        setDropTargetVersionId(version.id);
+                                    }
+                                }}
+                                onDrop={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    if (dragType === 'version' && dragId && dragId !== version.id) {
+                                        moveVersion(dragId, versionIndex + 1);
+                                    } else if (dragType === 'backlog' && dragId) {
+                                        // Move backlog item to this version
+                                        moveBacklogToVersion(dragId, version.id);
+                                    }
+                                    clearDragState();
+                                }}
+                                onDragLeave={(e) => {
+                                    e.stopPropagation();
+                                    if (dropTargetVersionId === version.id) {
+                                        setDropTargetVersionId(null);
+                                    }
+                                }}
+                                onDragEnd={clearDragState}
+                                className={cn(
+                                    "transition-all",
+                                    dragType === 'version' && dragId === version.id && "opacity-50 scale-[0.98]",
+                                    dragType === 'backlog' && dropTargetVersionId === version.id && "ring-2 ring-primary"
+                                )}
+                            >
+                                <CardHeader className="py-3">
+                                    <div className="flex items-center gap-3">
+                                        <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab active:cursor-grabbing" />
+                                        <Checkbox
+                                            checked={version.done}
+                                            onChange={() => toggleVersionDone(version.id)}
+                                        />
+
+                                        {/* Version title - editable or static */}
+                                        {editingVersion?.id === version.id ? (
+                                            <Input
+                                                value={editingVersion.title}
+                                                onChange={(e) => setEditingVersion({ ...editingVersion, title: e.target.value })}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') saveVersionEdit();
+                                                    if (e.key === 'Escape') setEditingVersion(null);
+                                                }}
+                                                onBlur={saveVersionEdit}
+                                                autoFocus
+                                                className="flex-1 h-8 text-lg font-semibold"
+                                            />
+                                        ) : (
+                                            <CardTitle className="flex-1 text-lg">{version.title}</CardTitle>
+                                        )}
+
+                                        {/* Edit button */}
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setEditingVersion({ id: version.id, title: version.title })}
+                                        >
+                                            <Pencil className="h-4 w-4" />
+                                        </Button>
+
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => toggleCollapse(version.id)}
+                                        >
+                                            {version.collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => deleteVersion(version.id)}
+                                            className="text-destructive hover:text-destructive"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </CardHeader>
+
+                                {!version.collapsed && (
+                                    <CardContent className="pt-0 space-y-2">
+                                        {/* Add Todo */}
+                                        <div className="flex gap-2 mb-3">
+                                            <Input
+                                                placeholder="New todo item..."
+                                                value={newTodoInputs[version.id] || ''}
+                                                onChange={(e) => setNewTodoInputs(prev => ({ ...prev, [version.id]: e.target.value }))}
+                                                onKeyDown={(e) => e.key === 'Enter' && addTodo(version.id, 'new')}
+                                                className="flex-1"
+                                            />
+                                            <Button size="sm" variant="outline" onClick={() => addTodo(version.id, 'new')}>
+                                                <Sparkles className="h-4 w-4 mr-1" />
+                                                New
+                                            </Button>
+                                            <Button size="sm" variant="outline" onClick={() => addTodo(version.id, 'bug')}>
+                                                <Bug className="h-4 w-4 mr-1" />
+                                                Bug
+                                            </Button>
+                                        </div>
+
+                                        {/* Todo List */}
+                                        <div className="space-y-0">
+                                            {version.todos.map((todo, todoIndex) => (
+                                                <div key={todo.id}>
+                                                    {/* Drop zone before todo */}
+                                                    <div
+                                                        className={cn(
+                                                            "h-1 -my-0.5 mx-2 rounded transition-all",
+                                                            dragType === 'todo' && dropTargetIndex === todoIndex && dropTargetVersionId === version.id
+                                                                ? "bg-primary/50 h-2"
+                                                                : ""
+                                                        )}
+                                                        onDragOver={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            if (dragType === 'todo') {
+                                                                setDropTargetIndex(todoIndex);
+                                                                setDropTargetVersionId(version.id);
+                                                            }
+                                                        }}
+                                                        onDragLeave={(e) => {
+                                                            e.stopPropagation();
+                                                            if (dropTargetIndex === todoIndex && dropTargetVersionId === version.id) {
+                                                                setDropTargetIndex(null);
+                                                                setDropTargetVersionId(null);
+                                                            }
+                                                        }}
+                                                        onDrop={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            if (dragType === 'todo' && dragId && dragSourceVersionId) {
+                                                                moveTodo(dragSourceVersionId, dragId, version.id, todoIndex);
+                                                            }
+                                                            clearDragState();
+                                                        }}
+                                                    />
+
+                                                    <div
+                                                        draggable
+                                                        onDragStart={(e) => {
+                                                            e.stopPropagation();
+                                                            setDragType('todo');
+                                                            setDragId(todo.id);
+                                                            setDragSourceVersionId(version.id);
+                                                            e.dataTransfer.effectAllowed = 'move';
+                                                            e.dataTransfer.setData('text/plain', todo.id);
+                                                        }}
+                                                        onDragEnd={clearDragState}
+                                                        className={cn(
+                                                            "flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors group",
+                                                            todo.done && "opacity-60",
+                                                            dragType === 'todo' && dragId === todo.id && "opacity-30 scale-[0.98]"
+                                                        )}
+                                                    >
+                                                        <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab active:cursor-grabbing" />
+                                                        <Checkbox
+                                                            checked={todo.done}
+                                                            onChange={() => toggleTodoDone(version.id, todo.id)}
+                                                        />
+                                                        <span className={cn(
+                                                            "inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium",
+                                                            todo.type === 'new' ? "bg-emerald-500/20 text-emerald-600" : "bg-red-500/20 text-red-600"
+                                                        )}>
+                                                            {todo.type === 'new' ? <Sparkles className="h-3 w-3" /> : <Bug className="h-3 w-3" />}
+                                                            {todo.type}
+                                                        </span>
+
+                                                        {/* Todo title - editable or static */}
+                                                        {editingTodo?.todoId === todo.id && editingTodo?.versionId === version.id ? (
+                                                            <Input
+                                                                value={editingTodo.title}
+                                                                onChange={(e) => setEditingTodo({ ...editingTodo, title: e.target.value })}
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter') saveTodoEdit();
+                                                                    if (e.key === 'Escape') setEditingTodo(null);
+                                                                }}
+                                                                onBlur={saveTodoEdit}
+                                                                autoFocus
+                                                                className="flex-1 h-7"
+                                                            />
+                                                        ) : (
+                                                            <span className={cn("flex-1", todo.done && "line-through text-muted-foreground")}>
+                                                                {todo.title}
+                                                            </span>
+                                                        )}
+
+                                                        {/* Edit button */}
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => setEditingTodo({ versionId: version.id, todoId: todo.id, title: todo.title })}
+                                                            className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
+                                                        >
+                                                            <Pencil className="h-3 w-3" />
+                                                        </Button>
+
+                                                        {/* Delete button */}
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => deleteTodo(version.id, todo.id)}
+                                                            className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive h-6 w-6 p-0"
+                                                        >
+                                                            <Trash2 className="h-3 w-3" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            ))}
+
+                                            {/* Drop zone at end of todo list */}
+                                            <div
+                                                className={cn(
+                                                    "h-8 mx-2 rounded border-2 border-dashed transition-all flex items-center justify-center",
+                                                    dragType === 'todo' && dropTargetIndex === version.todos.length && dropTargetVersionId === version.id
+                                                        ? "border-primary bg-primary/10"
+                                                        : "border-transparent",
+                                                    dragType === 'todo' ? "border-muted-foreground/30" : ""
+                                                )}
+                                                onDragOver={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    if (dragType === 'todo') {
+                                                        setDropTargetIndex(version.todos.length);
+                                                        setDropTargetVersionId(version.id);
+                                                    }
+                                                }}
+                                                onDragLeave={(e) => {
+                                                    e.stopPropagation();
+                                                }}
+                                                onDrop={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    if (dragType === 'todo' && dragId && dragSourceVersionId) {
+                                                        moveTodo(dragSourceVersionId, dragId, version.id, version.todos.length);
+                                                    }
+                                                    clearDragState();
+                                                }}
+                                            >
+                                                {dragType === 'todo' && (
+                                                    <span className="text-xs text-muted-foreground">Drop here</span>
+                                                )}
+                                            </div>
+
+                                            {version.todos.length === 0 && !dragType && (
+                                                <div className="text-sm text-muted-foreground text-center py-4">
+                                                    No todos yet. Add one above.
+                                                </div>
+                                            )}
+                                        </div>
+                                    </CardContent>
+                                )}
+                            </Card>
+                        </div>
+                    ))}
+
+                    {/* Final drop zone for versions */}
+                    {activeVersions.length > 0 && (
+                        <div
+                            className={cn(
+                                "h-2 rounded transition-all",
+                                dragType === 'version' && dropTargetIndex === activeVersions.length && dropTargetVersionId === null
+                                    ? "bg-primary/30 h-4"
+                                    : ""
+                            )}
+                            onDragOver={(e) => {
+                                e.preventDefault();
+                                if (dragType === 'version') {
+                                    setDropTargetIndex(activeVersions.length);
+                                    setDropTargetVersionId(null);
+                                }
+                            }}
+                            onDrop={(e) => {
+                                e.preventDefault();
+                                if (dragType === 'version' && dragId) {
+                                    moveVersion(dragId, activeVersions.length);
+                                }
+                                clearDragState();
+                            }}
+                        />
+                    )}
+                </div>
+
+                {/* Right Column - Backlog at top, Done at bottom */}
+                <div className="w-full md:w-80 flex-shrink-0 space-y-4">
+                    {/* Backlog Section */}
+                    <Card
+                        onDragOver={(e) => {
+                            if (dragType === 'todo') {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }
+                        }}
+                        onDrop={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (dragType === 'todo' && dragId && dragSourceVersionId) {
+                                moveVersionTodoToBacklog(dragId, dragSourceVersionId);
+                            }
+                            clearDragState();
+                        }}
+                        className={cn(
+                            "transition-all",
+                            dragType === 'todo' && "ring-2 ring-amber-500"
+                        )}
+                    >
+                        <CardHeader className="py-3">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                📦 Backlog
+                                <span className="text-sm font-normal text-muted-foreground">({backlog.length})</span>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            {/* Add to backlog */}
+                            <div className="flex gap-1">
+                                <Input
+                                    placeholder="Add to backlog..."
+                                    value={backlogInput}
+                                    onChange={(e) => setBacklogInput(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && addBacklogItem('new')}
+                                    className="flex-1 h-8 text-sm"
+                                />
+                                <Button size="sm" variant="outline" onClick={() => addBacklogItem('new')} className="h-8 px-2">
+                                    <Sparkles className="h-3 w-3" />
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={() => addBacklogItem('bug')} className="h-8 px-2">
+                                    <Bug className="h-3 w-3" />
+                                </Button>
+                            </div>
+
+                            {/* Backlog items */}
+                            <div className="space-y-1 max-h-[40vh] overflow-auto">
+                                {backlog.map((item, index) => (
+                                    <div key={item.id}>
+                                        {/* Drop zone */}
+                                        <div
+                                            className={cn(
+                                                "h-1 rounded transition-all",
+                                                dragType === 'backlog' && dropTargetIndex === index
+                                                    ? "bg-primary/50 h-2"
+                                                    : ""
+                                            )}
+                                            onDragOver={(e) => {
+                                                e.preventDefault();
+                                                if (dragType === 'backlog') {
+                                                    setDropTargetIndex(index);
+                                                }
+                                            }}
+                                            onDrop={(e) => {
+                                                e.preventDefault();
+                                                if (dragType === 'backlog' && dragId) {
+                                                    moveBacklogItem(dragId, index);
+                                                }
+                                                clearDragState();
+                                            }}
+                                        />
+                                        <div
+                                            draggable
+                                            onDragStart={(e) => {
+                                                e.stopPropagation();
+                                                setDragType('backlog');
+                                                setDragId(item.id);
+                                                e.dataTransfer.effectAllowed = 'move';
+                                            }}
+                                            onDragEnd={clearDragState}
+                                            className={cn(
+                                                "flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors group",
+                                                item.done && "opacity-60",
+                                                dragType === 'backlog' && dragId === item.id && "opacity-30 scale-[0.98]"
+                                            )}
+                                        >
+                                            <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab active:cursor-grabbing" />
+                                            <Checkbox
+                                                checked={item.done}
+                                                onChange={() => toggleBacklogDone(item.id)}
+                                            />
+                                            <span className={cn(
+                                                "inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium",
+                                                item.type === 'new' ? "bg-emerald-500/20 text-emerald-600" : "bg-red-500/20 text-red-600"
+                                            )}>
+                                                {item.type === 'new' ? <Sparkles className="h-3 w-3" /> : <Bug className="h-3 w-3" />}
+                                                {item.type}
+                                            </span>
+
+                                            {/* Editable title */}
+                                            {editingBacklog?.id === item.id ? (
+                                                <Input
+                                                    value={editingBacklog.title}
+                                                    onChange={(e) => setEditingBacklog({ ...editingBacklog, title: e.target.value })}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') saveBacklogEdit();
+                                                        if (e.key === 'Escape') setEditingBacklog(null);
+                                                    }}
+                                                    onBlur={saveBacklogEdit}
+                                                    autoFocus
+                                                    className="flex-1 h-7"
+                                                />
+                                            ) : (
+                                                <span className={cn("flex-1 text-sm", item.done && "line-through text-muted-foreground")}>
+                                                    {item.title}
+                                                </span>
+                                            )}
+
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setEditingBacklog({ id: item.id, title: item.title })}
+                                                className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
+                                            >
+                                                <Pencil className="h-3 w-3" />
+                                            </Button>
+
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => deleteBacklogItem(item.id)}
+                                                className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive h-6 w-6 p-0"
+                                            >
+                                                <Trash2 className="h-3 w-3" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        </div>
+    );
+}

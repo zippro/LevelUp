@@ -8,14 +8,23 @@ import { Input } from "@/components/ui/input";
 import { Loader2, RefreshCw, Maximize2, Minimize2, ArrowUpDown, ArrowUp, ArrowDown, Search, Download } from "lucide-react";
 import papa from 'papaparse';
 import { cn } from "@/lib/utils";
-import { generateBolgeselReport, downloadCSV } from "@/lib/reports";
+import { generateBolgeselReport, downloadExcel } from "@/lib/reports";
+import { TABLE_REPORT_GENERATORS, VARIABLE_TABLE_REPORTS, formatTableValue } from "@/lib/table-reports";
+import { ReportSettings, DEFAULT_REPORT_SETTINGS } from "@/lib/report-settings";
 import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 
 interface Config {
     variables: string[];
     reports?: Record<string, string[]>;
+    reportSettings?: ReportSettings;
     games: { id: string; name: string; viewMappings: Record<string, string> }[];
+}
+
+interface CachedDataInfo {
+    fileName: string;
+    createdAt: Date;
+    data: string;
 }
 
 export default function TablesPage() {
@@ -37,6 +46,14 @@ export default function TablesPage() {
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
+
+    // Cached data dialog
+    const [cachedDataInfo, setCachedDataInfo] = useState<CachedDataInfo | null>(null);
+    const [showCacheDialog, setShowCacheDialog] = useState(false);
+
+    // Date range filter (for Level Score AB)
+    const [startDate, setStartDate] = useState<string>('');
+    const [endDate, setEndDate] = useState<string>('');
 
 
 
@@ -64,7 +81,59 @@ export default function TablesPage() {
         return game?.viewMappings?.[selectedVariable] || null;
     };
 
-    const handleFetch = async () => {
+    // Check for existing cached data in repository
+    const checkCachedData = async (): Promise<CachedDataInfo | null> => {
+        if (!selectedGameId || !selectedVariable || !config) return null;
+
+        const game = config.games.find(g => g.id === selectedGameId);
+        const gameName = game ? game.name : selectedGameId;
+
+        // List files in repository matching game and variable
+        const { data: files, error } = await supabase.storage
+            .from('data-repository')
+            .list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } });
+
+        if (error || !files) return null;
+
+        // Find most recent file matching game and variable
+        const matchingFile = files.find(f =>
+            f.name.includes(gameName) && f.name.includes(selectedVariable)
+        );
+
+        if (!matchingFile) return null;
+
+        // Download the file content
+        const { data: fileData, error: downloadError } = await supabase.storage
+            .from('data-repository')
+            .download(matchingFile.name);
+
+        if (downloadError || !fileData) return null;
+
+        const csvText = await fileData.text();
+
+        return {
+            fileName: matchingFile.name,
+            createdAt: new Date(matchingFile.created_at),
+            data: csvText
+        };
+    };
+
+    // Load cached data into table
+    const loadCachedData = (cachedData: CachedDataInfo) => {
+        const parsed = papa.parse(cachedData.data, { header: true, skipEmptyLines: true });
+        if (parsed.meta.fields) {
+            setTableHeaders(parsed.meta.fields);
+        }
+        setTableData(parsed.data);
+        setShowCacheDialog(false);
+        setCachedDataInfo(null);
+    };
+
+    // Fetch fresh data from Tableau
+    const fetchFreshData = async () => {
+        setShowCacheDialog(false);
+        setCachedDataInfo(null);
+
         const viewId = getActiveViewId();
         if (!viewId) {
             setError("No View ID found for this selection.");
@@ -76,26 +145,25 @@ export default function TablesPage() {
         setTableData([]);
         setTableHeaders([]);
         setSortConfig(null);
-        setSortConfig(null);
         setSearchTerm("");
-        // Don't reset selectedReport here if we want to stay on the same view mode, 
-        // but typically valid to reset. Let's keep report logic separate. 
-        // Actually, if we change Game, we probably keep the report mode if applicable?
-        // Let's reset report for clarity unless we want persistent view.
-        // For now:
-        // setSelectedReport(null); 
-        // User workflow: Select Variable -> Select Game -> Load -> Click Report.
-
-
 
         try {
+            // Build request body with optional date filters for Level Score AB
+            const requestBody: any = {
+                viewId: viewId,
+                tableName: "level_design_data",
+            };
+
+            // Add date filters for Level Score AB
+            if (selectedVariable === "Level Score AB") {
+                if (startDate) requestBody.startDate = startDate;
+                if (endDate) requestBody.endDate = endDate;
+            }
+
             const response = await fetch("/api/sync-tableau", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    viewId: viewId,
-                    tableName: "level_design_data",
-                }),
+                body: JSON.stringify(requestBody),
             });
 
             const result = await response.json();
@@ -133,6 +201,30 @@ export default function TablesPage() {
             setError(err.message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleFetch = async () => {
+        const viewId = getActiveViewId();
+        if (!viewId) {
+            setError("No View ID found for this selection.");
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+
+        // Check for cached data first
+        const cached = await checkCachedData();
+
+        if (cached) {
+            setLoading(false);
+            setCachedDataInfo(cached);
+            setShowCacheDialog(true);
+        } else {
+            setLoading(false);
+            // No cached data, fetch fresh
+            await fetchFreshData();
         }
     };
 
@@ -183,11 +275,20 @@ export default function TablesPage() {
     }, [tableData, sortConfig, searchTerm]);
 
     const displayData = useMemo(() => {
+        // Bölgesel Revize uses its own generator
         if (selectedReport === "Bölgesel Revize" && processedData.length > 0) {
             return generateBolgeselReport(processedData);
         }
+
+        // Check for table report generators (3 Day Churn sheets, etc.)
+        if (selectedReport && TABLE_REPORT_GENERATORS[selectedReport] && processedData.length > 0) {
+            const generator = TABLE_REPORT_GENERATORS[selectedReport];
+            const settings = config?.reportSettings || DEFAULT_REPORT_SETTINGS;
+            return generator(processedData, settings);
+        }
+
         return processedData;
-    }, [selectedReport, processedData]);
+    }, [selectedReport, processedData, config?.reportSettings]);
 
     const displayHeaders = useMemo(() => {
         if (displayData.length > 0) {
@@ -200,7 +301,7 @@ export default function TablesPage() {
 
     const handleExport = () => {
         if (displayData.length === 0) return;
-        downloadCSV(displayData, `export_${selectedVariable}_${selectedReport || 'raw'}_${new Date().toISOString()}.csv`);
+        downloadExcel(displayData, `export_${selectedVariable}_${selectedReport || 'raw'}_${new Date().toISOString().split('T')[0]}`);
     };
 
     if (loadingConfig) return <div className="p-8 animate-pulse text-muted-foreground">Loading configuration...</div>;
@@ -209,11 +310,55 @@ export default function TablesPage() {
     return (
         <div className={cn("space-y-6 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 duration-500", isFullScreen ? "max-w-[100vw] px-4" : "")}>
 
+            {/* Cached Data Dialog */}
+            {showCacheDialog && cachedDataInfo && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-in fade-in duration-200">
+                    <div className="bg-card rounded-xl shadow-2xl border p-6 max-w-md w-full mx-4 animate-in zoom-in-95 duration-200">
+                        <h3 className="text-lg font-semibold mb-2">Existing Data Found</h3>
+                        <p className="text-muted-foreground mb-4">
+                            Data for this selection was saved on:
+                        </p>
+                        <div className="bg-muted/50 rounded-lg p-3 mb-4">
+                            <p className="font-medium text-sm">{cachedDataInfo.fileName}</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                {format(cachedDataInfo.createdAt, "MMMM d, yyyy 'at' HH:mm")}
+                            </p>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-4">
+                            Would you like to use this saved data or fetch new data from Tableau?
+                        </p>
+                        <div className="flex gap-3">
+                            <Button
+                                variant="outline"
+                                className="flex-1"
+                                onClick={() => loadCachedData(cachedDataInfo)}
+                            >
+                                Use Saved Data
+                            </Button>
+                            <Button
+                                className="flex-1"
+                                onClick={fetchFreshData}
+                            >
+                                Fetch New Data
+                            </Button>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full mt-2 text-muted-foreground"
+                            onClick={() => { setShowCacheDialog(false); setCachedDataInfo(null); }}
+                        >
+                            Cancel
+                        </Button>
+                    </div>
+                </div>
+            )}
+
             {/* Variable Tabs (Top Navigation Style) */}
             {!isFullScreen && (
                 <div className="space-y-4">
-                    <div className="border-b">
-                        <div className="flex space-x-1 overflow-x-auto pb-0">
+                    <div className="border-b -mx-4 px-4">
+                        <div className="flex space-x-1 overflow-x-auto pb-0 scrollbar-hide">
                             {config.variables.map(v => (
                                 <button
                                     key={v}
@@ -232,8 +377,8 @@ export default function TablesPage() {
                     </div>
 
                     {/* Sub-tabs / Reports */}
-                    {selectedVariable && config.reports?.[selectedVariable] && (
-                        <div className="flex items-center gap-2 px-2">
+                    {selectedVariable && (config.reports?.[selectedVariable] || VARIABLE_TABLE_REPORTS[selectedVariable]) && (
+                        <div className="flex items-center gap-2 px-2 flex-wrap">
                             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mr-2">Reports:</span>
                             <button
                                 onClick={() => setSelectedReport(null)}
@@ -246,7 +391,23 @@ export default function TablesPage() {
                             >
                                 Raw Data
                             </button>
-                            {config.reports[selectedVariable].map(report => (
+                            {/* Config reports (like Bölgesel Revize) */}
+                            {config.reports?.[selectedVariable]?.map(report => (
+                                <button
+                                    key={report}
+                                    onClick={() => setSelectedReport(report)}
+                                    className={cn(
+                                        "px-3 py-1.5 text-xs font-medium rounded-full transition-all border",
+                                        selectedReport === report
+                                            ? "bg-primary text-primary-foreground border-primary"
+                                            : "bg-background text-muted-foreground border-muted hover:border-primary/50"
+                                    )}
+                                >
+                                    {report}
+                                </button>
+                            ))}
+                            {/* Table reports (3 Day Churn sheets) */}
+                            {VARIABLE_TABLE_REPORTS[selectedVariable]?.map(report => (
                                 <button
                                     key={report}
                                     onClick={() => setSelectedReport(report)}
@@ -266,10 +427,10 @@ export default function TablesPage() {
             )}
 
             {/* Controls Bar */}
-            <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4 p-4 bg-muted/40 rounded-xl border shadow-sm">
-                <div className="flex flex-wrap items-end gap-4 w-full md:w-auto">
+            <div className="flex flex-col gap-4 p-4 bg-muted/40 rounded-xl border shadow-sm">
+                <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-end gap-3 sm:gap-4 w-full">
                     {/* Game Select */}
-                    <div className="space-y-1.5 w-full md:w-[200px]">
+                    <div className="space-y-1.5 w-full sm:w-[200px]">
                         <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Game</label>
                         <Select
                             value={selectedGameId || ""}
@@ -288,15 +449,44 @@ export default function TablesPage() {
                         </Select>
                     </div>
 
+                    {/* Date Range (for Level Score AB) */}
+                    {selectedVariable === "Level Score AB" && (
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2 w-full sm:w-auto">
+                            <div className="space-y-1.5 flex-1 sm:flex-none">
+                                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">From</label>
+                                <Input
+                                    type="date"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    className="w-full sm:w-[140px] bg-background shadow-sm border-muted-foreground/20"
+                                />
+                            </div>
+                            <div className="space-y-1.5 flex-1 sm:flex-none">
+                                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">To</label>
+                                <Input
+                                    type="date"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    className="w-full sm:w-[140px] bg-background shadow-sm border-muted-foreground/20"
+                                />
+                            </div>
+                            {(startDate || endDate) && (
+                                <Button variant="ghost" size="sm" onClick={() => { setStartDate(''); setEndDate(''); }} className="self-end">
+                                    Clear
+                                </Button>
+                            )}
+                        </div>
+                    )}
+
                     {/* Load Button */}
-                    <Button onClick={handleFetch} disabled={loading || !selectedGameId} className="shadow-sm">
+                    <Button onClick={handleFetch} disabled={loading || !selectedGameId} className="shadow-sm w-full sm:w-auto">
                         {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
                         Load
                     </Button>
 
                     {/* Search */}
                     {tableData.length > 0 && (
-                        <div className="space-y-1.5 w-full md:w-[250px] relative">
+                        <div className="space-y-1.5 w-full sm:w-[250px] relative">
                             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Search</label>
                             <div className="relative">
                                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -312,7 +502,7 @@ export default function TablesPage() {
                 </div>
 
                 {/* Right Side Actions */}
-                <div className="flex items-center gap-2 self-end">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:self-end">
                     {tableData.length > 0 && (
                         <Button variant="outline" size="sm" onClick={handleExport} className="border-muted-foreground/20 shadow-sm">
                             <Download className="mr-2 h-4 w-4" /> Export CSV
@@ -368,7 +558,7 @@ export default function TablesPage() {
                                     <TableRow key={i} className="hover:bg-muted/30 transition-colors">
                                         {displayHeaders.map((header) => (
                                             <TableCell key={`${i}-${header}`} className="whitespace-nowrap font-medium text-muted-foreground">
-                                                {row[header]}
+                                                {formatTableValue(row[header], header)}
                                             </TableCell>
                                         ))}
                                     </TableRow>

@@ -1,0 +1,182 @@
+// Table Report Generators - transforms raw data into report views
+// Used by Tables page to display different report sheets
+
+import { ReportSettings, DEFAULT_REPORT_SETTINGS } from './report-settings';
+
+interface LevelRow {
+    [key: string]: any;
+}
+
+// Helper to safely parse numeric values
+function toNum(val: any): number {
+    if (typeof val === 'number') return val;
+    if (typeof val === 'string') {
+        const cleaned = val.replace(/[%,]/g, '').trim();
+        const num = parseFloat(cleaned);
+        return isNaN(num) ? 0 : num;
+    }
+    return 0;
+}
+
+// Helper to find metric value with pattern matching
+function findMetricValue(row: LevelRow, metricName: string): number {
+    if (row[metricName] !== undefined) return toNum(row[metricName]);
+
+    const keys = Object.keys(row);
+    const lowerMetric = metricName.toLowerCase();
+
+    // Case-insensitive exact match
+    for (const key of keys) {
+        if (key.toLowerCase() === lowerMetric) return toNum(row[key]);
+    }
+
+    // Partial matching
+    const metricPatterns: Record<string, string[]> = {
+        'level score': ['level score along', 'level score'],
+        '3 days churn': ['3 days churn', '3 day churn'],
+        'instant churn': ['instant churn'],
+    };
+
+    const patterns = metricPatterns[lowerMetric] || [lowerMetric];
+    for (const key of keys) {
+        const lowerKey = key.toLowerCase();
+        for (const pattern of patterns) {
+            if (lowerKey.includes(pattern)) {
+                return toNum(row[key]);
+            }
+        }
+    }
+
+    return 0;
+}
+
+// Generate Level Score Top Unsuccessful - sorted by Level Score ASC (lowest first)
+export function generateLevelScoreTopUnsuccessful(
+    data: LevelRow[],
+    settings?: ReportSettings
+): LevelRow[] {
+    const sortOrder = settings?.threeDayChurn?.sheets?.levelScoreUnsuccess?.sortOrder || 'asc';
+
+    return [...data]
+        .filter(r => {
+            const levelScore = findMetricValue(r, 'Level Score');
+            return levelScore > 0;
+        })
+        .sort((a, b) => {
+            const aScore = findMetricValue(a, 'Level Score');
+            const bScore = findMetricValue(b, 'Level Score');
+            return sortOrder === 'asc' ? aScore - bScore : bScore - aScore;
+        });
+}
+
+// Generate Level Score Top Successful - sorted by Level Score DESC (highest first)
+export function generateLevelScoreTopSuccessful(
+    data: LevelRow[],
+    settings?: ReportSettings
+): LevelRow[] {
+    const sortOrder = settings?.threeDayChurn?.sheets?.levelScoreSuccess?.sortOrder || 'desc';
+
+    return [...data]
+        .filter(r => {
+            const levelScore = findMetricValue(r, 'Level Score');
+            return levelScore > 0;
+        })
+        .sort((a, b) => {
+            const aScore = findMetricValue(a, 'Level Score');
+            const bScore = findMetricValue(b, 'Level Score');
+            return sortOrder === 'desc' ? bScore - aScore : aScore - bScore;
+        });
+}
+
+// Generate 3 Day Churn Top Unsuccessful - sorted by 3 Days Churn ASC (lowest retention first)
+export function generate3DayChurnTopUnsuccessful(
+    data: LevelRow[],
+    settings?: ReportSettings
+): LevelRow[] {
+    const sortOrder = settings?.threeDayChurn?.sheets?.churnUnsuccess?.sortOrder || 'asc';
+
+    return [...data]
+        .filter(r => {
+            const churn = findMetricValue(r, '3 Days Churn');
+            return churn > 0;
+        })
+        .sort((a, b) => {
+            const aChurn = findMetricValue(a, '3 Days Churn');
+            const bChurn = findMetricValue(b, '3 Days Churn');
+            return sortOrder === 'asc' ? aChurn - bChurn : bChurn - aChurn;
+        });
+}
+
+// Get the appropriate report generator function name -> function mapping
+export const TABLE_REPORT_GENERATORS: Record<string, (data: LevelRow[], settings?: ReportSettings) => LevelRow[]> = {
+    'Level Score Top Unsuccessful': generateLevelScoreTopUnsuccessful,
+    'Level Score Top Successful': generateLevelScoreTopSuccessful,
+    '3 Day Churn Top Unsuccessful': generate3DayChurnTopUnsuccessful,
+};
+
+// Define which reports are available for each variable
+export const VARIABLE_TABLE_REPORTS: Record<string, string[]> = {
+    'Level Revize': [
+        'Level Score Top Unsuccessful',
+        'Level Score Top Successful',
+        '3 Day Churn Top Unsuccessful',
+    ],
+    'Level Score AB': [
+        'Level Score Top Unsuccessful',
+        'Level Score Top Successful',
+        '3 Day Churn Top Unsuccessful',
+    ],
+    'Bölgesel Rapor': [
+        'Level Score Top Unsuccessful',
+        'Level Score Top Successful',
+        '3 Day Churn Top Unsuccessful',
+    ],
+};
+
+// Columns that should be formatted as percentages
+export const PERCENTAGE_COLUMNS = [
+    'Churn',       // Matches any column with "Churn" in it (Instant Churn, 3 Days Churn, 7 Days Churn)
+    'Instant Churn',
+    '3 Days Churn',
+    '7 Days Churn',
+    'FirstTryWin', // Matches FirstTryWinPercent, Avg. FirstTryWin, etc.
+    'Avg. FirstTryWinPercent',
+    'Avg. FirstTryWin',
+    'PlayOnWinRatio',
+    'Repeat',      // Matches any column with "Repeat" in it (Avg. Repeat Ratio, etc.)
+];
+
+// Format value for table display (converts decimals to percentages)
+export function formatTableValue(value: any, columnName: string): string {
+    if (value === null || value === undefined || value === '') return '';
+
+    const lowerCol = columnName.toLowerCase();
+    const isPercentage = PERCENTAGE_COLUMNS.some(p => lowerCol.includes(p.toLowerCase()));
+
+    // Parse numeric value (handle both number and string types)
+    let numValue: number | null = null;
+    if (typeof value === 'number') {
+        numValue = value;
+    } else if (typeof value === 'string') {
+        const cleaned = value.replace(/[%,]/g, '').trim();
+        const parsed = parseFloat(cleaned);
+        if (!isNaN(parsed)) {
+            numValue = parsed;
+        }
+    }
+
+    if (isPercentage && numValue !== null) {
+        // If value is already > 1, it's probably already a percentage
+        if (numValue <= 1) {
+            return `${(numValue * 100).toFixed(2)}%`;
+        }
+        return `${numValue.toFixed(2)}%`;
+    }
+
+    if (numValue !== null) {
+        // Format other numbers with 2 decimal places if they have decimals
+        return Number.isInteger(numValue) ? String(numValue) : numValue.toFixed(2);
+    }
+
+    return String(value);
+}

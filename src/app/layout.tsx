@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Navigation } from "@/components/Navigation";
+import { AuthProvider } from "@/context/AuthContext";
+import { AuthWrapper } from "@/components/AuthWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,18 +19,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <div className="min-h-screen bg-background p-8">
-          <div className="mx-auto max-w-5xl">
-            <header className="mb-6">
-              <h1 className="text-3xl font-bold tracking-tight mb-2">LevelUp Dashboard</h1>
-              <p className="text-muted-foreground mb-6">
-                Analytics and Level Design Insights
-              </p>
-              <Navigation />
-            </header>
+        <AuthProvider>
+          <AuthWrapper>
             {children}
-          </div>
-        </div>
+          </AuthWrapper>
+        </AuthProvider>
       </body>
     </html>
   );
