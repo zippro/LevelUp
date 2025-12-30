@@ -65,11 +65,11 @@ export async function fetchTableauData(
     viewId: string,
     token: string,
     siteId: string,
-    filters?: { startDate?: string; endDate?: string }
+    filters?: { startDate?: string; endDate?: string; platform?: string }
 ) {
     if (MOCK_MODE) {
+        // ... (existing mock logic) ...
         console.log(`Returning MOCK data for view ${viewId}`);
-        // Return a mock Response object
         return new Response(`LevelID,Metrics,Value\n1,Difficulty,0.8\n1,WinRate,0.45\n2,Difficulty,0.6\n2,WinRate,0.60`, {
             status: 200,
             statusText: 'OK'
@@ -84,19 +84,27 @@ export async function fetchTableauData(
     const params = new URLSearchParams();
 
     if (filters?.startDate && filters?.endDate) {
-        // Use colon range format: vf_Time Event=2025-12-20:2025-12-23
-        params.append('vf_Time Event', `${filters.startDate}:${filters.endDate}`);
+        // Use colon range format: vf_TIME EVENT=2025-12-20:2025-12-23
+        params.append('vf_TIME EVENT', `${filters.startDate}:${filters.endDate}`);
         console.log(`[Tableau] Date filter range: ${filters.startDate}:${filters.endDate}`);
     } else if (filters?.startDate) {
-        params.append('vf_Time Event', filters.startDate);
+        params.append('vf_TIME EVENT', filters.startDate);
         console.log(`[Tableau] Date filter: start only ${filters.startDate}`);
     } else if (filters?.endDate) {
-        params.append('vf_Time Event', filters.endDate);
+        params.append('vf_TIME EVENT', filters.endDate);
         console.log(`[Tableau] Date filter: end only ${filters.endDate}`);
     }
 
+    // Add Platform filter
+    if (filters?.platform && filters.platform !== 'ALL') {
+        params.append('vf_PLATFORM', filters.platform);
+        console.log(`[Tableau] Platform filter: ${filters.platform}`);
+    }
+
     if (params.toString()) {
-        endpoint += `?${params.toString()}`;
+        // Tableau often prefers %20 over + for spaces in parameter keys
+        const queryString = params.toString().replace(/\+/g, '%20');
+        endpoint += `?${queryString}`;
         console.log(`[Tableau] Fetching with filters: ${endpoint}`);
     }
 

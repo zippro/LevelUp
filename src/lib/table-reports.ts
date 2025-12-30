@@ -30,11 +30,24 @@ function findMetricValue(row: LevelRow, metricName: string): number {
         if (key.toLowerCase() === lowerMetric) return toNum(row[key]);
     }
 
-    // Partial matching
+    // Comprehensive partial matching - synced with excel-report.ts
     const metricPatterns: Record<string, string[]> = {
-        'level score': ['level score along', 'level score'],
-        '3 days churn': ['3 days churn', '3 day churn'],
-        'instant churn': ['instant churn'],
+        // Level Score - various naming conventions
+        'level score': ['level score along', 'level score', 'levelscore', 'level_score'],
+        // Churn columns - various naming conventions per game
+        'instant churn': ['instant churn', 'instantchurn', 'instant_churn', '0 day churn', '0day churn', 'churn instant'],
+        '3 days churn': ['3 days churn', '3 day churn', '3daychurn', '3dayschurn', '3_days_churn', 'd3 churn', 'churn 3 days', 'churn 3 day'],
+        '7 days churn': ['7 days churn', '7 day churn', '7daychurn', '7dayschurn', '7_days_churn', 'd7 churn', 'churn 7 days', 'churn 7 day', 'week churn', '1 week churn'],
+        // Repeat - different views/games use different names
+        'avg. repeat ratio': [
+            'avg. repeat ratio (birleşik)', 'avg. repeat ratio', 'avg. repeat rate',
+            'repeat rate', 'repeat ratio', 'avg repeat ratio', 'avg repeat rate',
+            'repeatratio', 'repeat_ratio', 'repeat_rate', 'repeatrate'
+        ],
+        // TotalUser
+        'totaluser': ['totaluser', 'total user', 'total_user', 'user count', 'users'],
+        // FirstTryWin
+        'avg. firsttrywin': ['avg. firsttrywinpercent', 'avg. firsttrywin', 'firsttrywin', 'first try win', 'firsttrywins'],
     };
 
     const patterns = metricPatterns[lowerMetric] || [lowerMetric];

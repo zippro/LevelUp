@@ -121,7 +121,7 @@ function filterByDateRange(csvText: string, startDate?: string, endDate?: string
 
 export async function POST(request: Request) {
     try {
-        const { viewId, tableName, startDate, endDate } = await request.json();
+        const { viewId, tableName, startDate, endDate, platform } = await request.json();
 
         if (!viewId || !tableName) {
             return NextResponse.json({ error: 'Missing viewId or tableName' }, { status: 400 });
@@ -130,8 +130,9 @@ export async function POST(request: Request) {
         // 1. Authenticate with Tableau
         const { token, siteId } = await authenticateTableau();
 
-        // 2. Fetch data (CSV) - with date filters at API level
-        const response = await fetchTableauData(viewId, token, siteId, { startDate, endDate });
+        // 2. Fetch data (CSV) - with date and platform filters at API level
+        // Pass platform to fetchTableauData
+        const response = await fetchTableauData(viewId, token, siteId, { startDate, endDate, platform });
 
         if (!response.ok) {
             throw new Error(`Failed to fetch data from Tableau: ${response.statusText}`);

@@ -1,4 +1,4 @@
-import ExcelJS from 'exceljs';
+import * as ExcelJS from 'exceljs';
 
 interface LevelRow {
     [key: string]: any;
@@ -7,7 +7,7 @@ interface LevelRow {
 // Columns that contain percentage values (stored as decimals 0-1)
 const PERCENT_METRICS = [
     'instant churn', '3 days churn', '7 days churn',
-    'firsttrywin', 'repeat rate', 'complete ratio',
+    'firsttrywin', 'complete ratio',
     'playonwinratio', 'churn diff', 'inapp user'
 ];
 
@@ -21,6 +21,46 @@ function toNum(v: any): number {
     if (typeof v === 'number') return v;
     const n = Number(String(v).replace(',', '.'));
     return isNaN(n) ? NaN : n;
+}
+
+// Special version for TotalUser - removes ALL dots and commas to get complete integer
+function toNumStripped(v: any): number {
+    if (v === null || v === '' || typeof v === 'undefined') return NaN;
+    if (typeof v === 'number') return v;
+    // Remove all dots and commas (they're thousands separators for user counts)
+    const str = String(v).replace(/[.,]/g, '').trim();
+    const n = Number(str);
+    return isNaN(n) ? NaN : n;
+}
+
+// Smart number parsing for currency values
+// Detects format by which separator comes LAST (decimal separator always comes after thousands)
+// US: 1,150.02 (comma=thousands, dot=decimal) - dot is last
+// European: 1.150,02 (dot=thousands, comma=decimal) - comma is last
+function toNumEuropean(v: any): number {
+    if (v === null || v === '' || typeof v === 'undefined') return NaN;
+    if (typeof v === 'number') return Math.round(v * 100) / 100;
+
+    let str = String(v).trim();
+    const lastComma = str.lastIndexOf(',');
+    const lastDot = str.lastIndexOf('.');
+
+    if (lastComma > lastDot) {
+        // European format: comma is decimal (comes last)
+        // 1.150,02 -> remove dots, convert comma to dot -> 1150.02
+        str = str.replace(/\./g, '').replace(',', '.');
+    } else if (lastDot > lastComma) {
+        // US format: dot is decimal (comes last)
+        // 1,150.02 -> remove commas -> 1150.02
+        str = str.replace(/,/g, '');
+    } else if (lastComma >= 0) {
+        // Only comma, treat as decimal: 465,83 -> 465.83
+        str = str.replace(',', '.');
+    }
+    // If only dot or no separators, keep as is
+
+    const n = Number(str);
+    return isNaN(n) ? NaN : Math.round(n * 100) / 100;
 }
 
 // Format value: convert decimal to percentage string if needed
@@ -76,12 +116,23 @@ function styleHeaderRow(worksheet: ExcelJS.Worksheet, rowNumber: number, headerC
     row.height = 20;
 }
 
-// Set column widths
+// Set column widths - ensure wide enough for large numbers
 function setColumnWidths(worksheet: ExcelJS.Worksheet): void {
     worksheet.columns.forEach((column) => {
         const header = column.header as string;
         if (!header) return;
-        const width = Math.min(Math.max(header.length + 2, 10), 25);
+
+        // Large number columns need more width
+        const lowerHeader = header.toLowerCase();
+        const isLargeNumberColumn = lowerHeader.includes('totaluser') ||
+            lowerHeader.includes('total user') ||
+            lowerHeader.includes('inapp') ||
+            lowerHeader.includes('rm ');
+
+        // Default: 10-25, Large numbers: 15-30
+        const minWidth = isLargeNumberColumn ? 15 : 10;
+        const maxWidth = isLargeNumberColumn ? 30 : 25;
+        const width = Math.min(Math.max(header.length + 2, minWidth), maxWidth);
         column.width = width;
     });
 }
@@ -113,44 +164,64 @@ function addDataToSheet(worksheet: ExcelJS.Worksheet, data: any[], headers: stri
 
 // Helper functions for data extraction
 function findMetricValue(row: LevelRow, metricName: string): number {
+    const lowerMetric = metricName.toLowerCase();
+
+    // Determine correct parsing function: TotalUser needs stripping of all separators
+    const isTotalUser = lowerMetric.includes('totaluser') || lowerMetric.includes('total user') || lowerMetric.includes('user count');
+    const parseNum = isTotalUser ? toNumStripped : toNum;
+
     // Exact match first
-    if (row[metricName] !== undefined) return toNum(row[metricName]);
+    if (row[metricName] !== undefined) return parseNum(row[metricName]);
 
     const keys = Object.keys(row);
-    const lowerMetric = metricName.toLowerCase();
 
     // Case-insensitive exact match
     for (const key of keys) {
-        if (key.toLowerCase() === lowerMetric) return toNum(row[key]);
+        if (key.toLowerCase() === lowerMetric) return parseNum(row[key]);
     }
 
     // Partial matching with special cases for common variations
     // Based on actual Tableau column names from different views
     const metricPatterns: Record<string, string[]> = {
-        // Repeat - different views use different names
-        'avg. repeat ratio': ['avg. repeat ratio (birleşik)', 'avg. repeat ratio', 'avg. repeat rate', 'repeat rate', 'repeat ratio'],
+        // Repeat - different views/games use different names
+        'avg. repeat ratio': [
+            'avg. repeat ratio (birleşik)', 'avg. repeat ratio', 'avg. repeat rate',
+            'repeat rate', 'repeat ratio', 'avg repeat ratio', 'avg repeat rate',
+            'repeatratio', 'repeat_ratio', 'repeat_rate', 'repeatrate'
+        ],
+        'avg. repeat rate': [
+            'avg. repeat ratio (birleşik)', 'avg. repeat ratio', 'avg. repeat rate',
+            'repeat rate', 'repeat ratio', 'avg repeat ratio', 'avg repeat rate',
+            'repeatratio', 'repeat_ratio', 'repeat_rate', 'repeatrate'
+        ],
+        'repeat rate': [
+            'avg. repeat ratio (birleşik)', 'avg. repeat ratio', 'avg. repeat rate',
+            'repeat rate', 'repeat ratio', 'avg repeat ratio', 'avg repeat rate',
+            'repeatratio', 'repeat_ratio', 'repeat_rate', 'repeatrate'
+        ],
         // Level Play Time - Bölgesel uses "fixed", Level Score AB uses "Avg.", might also be just "Level Play"
-        'level play time': ['level play time fixed', 'avg. level play time', 'level play time', 'level play'],
-        'avg. level play time': ['level play time fixed', 'avg. level play time', 'level play time', 'level play'],
+        'level play time': ['level play time fixed', 'avg. level play time', 'level play time', 'level play', 'levelplaytime'],
+        'avg. level play time': ['level play time fixed', 'avg. level play time', 'level play time', 'level play', 'levelplaytime'],
         // FirstTryWin
-        'avg. firsttrywinpercent': ['avg. firsttrywinpercent', 'avg. firsttrywin', 'firsttrywin'],
-        // Churn columns
-        'instant churn': ['instant churn'],
-        '3 days churn': ['3 days churn', '3 day churn'],
-        '7 days churn': ['7 days churn', '7 day churn'],
+        'avg. firsttrywinpercent': ['avg. firsttrywinpercent', 'avg. firsttrywin', 'firsttrywin', 'first try win', 'firsttrywins'],
+        'avg. firsttrywin': ['avg. firsttrywinpercent', 'avg. firsttrywin', 'firsttrywin', 'first try win', 'firsttrywins'],
+        // Churn columns - various naming conventions per game
+        'instant churn': ['instant churn', 'instantchurn', 'instant_churn', '0 day churn', '0day churn', 'churn instant'],
+        '3 days churn': ['3 days churn', '3 day churn', '3daychurn', '3dayschurn', '3_days_churn', 'd3 churn', 'churn 3 days', 'churn 3 day'],
+        '7 days churn': ['7 days churn', '7 day churn', '7daychurn', '7dayschurn', '7_days_churn', 'd7 churn', 'churn 7 days', 'churn 7 day', 'week churn', '1 week churn'],
         // Level Score - Bölgesel has long name
-        'level score': ['level score along', 'level score'],
+        'level score': ['level score along', 'level score', 'levelscore'],
         // User metrics
-        'totaluser': ['totaluser', 'total user'],
-        'playon per user': ['playon per user'],
-        'playonwinratio': ['playonwinratio', 'playon win ratio'],
+        'totaluser': ['totaluser', 'total user', 'total_user', 'user count', 'users'],
+        'playon per user': ['playon per user', 'playonperuser', 'playon_per_user'],
+        'playonwinratio': ['playonwinratio', 'playon win ratio', 'playon_win_ratio'],
         // RM - Bölgesel uses "Fixed", Level Score AB uses "Total"
-        'rm fixed': ['rm fixed', 'rm total'],
-        'rm total': ['rm total', 'rm fixed'],
+        'rm fixed': ['rm fixed', 'rm total', 'rmfixed', 'rmtotal'],
+        'rm total': ['rm total', 'rm fixed', 'rmtotal', 'rmfixed'],
         // Moves
-        'avg. total moves': ['avg. total moves', 'total moves'],
+        'avg. total moves': ['avg. total moves', 'total moves', 'totalmoves', 'avg total moves'],
         // Inapp
-        'inapp value': ['inapp value'],
+        'inapp value': ['inapp value', 'inappvalue', 'inapp_value', 'in-app value'],
     };
 
     // Get patterns for this metric
@@ -160,7 +231,36 @@ function findMetricValue(row: LevelRow, metricName: string): number {
         const lowerKey = key.toLowerCase();
         for (const pattern of patterns) {
             if (lowerKey.includes(pattern)) {
-                return toNum(row[key]);
+                return parseNum(row[key]);
+            }
+        }
+    }
+
+    // ... existing pattern loop finished ...
+
+    // Fallback: Smart Regex search for Churn metrics (handles variations like "Churn 7-Day", "Day 7 Churn", etc.)
+    if (lowerMetric.includes('churn')) {
+        for (const key of keys) {
+            const k = key.toLowerCase();
+            // Valid churn column must typically contain "churn" (unless it's very obscure like "d7 retention")
+            // But usually it has "churn".
+            if (!k.includes('churn')) continue;
+
+            if (lowerMetric.includes('instant') || lowerMetric.includes('0')) {
+                // Instant/0-day: Look for "instant" OR "0" (detected as number 0, 0d, day 0)
+                if (k.includes('instant') || /(^|[^0-9])0([^0-9]|$)/.test(k) || k.includes('0d') || k.includes('d0')) {
+                    return toNum(row[key]);
+                }
+            } else if (lowerMetric.includes('3')) {
+                // 3-day: Look for isolated "3" or "3d"/"d3"
+                if (/(^|[^0-9])3([^0-9]|$)/.test(k) || k.includes('3d') || k.includes('d3')) {
+                    return toNum(row[key]);
+                }
+            } else if (lowerMetric.includes('7')) {
+                // 7-day: Look for isolated "7" or "7d"/"d7" or "week"
+                if (/(^|[^0-9])7([^0-9]|$)/.test(k) || k.includes('7d') || k.includes('d7') || k.includes('week')) {
+                    return toNum(row[key]);
+                }
             }
         }
     }
@@ -170,11 +270,21 @@ function findMetricValue(row: LevelRow, metricName: string): number {
 
 function getStrVal(row: any, patterns: string[]): string {
     const keys = Object.keys(row);
+    // 1. Try exact matches first
     for (const pattern of patterns) {
         if (row[pattern] !== undefined) return String(row[pattern]);
         const match = keys.find(k => k.toLowerCase() === pattern.toLowerCase());
         if (match && row[match] !== undefined) return String(row[match]);
     }
+
+    // 2. Try partial matches (key contains pattern)
+    // Only for patterns length >= 4 to avoid false positives with short abbreviations
+    for (const pattern of patterns) {
+        if (pattern.length < 4) continue;
+        const match = keys.find(k => k.toLowerCase().includes(pattern.toLowerCase()));
+        if (match && row[match] !== undefined) return String(row[match]);
+    }
+
     return '';
 }
 
@@ -195,19 +305,56 @@ function transformToWideFormat(data: LevelRow[]): LevelRow[] {
     const sample = data[0];
     const keys = Object.keys(sample);
 
+    // Look for column that contains AB test variant info
     let variantCol: string | null = null;
-    for (const row of data.slice(0, 10)) {
+    let baselineValue: string | null = null;
+    let variantValue: string | null = null;
+
+    // Patterns for detecting baseline/variant
+    const baselinePatterns = ['baseline', 'control', 'before', 'old', 'original'];
+    const variantPatterns = ['variant', 'test', 'after', 'new', 'treatment'];
+
+    for (const row of data.slice(0, 20)) { // Check more rows
         for (const key of keys) {
-            const val = String(row[key] || '').toLowerCase();
-            if (val.includes('baseline') || val.includes('variant')) {
+            const val = String(row[key] || '').toLowerCase().trim();
+
+            // Check for baseline patterns
+            for (const pattern of baselinePatterns) {
+                if (val.includes(pattern)) {
+                    variantCol = key;
+                    baselineValue = pattern;
+                    break;
+                }
+            }
+            if (variantCol) break;
+
+            // Check for variant patterns
+            for (const pattern of variantPatterns) {
+                if (val.includes(pattern)) {
+                    variantCol = key;
+                    variantValue = pattern;
+                    break;
+                }
+            }
+            if (variantCol) break;
+
+            // Special case: Check for "A" / "B" exact patterns
+            if (val === 'a' || val === 'b') {
                 variantCol = key;
+                baselineValue = 'a';
+                variantValue = 'b';
                 break;
             }
         }
         if (variantCol) break;
     }
 
-    if (!variantCol) return data;
+    if (!variantCol) {
+        console.log('[Transform] No AB variant column found, returning raw data');
+        return data;
+    }
+
+    console.log(`[Transform] Found variant column: ${variantCol}, baseline pattern: ${baselineValue}, variant pattern: ${variantValue}`);
 
     const METRICS_TO_PIVOT = [
         'Level Score', 'TotalUser', 'Instant Churn', '3 Days Churn', '7 Days Churn',
@@ -221,9 +368,26 @@ function transformToWideFormat(data: LevelRow[]): LevelRow[] {
         const level = row['Level'];
         if (level === undefined || level === '') continue;
 
-        const variantValue = String(row[variantCol] || '').toLowerCase();
-        const isBaseline = variantValue.includes('baseline');
-        const isVariant = variantValue.includes('variant');
+        const val = String(row[variantCol] || '').toLowerCase().trim();
+
+        // Determine if baseline or variant
+        let isBaseline = false;
+        let isVariant = false;
+
+        for (const pattern of baselinePatterns) {
+            if (val.includes(pattern) || val === 'a') {
+                isBaseline = true;
+                break;
+            }
+        }
+        if (!isBaseline) {
+            for (const pattern of variantPatterns) {
+                if (val.includes(pattern) || val === 'b') {
+                    isVariant = true;
+                    break;
+                }
+            }
+        }
 
         if (!grouped[level]) {
             grouped[level] = {
@@ -231,7 +395,7 @@ function transformToWideFormat(data: LevelRow[]): LevelRow[] {
                 variant: null,
                 meta: {
                     Level: level,
-                    FinalCluster: row['FinalCluster'] || '',
+                    FinalCluster: getStrVal(row, ['FinalCluster', 'FinalClusters', 'Final Cluster', 'Cluster', 'cluster', 'Clusters', 'final_cluster']),
                     RevisionNumber: row['RevisionNumber'] || ''
                 }
             };
@@ -262,7 +426,7 @@ function transformToWideFormat(data: LevelRow[]): LevelRow[] {
 }
 
 // Main export: Takes raw CSV data and generates styled Excel with all sheets
-export async function generateLevelScoreExcelJSFromRaw(rawData: LevelRow[]): Promise<Blob> {
+export async function generateLevelScoreExcelJSFromRaw(rawData: LevelRow[], minTotalUser?: number): Promise<Blob> {
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'LevelUp Dashboard';
     workbook.created = new Date();
@@ -271,14 +435,28 @@ export async function generateLevelScoreExcelJSFromRaw(rawData: LevelRow[]): Pro
     let transformed = transformToWideFormat(rawData);
     if (!transformed || transformed.length === 0) transformed = rawData;
 
-    // Sort by Level ascending for RAW DATA
-    const sortedData = [...transformed].sort((a, b) => (a.Level || 0) - (b.Level || 0));
+    // Filter for Analysis Sheets (Min Total User)
+    let analyzedData = [...transformed];
+    if (minTotalUser && minTotalUser > 0) {
+        const beforeCount = analyzedData.length;
+        analyzedData = analyzedData.filter(row => {
+            const totalUser = getVal(row, ['TotalUser Variant A', 'TotalUser', 'Total User']);
+            // Exclude rows where TotalUser is NaN or below threshold
+            if (isNaN(totalUser)) return false;
+            return totalUser >= minTotalUser;
+        });
+        console.log(`Filtered LevelScore data: ${beforeCount} -> ${analyzedData.length} rows (minTotalUser: ${minTotalUser})`);
+    }
 
-    // Build abData with Time column included
-    const abData = sortedData.map(row => ({
+    // Sort by Level ascending for RAW DATA (Unfiltered)
+    const sortedRawData = [...transformed].sort((a, b) => (a.Level || 0) - (b.Level || 0));
+
+    // Build abData with Time column included (Filtered)
+    const sortedAnalyzedData = [...analyzedData].sort((a, b) => (a.Level || 0) - (b.Level || 0));
+    const abData = sortedAnalyzedData.map(row => ({
         Level: getVal(row, ['Level', 'LevelID']),
-        FinalCluster: getStrVal(row, ['FinalCluster', 'Cluster']),
-        RevisionNumber: getStrVal(row, ['RevisionNumber', 'Revision']),
+        FinalCluster: getStrVal(row, ['FinalCluster', 'FinalClusters', 'Final Cluster', 'Cluster', 'cluster', 'Clusters', 'final_cluster']),
+        RevisionNumber: getStrVal(row, ['RevisionNumber', 'Revision', 'revision_number', 'Rev', 'Version', 'revision']),
         'Müdahale Yapılanlar': '',
         'LevelScore Baseline': getVal(row, ['Level Score Baseline']),
         'LevelScore Variant A': getVal(row, ['Level Score Variant A']),
@@ -287,8 +465,8 @@ export async function generateLevelScoreExcelJSFromRaw(rawData: LevelRow[]): Pro
             const v = getVal(row, ['Level Score Variant A']);
             return isNaN(b) || isNaN(v) ? NaN : v - b;
         })(),
-        'TotalUser Baseline': getVal(row, ['TotalUser Baseline']),
-        'TotalUser Variant A': getVal(row, ['TotalUser Variant A']),
+        'TotalUser Baseline': toNumStripped(row['TotalUser Baseline']),
+        'TotalUser Variant A': toNumStripped(row['TotalUser Variant A']),
         'Instant Churn Baseline': getVal(row, ['Instant Churn Baseline']),
         'Instant Churn Variant A': getVal(row, ['Instant Churn Variant A']),
         'Instant Churn Diff': (() => {
@@ -312,14 +490,14 @@ export async function generateLevelScoreExcelJSFromRaw(rawData: LevelRow[]): Pro
         })(),
     }));
 
-    // Build variantBData
-    const variantBData = sortedData.map(row => ({
+    // Build variantBData (Filtered)
+    const variantBData = sortedAnalyzedData.map(row => ({
         Level: getVal(row, ['Level', 'LevelID']),
-        FinalCluster: getStrVal(row, ['FinalCluster', 'Cluster']),
-        RevisionNumber: getStrVal(row, ['RevisionNumber', 'Revision']),
+        FinalCluster: getStrVal(row, ['FinalCluster', 'FinalClusters', 'Final Cluster', 'Cluster', 'cluster', 'Clusters', 'final_cluster']),
+        RevisionNumber: getStrVal(row, ['RevisionNumber', 'Revision', 'revision_number', 'Rev', 'Version', 'revision']),
         'Müdahale Yapılanlar': '',
         'Level Score': getVal(row, ['Level Score Variant A']),
-        'TotalUser': getVal(row, ['TotalUser Variant A']),
+        'TotalUser': toNumStripped(row['TotalUser Variant A']),
         'Instant Churn': getVal(row, ['Instant Churn Variant A']),
         '3 Days Churn': getVal(row, ['3 Days Churn Variant A']),
         'Avg. FirstTryWinPercent': getVal(row, ['Avg. FirstTryWin Variant A']),
@@ -327,13 +505,13 @@ export async function generateLevelScoreExcelJSFromRaw(rawData: LevelRow[]): Pro
     }));
 
     // Define headers
-    const rawHeaders = Object.keys(sortedData[0] || {});
+    const rawHeaders = Object.keys(sortedRawData[0] || {});
     const abHeaders = Object.keys(abData[0] || {});
     const variantBHeaders = Object.keys(variantBData[0] || {});
 
-    // Sheet 1: RAW DATA (sorted by Level ascending)
+    // Sheet 1: RAW DATA (sorted by Level ascending) - UNFILTERED
     const rawSheet = workbook.addWorksheet('RAW DATA');
-    addDataToSheet(rawSheet, sortedData, ['Level', ...rawHeaders.filter(h => h !== 'Level')]);
+    addDataToSheet(rawSheet, sortedRawData, ['Level', ...rawHeaders.filter(h => h !== 'Level')]);
 
     // Sheet 2: Level Score AB
     const abSheet = workbook.addWorksheet('Level Score AB');
@@ -435,7 +613,7 @@ const BOLGESEL_METRICS = [
 ];
 
 // Bölgesel report generator with ExcelJS styling
-export async function generateBolgeselExcelJSFromRaw(rawData: LevelRow[]): Promise<Blob> {
+export async function generateBolgeselExcelJSFromRaw(rawData: LevelRow[], minTotalUser?: number): Promise<Blob> {
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'LevelUp Dashboard';
     workbook.created = new Date();
@@ -455,14 +633,14 @@ export async function generateBolgeselExcelJSFromRaw(rawData: LevelRow[]): Promi
         'Playon per User', 'RM Fixed', 'Avg. Total Moves', 'Inapp Value'
     ];
 
-    const rawDataFormatted = sortedData.map(row => {
+    let rawDataFormatted = sortedData.map(row => {
         const result: any = {};
         // Direct column mapping with fallbacks based on actual Tableau column names
         result['Level'] = toNum(row['Level']);
-        result['FinalCluster'] = row['FinalCluster'] || row['FinalClusters'] || '';
-        result['RevisionNumber'] = row['RevisionNumber'] || '';
+        result['FinalCluster'] = getStrVal(row, ['FinalCluster', 'FinalClusters', 'Final Cluster', 'Cluster', 'cluster', 'Clusters', 'final_cluster']);
+        result['RevisionNumber'] = getStrVal(row, ['RevisionNumber', 'Revision', 'revision_number', 'Rev', 'Version', 'revision', 'Revize', 'revize', 'Rev No', 'RevNo', 'Revision No', 'RevisionNo', 'rev_no']);
         result['Level Score'] = findMetricValue(row, 'Level Score');
-        result['TotalUser'] = findMetricValue(row, 'TotalUser');
+        result['TotalUser'] = toNumStripped(row['TotalUser'] || row['Total User'] || row['TotalUsers']);
         result['Instant Churn'] = findMetricValue(row, 'Instant Churn');
         result['3 Days Churn'] = findMetricValue(row, '3 Days Churn');
         result['7 Days Churn'] = findMetricValue(row, '7 Days Churn');
@@ -475,20 +653,33 @@ export async function generateBolgeselExcelJSFromRaw(rawData: LevelRow[]): Promi
         // Bölgesel uses "RM Fixed", Level Score AB uses "RM Total"
         result['RM Fixed'] = findMetricValue(row, 'RM Fixed') || findMetricValue(row, 'RM Total');
         result['Avg. Total Moves'] = findMetricValue(row, 'Avg. Total Moves');
-        result['Inapp Value'] = findMetricValue(row, 'Inapp Value');
+        result['Inapp Value'] = toNumEuropean(row['Inapp Value'] || row['InApp Value'] || row['InappValue']);
         return result;
     }).filter(r => !isNaN(r['Level']));
 
-    // Sheet 1: RAW DATA
+    // Filter for Analysis Sheets (Min Total User)
+    let analyzedData = [...rawDataFormatted];
+    if (minTotalUser && minTotalUser > 0) {
+        const beforeCount = analyzedData.length;
+        analyzedData = analyzedData.filter(row => {
+            const totalUser = toNum(row['TotalUser']);
+            // Exclude rows where TotalUser is NaN or below threshold
+            if (isNaN(totalUser)) return false;
+            return totalUser >= minTotalUser;
+        });
+        console.log(`[Excel Bölgesel] MinTotalUser filter (${minTotalUser}): ${beforeCount} -> ${analyzedData.length} rows`);
+    }
+
+    // Sheet 1: RAW DATA uses UNFILTERED data
     const rawSheet = workbook.addWorksheet('RAW DATA');
     addDataToSheet(rawSheet, rawDataFormatted, rawHeaders);
 
-    // Generate Bölgesel aggregations
-    const maxLevel = Math.max(...rawDataFormatted.map(r => r['Level'] || 0));
+    // Generate Bölgesel aggregations using ANALYZED (filtered) data
+    const maxLevel = Math.max(...analyzedData.map(r => r['Level'] || 0));
     const ranges = makeRangesByRules(maxLevel);
 
     const bolgeselData = ranges.map(([start, end]) => {
-        const rowsInRange = rawDataFormatted.filter(r => r['Level'] >= start && r['Level'] <= end);
+        const rowsInRange = analyzedData.filter(r => r['Level'] >= start && r['Level'] <= end);
         const rowCount = rowsInRange.length;
         const totalUsers = rowsInRange.reduce((sum, r) => sum + (toNum(r['TotalUser']) || 0), 0);
 
@@ -548,15 +739,16 @@ export async function generateBolgeselExcelJSFromRaw(rawData: LevelRow[]): Promi
 // ========== 3 DAY CHURN ANALYSIS REPORT ==========
 
 // 3 Day Churn report generator with ExcelJS styling
-export async function generate3DayChurnExcelJSFromRaw(rawData: LevelRow[]): Promise<Blob> {
+export async function generate3DayChurnExcelJSFromRaw(rawData: LevelRow[], minTotalUser?: number): Promise<Blob> {
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'LevelUp Dashboard';
     workbook.created = new Date();
 
     // Sort raw data by Level ascending
+    // Sort by Level ascending for RAW DATA
     const sortedData = [...rawData].sort((a, b) => {
-        const levelA = toNum(a['Level']) || 0;
-        const levelB = toNum(b['Level']) || 0;
+        const levelA = getVal(a, ['Level', 'LevelID', 'level', 'Level Name', 'LevelName']) || 0;
+        const levelB = getVal(b, ['Level', 'LevelID', 'level', 'Level Name', 'LevelName']) || 0;
         return levelA - levelB;
     });
 
@@ -569,14 +761,14 @@ export async function generate3DayChurnExcelJSFromRaw(rawData: LevelRow[]): Prom
     ];
 
     // Format data with proper columns
-    const formattedData = sortedData.map(row => {
+    let unfilteredData = sortedData.map(row => {
         const result: any = {};
-        result['Level'] = toNum(row['Level']);
-        result['FinalCluster'] = row['FinalCluster'] || row['FinalClusters'] || '';
-        result['RevisionNumber'] = row['RevisionNumber'] || '';
+        result['Level'] = getVal(row, ['Level', 'LevelID', 'level', 'Level Name', 'LevelName']);
+        result['FinalCluster'] = getStrVal(row, ['FinalCluster', 'FinalClusters', 'Final Cluster', 'Cluster', 'cluster', 'Clusters', 'final_cluster']);
+        result['RevisionNumber'] = getStrVal(row, ['RevisionNumber', 'Revision', 'revision_number', 'Rev', 'Version', 'revision']);
         result['Müdahale Yapılanlar'] = '';
         result['Level Score'] = findMetricValue(row, 'Level Score');
-        result['TotalUser'] = findMetricValue(row, 'TotalUser');
+        result['TotalUser'] = toNumStripped(row['TotalUser'] || row['Total User'] || row['TotalUsers']);
         result['Instant Churn'] = findMetricValue(row, 'Instant Churn');
         result['3 Days Churn'] = findMetricValue(row, '3 Days Churn');
         result['7 Days Churn'] = findMetricValue(row, '7 Days Churn');
@@ -590,30 +782,63 @@ export async function generate3DayChurnExcelJSFromRaw(rawData: LevelRow[]): Prom
         result['PlayOnWinRatio'] = isNaN(playOnWinRatio) ? '' : playOnWinRatio;
         result['RM Total'] = findMetricValue(row, 'RM Total') || findMetricValue(row, 'RM Fixed');
         result['Avg. Total Moves'] = findMetricValue(row, 'Avg. Total Moves');
-        result['Inapp Value'] = findMetricValue(row, 'Inapp Value');
+        result['Inapp Value'] = toNumEuropean(row['Inapp Value'] || row['InApp Value'] || row['InappValue']);
         return result;
-    }).filter(r => !isNaN(r['Level']));
+    });
 
-    // Sheet 1: RAW DATA (sorted by Level ascending)
+    // Filter for Analysis Sheets (Min Total User)
+    let analyzedData = [...unfilteredData];
+    if (minTotalUser && minTotalUser > 0) {
+        const beforeCount = analyzedData.length;
+        analyzedData = analyzedData.filter(row => {
+            const totalUser = toNum(row['TotalUser']);
+            // Exclude rows where TotalUser is NaN or below threshold
+            if (isNaN(totalUser)) return false;
+            return totalUser >= minTotalUser;
+        });
+        console.log(`[Excel 3DayChurn] MinTotalUser filter (${minTotalUser}): ${beforeCount} -> ${analyzedData.length} rows`);
+    }
+
+    // Sheet 1: RAW DATA (sorted by Level ascending) - UNFILTERED
     const rawSheet = workbook.addWorksheet('RAW DATA');
-    addDataToSheet(rawSheet, formattedData, dataHeaders);
+    addDataToSheet(rawSheet, unfilteredData, dataHeaders);
 
-    // Sheet 2: Level Score Top Unsuccesfull (sorted by Level Score ASCENDING - lowest first)
-    const levelScoreUnsuccess = [...formattedData]
+    // DEBUG SHEET: List all available columns from source data to help identifying mapping issues
+    try {
+        const debugSheet = workbook.addWorksheet('DEBUG INFO');
+        if (sortedData.length > 0) {
+            const firstRow = sortedData[0];
+            const keys = Object.keys(firstRow);
+            debugSheet.addRow(['Column Name', 'Sample Value (Row 1)']);
+            keys.forEach(k => {
+                // Convert value to string for display
+                let val = firstRow[k];
+                if (typeof val === 'object') val = JSON.stringify(val);
+                debugSheet.addRow([k, String(val)]);
+            });
+        } else {
+            debugSheet.addRow(['No data rows found to analyze structure']);
+        }
+    } catch (e) {
+        console.error("Error creating debug sheet", e);
+    }
+
+    // Sheet 2: Level Score Top Unsuccesfull (sorted by Level Score ASCENDING - lowest first) - ANALYZED
+    const levelScoreUnsuccess = [...analyzedData]
         .filter(r => typeof r['Level Score'] === 'number' && !isNaN(r['Level Score']))
         .sort((a, b) => (a['Level Score'] || Infinity) - (b['Level Score'] || Infinity));
     const levelScoreUnsuccessSheet = workbook.addWorksheet('Level Score Top Unsuccesfull');
     addDataToSheet(levelScoreUnsuccessSheet, levelScoreUnsuccess, dataHeaders);
 
-    // Sheet 3: Level Score Top Succesfull (sorted by Level Score DESCENDING - highest first)
-    const levelScoreSuccess = [...formattedData]
+    // Sheet 3: Level Score Top Succesfull (sorted by Level Score DESCENDING - highest first) - ANALYZED
+    const levelScoreSuccess = [...analyzedData]
         .filter(r => typeof r['Level Score'] === 'number' && !isNaN(r['Level Score']))
         .sort((a, b) => (b['Level Score'] || 0) - (a['Level Score'] || 0));
     const levelScoreSuccessSheet = workbook.addWorksheet('Level Score Top Succesfull');
     addDataToSheet(levelScoreSuccessSheet, levelScoreSuccess, dataHeaders);
 
     // Sheet 4: 3 Day Churn Top Unsuccesfull (sorted by 3 Days Churn ASCENDING - lowest churn first, meaning worst retention)
-    const dayChurnUnsuccess = [...formattedData]
+    const dayChurnUnsuccess = [...analyzedData]
         .filter(r => typeof r['3 Days Churn'] === 'number' && !isNaN(r['3 Days Churn']))
         .sort((a, b) => (a['3 Days Churn'] || Infinity) - (b['3 Days Churn'] || Infinity));
     const dayChurnUnsuccessSheet = workbook.addWorksheet('3 Day Churn Top Unsuccesfull');

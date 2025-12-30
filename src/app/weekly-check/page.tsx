@@ -12,6 +12,52 @@ import { generateLevelScoreTopUnsuccessful, generate3DayChurnTopUnsuccessful, fo
 import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 
+const PRIORITY_HEADERS = [
+    "Total Move",
+    "Average remaining move",
+    "In app value",
+    "Level Score",
+    "3 Days Churn"
+];
+
+// Helper to normalize header for comparison
+const normalizeHeader = (h: string) => h.toLowerCase().trim();
+
+function processHeaders(allHeaders: string[]): string[] {
+    // 1. Deduplicate Level Score
+    // If we have "Level Score", remove "Level Score Along"
+    let headers = [...allHeaders];
+    const hasLevelScore = headers.some(h => normalizeHeader(h) === 'level score');
+
+    if (hasLevelScore) {
+        headers = headers.filter(h => {
+            const normalized = normalizeHeader(h);
+            return normalized !== 'level score along' && normalized !== 'level score-';
+        });
+    }
+
+    // 2. Identify available priority headers
+    const presentPriorityHeaders: string[] = [];
+    PRIORITY_HEADERS.forEach(pHeader => {
+        // Find if this priority header exists (case-insensitive check)
+        // We look for exact matches or very close matches if needed, but usually exact or contained
+        const match = headers.find(h => normalizeHeader(h) === normalizeHeader(pHeader));
+        if (match) {
+            presentPriorityHeaders.push(match);
+        }
+    });
+
+    // 3. Separate priority and other headers
+    // Filter out priority headers from the main list so we don't duplicate them
+    const otherHeaders = headers.filter(h =>
+        !presentPriorityHeaders.includes(h)
+    );
+
+    // 4. Combine: Priority + Others
+    // We prioritize the ones in PRIORITY_HEADERS list in that order
+    return [...presentPriorityHeaders, ...otherHeaders];
+}
+
 interface Config {
     variables: string[];
     games: { id: string; name: string; viewMappings: Record<string, string> }[];
@@ -168,7 +214,8 @@ export default function WeeklyCheckPage() {
 
             const parsed = papa.parse(csvData, { header: true, skipEmptyLines: true });
             const rawData = parsed.data as any[];
-            const headers = parsed.meta.fields || [];
+            const rawHeaders = parsed.meta.fields || [];
+            const headers = processHeaders(rawHeaders);
 
             // Generate both report views
             const levelScoreData = generateLevelScoreTopUnsuccessful(rawData);

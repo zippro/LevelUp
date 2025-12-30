@@ -16,6 +16,11 @@ interface Config {
   variables: string[];
   reports?: Record<string, string[]>;
   games: { id: string; name: string; viewMappings: Record<string, string> }[];
+  reportSettings?: {
+    levelScoreAB?: { minTotalUser?: number };
+    bolgeselRevize?: { minTotalUser?: number };
+    threeDayChurn?: { minTotalUser?: number };
+  };
 }
 
 // Map Variables to Available Reports
@@ -45,6 +50,7 @@ export default function Home() {
   // Cache dialog state
   const [showCacheDialog, setShowCacheDialog] = useState(false);
   const [cachedDataInfo, setCachedDataInfo] = useState<{ fileName: string; createdAt: Date } | null>(null);
+  const [platform, setPlatform] = useState<string>("ALL");
 
   // Fetch Config on Mount
   useEffect(() => {
@@ -82,6 +88,16 @@ export default function Home() {
     // Check for cached data first
     const game = config?.games.find(g => g.id === selectedGameId);
     const gameName = game ? game.name : selectedGameId;
+
+    // Filter Bypass Logic: If any filter is active, force fresh fetch (bypass cache)
+    const hasFilters = (startDate && startDate !== '') ||
+      (endDate && endDate !== '') ||
+      (platform && platform !== 'ALL');
+
+    if (hasFilters) {
+      console.log("Filters active, bypassing cache check.");
+      return await doSync(true);
+    }
 
     const { data: files } = await supabase.storage
       .from('data-repository')
@@ -151,9 +167,10 @@ export default function Home() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             viewId: viewId,
-            tableName: "level_design_data",
+            tableName: `${selectedGameId}-${selectedVariable}`,
             startDate: startDate || undefined,
             endDate: endDate || undefined,
+            platform: platform === "ALL" ? undefined : platform
           }),
         });
 
@@ -206,8 +223,9 @@ export default function Home() {
 
     // If date range is set, always fetch fresh data with date filter
     // Otherwise use cached data
-    if (!currentData || (startDate || endDate)) {
-      currentData = await doSync(startDate || endDate ? true : false); // Force fresh if dates set
+    // Always fetch fresh data to ensure new levels/updates are included
+    if (!currentData || (startDate || endDate) || true) {
+      currentData = await doSync(true);
       if (!currentData) return; // Error happened
     }
 
@@ -272,20 +290,40 @@ export default function Home() {
 
       fileName = `${safeName}.xlsx`;
 
+      // Get minTotalUser from report settings in config
+      // Fetch latest config to ensure settings are up to date (e.g. if user just updated settings)
+      let reportSettings = config?.reportSettings;
+      try {
+        const freshConfigRes = await fetch("/api/config");
+        if (freshConfigRes.ok) {
+          const freshConfig = await freshConfigRes.json();
+          if (freshConfig.reportSettings) {
+            reportSettings = freshConfig.reportSettings;
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch fresh config", e);
+      }
+
+      let minTotalUser = 0;
+
       if (reportName === "Bölgesel Revize") {
+        minTotalUser = reportSettings?.bolgeselRevize?.minTotalUser || 0;
         // Use ExcelJS with full styling (yellow headers, percentage formatting)
         const { generateBolgeselExcelJSFromRaw } = await import("@/lib/excel-report");
-        workbookBlob = await generateBolgeselExcelJSFromRaw(parsed.data as any[]);
+        workbookBlob = await generateBolgeselExcelJSFromRaw(parsed.data as any[], minTotalUser);
       }
       else if (reportName === "Level Score Analysis") {
+        minTotalUser = reportSettings?.levelScoreAB?.minTotalUser || 0;
         // Use ExcelJS with full styling (yellow headers, percentage formatting)
         const { generateLevelScoreExcelJSFromRaw } = await import("@/lib/excel-report");
-        workbookBlob = await generateLevelScoreExcelJSFromRaw(parsed.data as any[]);
+        workbookBlob = await generateLevelScoreExcelJSFromRaw(parsed.data as any[], minTotalUser);
       }
       else if (reportName === "3 Day Churn Analysis") {
+        minTotalUser = reportSettings?.threeDayChurn?.minTotalUser || 0;
         // Use ExcelJS with full styling (yellow headers, percentage formatting)
         const { generate3DayChurnExcelJSFromRaw } = await import("@/lib/excel-report");
-        workbookBlob = await generate3DayChurnExcelJSFromRaw(parsed.data as any[]);
+        workbookBlob = await generate3DayChurnExcelJSFromRaw(parsed.data as any[], minTotalUser);
       }
 
       if (workbookBlob) {
@@ -471,6 +509,28 @@ export default function Home() {
                   </Button>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Platform Filter (visible for Level Revize, Bölgesel, Level Score AB) */}
+          {(selectedVariable?.includes("Level Score AB") || selectedVariable?.includes("Bölgesel") || selectedVariable?.includes("Level Revize")) && (
+            <div className="space-y-3 max-w-xs">
+              <label className="text-sm font-medium leading-none">
+                4. Select Platform
+              </label>
+              <Select
+                value={platform}
+                onValueChange={setPlatform}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Platform" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">ALL</SelectItem>
+                  <SelectItem value="iOS">iOS</SelectItem>
+                  <SelectItem value="Android">Android</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           )}
 

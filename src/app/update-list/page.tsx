@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -82,7 +84,13 @@ export default function UpdateListPage() {
     const fetchUpdates = async () => {
         try {
             setIsLoading(true);
-            const res = await fetch('/api/updates');
+            const res = await fetch(`/api/updates?t=${Date.now()}`, {
+                cache: 'no-store',
+                headers: {
+                    'Pragma': 'no-cache',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate'
+                }
+            });
             const data = await res.json();
 
             if (data.versions) {
@@ -200,33 +208,38 @@ export default function UpdateListPage() {
 
     // Toggle todo done
     const toggleTodoDone = (versionId: string, todoId: string) => {
-        let newDone = false;
+        // Get current state synchronously first
+        const version = versions.find(v => v.id === versionId);
+        const todo = version?.todos.find(t => t.id === todoId);
+        if (!todo) return;
 
+        const newDone = !todo.done;
+
+        // Optimistic update
         setVersions(prev => prev.map(v => {
             if (v.id !== versionId) return v;
-            const todo = v.todos.find(t => t.id === todoId);
-            if (!todo) return v;
-
-            newDone = !todo.done;
             return {
                 ...v,
                 todos: v.todos.map(t => t.id === todoId ? { ...t, done: newDone } : t)
             };
         }));
 
+        // API call with correct value
         apiUpdateTodo(todoId, { done: newDone });
     };
 
     // Toggle version done
     const toggleVersionDone = (versionId: string) => {
-        let newDone = false;
-        setVersions(prev => {
-            const v = prev.find(v => v.id === versionId);
-            if (!v) return prev;
-            newDone = !v.done;
-            return prev.map(v => v.id === versionId ? { ...v, done: newDone } : v);
-        });
+        // Get current state synchronously first
+        const version = versions.find(v => v.id === versionId);
+        if (!version) return;
 
+        const newDone = !version.done;
+
+        // Optimistic update
+        setVersions(prev => prev.map(v => v.id === versionId ? { ...v, done: newDone } : v));
+
+        // API call with correct value
         apiUpdateVersion(versionId, { done: newDone });
     };
 
@@ -287,13 +300,16 @@ export default function UpdateListPage() {
     };
 
     const toggleBacklogDone = (todoId: string) => {
-        let newDone = false;
-        setBacklog(prev => {
-            const item = prev.find(t => t.id === todoId);
-            if (!item) return prev;
-            newDone = !item.done;
-            return prev.map(t => t.id === todoId ? { ...t, done: newDone } : t);
-        });
+        // Get current state synchronously first
+        const item = backlog.find(t => t.id === todoId);
+        if (!item) return;
+
+        const newDone = !item.done;
+
+        // Optimistic update
+        setBacklog(prev => prev.map(t => t.id === todoId ? { ...t, done: newDone } : t));
+
+        // API call with correct value
         apiUpdateTodo(todoId, { done: newDone });
     };
 
@@ -580,7 +596,7 @@ export default function UpdateListPage() {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
             <div className="space-y-2">
-                <h1 className="text-2xl font-bold">Update List</h1>
+                <h1 className="text-2xl font-bold">Update List <span className="text-xs font-normal text-muted-foreground ml-2">v1.2</span></h1>
                 <p className="text-muted-foreground">Track version updates and feature todo lists</p>
             </div>
 
@@ -697,7 +713,7 @@ export default function UpdateListPage() {
                                                 className="flex-1 h-8 text-lg font-semibold"
                                             />
                                         ) : (
-                                            <CardTitle className="flex-1 text-lg">{version.title}</CardTitle>
+                                            <CardTitle className="flex-1 text-lg break-words whitespace-pre-wrap">{version.title}</CardTitle>
                                         )}
 
                                         {/* Edit button */}
@@ -831,7 +847,7 @@ export default function UpdateListPage() {
                                                                 />
                                                             ) : (
                                                                 <div className="flex flex-col gap-1">
-                                                                    <span className={cn("truncate", todo.done && "line-through text-muted-foreground")}>
+                                                                    <span className={cn("break-words whitespace-pre-wrap", todo.done && "line-through text-muted-foreground")}>
                                                                         {todo.title}
                                                                     </span>
 
@@ -1080,7 +1096,7 @@ export default function UpdateListPage() {
                                                     />
                                                 ) : (
                                                     <div className="flex flex-col">
-                                                        <span className={cn("truncate", item.done && "line-through text-muted-foreground")}>
+                                                        <span className={cn("break-words whitespace-pre-wrap", item.done && "line-through text-muted-foreground")}>
                                                             {item.title}
                                                         </span>
                                                         <div className="flex items-center gap-2 mt-0.5">
@@ -1195,7 +1211,7 @@ export default function UpdateListPage() {
                                                     className="data-[state=checked]:bg-muted-foreground data-[state=checked]:border-muted-foreground"
                                                 />
                                                 <div className="flex-1 min-w-0">
-                                                    <CardTitle className="text-sm line-through text-muted-foreground truncate">{version.title}</CardTitle>
+                                                    <CardTitle className="text-sm line-through text-muted-foreground break-words whitespace-pre-wrap">{version.title}</CardTitle>
                                                 </div>
                                                 <div className="text-xs text-muted-foreground whitespace-nowrap">
                                                     {version.todos.length} items
