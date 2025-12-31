@@ -71,10 +71,10 @@ export function generateLevelScoreTopUnsuccessful(
     const sortOrder = settings?.threeDayChurn?.sheets?.levelScoreUnsuccess?.sortOrder || 'asc';
 
     return [...data]
-        .filter(r => {
-            const levelScore = findMetricValue(r, 'Level Score');
-            return levelScore > 0;
-        })
+        // .filter(r => {
+        //     const levelScore = findMetricValue(r, 'Level Score');
+        //     return levelScore > 0;
+        // })
         .sort((a, b) => {
             const aScore = findMetricValue(a, 'Level Score');
             const bScore = findMetricValue(b, 'Level Score');
@@ -90,10 +90,10 @@ export function generateLevelScoreTopSuccessful(
     const sortOrder = settings?.threeDayChurn?.sheets?.levelScoreSuccess?.sortOrder || 'desc';
 
     return [...data]
-        .filter(r => {
-            const levelScore = findMetricValue(r, 'Level Score');
-            return levelScore > 0;
-        })
+        // .filter(r => {
+        //     const levelScore = findMetricValue(r, 'Level Score');
+        //     return levelScore > 0;
+        // })
         .sort((a, b) => {
             const aScore = findMetricValue(a, 'Level Score');
             const bScore = findMetricValue(b, 'Level Score');
