@@ -12,36 +12,46 @@ import { generateLevelScoreTopUnsuccessful, generate3DayChurnTopUnsuccessful, fo
 import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 
-const PRIORITY_HEADERS = [
-    "Total Move",
-    "Average remaining move",
-    "In app value",
-    "Level Score",
-    "3 Days Churn"
+const HEADER_DEFINITIONS = [
+    { name: "Total Move", aliases: ["total move", "totalmove", "total moves", "move count", "avg. total moves", "avg total moves"] },
+    { name: "Average remaining move", aliases: ["average remaining move", "avg remaining move", "avg. remaining move", "remaining moves", "avg remaining moves", "remaining move"] },
+    { name: "In app value", aliases: ["in app value", "inappvalue", "in-app value", "in app values", "inapp value", "inapp_value"] },
+    { name: "Level Score", aliases: ["level score", "levelscore", "level_score"] },
+    { name: "3 Days Churn", aliases: ["3 days churn", "3 day churn", "3daychurn", "3_days_churn"] },
+    { name: "Min. Time Event", aliases: ["min. time event", "min time event", "min event time", "mineventtime", "min_time_event", "minimum time event"] }
 ];
 
 // Helper to normalize header for comparison
 const normalizeHeader = (h: string) => h.toLowerCase().trim();
 
 function processHeaders(allHeaders: string[]): string[] {
-    // 1. Deduplicate Level Score
-    // If we have "Level Score", remove "Level Score Along"
     let headers = [...allHeaders];
-    const hasLevelScore = headers.some(h => normalizeHeader(h) === 'level score');
+
+    // 1. Deduplicate Level Score (remove "Level Score Along", etc.)
+    const hasLevelScore = headers.some(h => {
+        const normalized = normalizeHeader(h);
+        return normalized.includes('level score');
+    });
 
     if (hasLevelScore) {
         headers = headers.filter(h => {
             const normalized = normalizeHeader(h);
-            return normalized !== 'level score along' && normalized !== 'level score-';
+            return normalized !== 'level score along' &&
+                normalized !== 'level score-' &&
+                normalized !== 'level score 29072024';
         });
     }
 
-    // 2. Identify available priority headers
+    // 2. Identify available priority headers using aliases
     const presentPriorityHeaders: string[] = [];
-    PRIORITY_HEADERS.forEach(pHeader => {
-        // Find if this priority header exists (case-insensitive check)
-        // We look for exact matches or very close matches if needed, but usually exact or contained
-        const match = headers.find(h => normalizeHeader(h) === normalizeHeader(pHeader));
+
+    HEADER_DEFINITIONS.forEach(def => {
+        // Find if any alias matches an available header
+        const match = headers.find(h => {
+            const normalized = normalizeHeader(h);
+            return def.aliases.some(alias => normalized === alias || normalized.includes(alias));
+        });
+
         if (match) {
             presentPriorityHeaders.push(match);
         }
@@ -54,13 +64,60 @@ function processHeaders(allHeaders: string[]): string[] {
     );
 
     // 4. Combine: Priority + Others
-    // We prioritize the ones in PRIORITY_HEADERS list in that order
     return [...presentPriorityHeaders, ...otherHeaders];
+}
+
+function sortHeaders(headers: string[], order: string[]): string[] {
+    if (!order || order.length === 0) return headers;
+
+    // Create a map for quick lookup of order index
+    const orderMap = new Map(order.map((h, i) => [normalizeHeader(h), i]));
+
+    // Separate headers that are in the order list vs those that aren't
+    // Helper to find index in order list, supporting aliases
+    const getOrderIndex = (header: string) => {
+        const normalizedH = normalizeHeader(header);
+
+        // 1. Try exact match in orderMap
+        if (orderMap.has(normalizedH)) return orderMap.get(normalizedH)!;
+
+        // 2. Try alias match
+        // Find which config header corresponds to this CSV header
+        const matchedConfigHeader = order.find(configH => {
+            // Does configH match this header via aliases?
+            const def = HEADER_DEFINITIONS.find(d => normalizeHeader(d.name) === normalizeHeader(configH));
+            if (def) {
+                return def.aliases.some(alias => normalizedH === alias || normalizedH.includes(alias));
+            }
+            return false;
+        });
+
+        if (matchedConfigHeader) {
+            return orderMap.get(normalizeHeader(matchedConfigHeader));
+        }
+
+        return -1;
+    };
+
+    // Sort the headers
+    const headersWithIndex = headers.map(h => ({ h, idx: getOrderIndex(h) }));
+
+    const ordered = headersWithIndex.filter(x => x.idx !== -1 && x.idx !== undefined).sort((a, b) => a.idx! - b.idx!).map(x => x.h);
+    const remaining = headersWithIndex.filter(x => x.idx === -1 || x.idx === undefined).map(x => x.h);
+
+    return [...ordered, ...remaining];
 }
 
 interface Config {
     variables: string[];
     games: { id: string; name: string; viewMappings: Record<string, string> }[];
+    weeklyCheck?: {
+        minTotalUser?: number;
+        minTotalUserLast30?: number;
+        minLevel?: number;
+        columnOrder?: string[];
+        columnRenames?: Record<string, string>;
+    };
 }
 
 interface TableSection {
@@ -80,10 +137,20 @@ export default function WeeklyCheckPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Table sections
+    // Filter State (Local)
+    const [minTotalUser, setMinUsers] = useState<number>(50);
+    const [minTotalUserLast30, setMinUsersLast30] = useState<number>(50);
+    const [minLevel, setMinLevel] = useState<number>(0);
+
+    // Raw Data State (to support client-side re-filtering)
+    const [rawData, setRawData] = useState<any[]>([]);
+    const [headers, setHeaders] = useState<string[]>([]);
+
+    // Derived Sections
     const [sections, setSections] = useState<TableSection[]>([
         { id: 'levelScore', title: 'Level Score Top Unsuccessful', data: [], headers: [], expanded: true, sortColumn: 'Level Score', sortOrder: 'asc' },
         { id: 'churn', title: '3 Day Churn Top Unsuccessful', data: [], headers: [], expanded: true, sortColumn: '3 Days Churn', sortOrder: 'asc' },
+        { id: 'last30', title: 'Last 30 Levels', data: [], headers: [], expanded: true, sortColumn: 'Level', sortOrder: 'desc' },
     ]);
 
     // New Move values - keyed by sectionId-level
@@ -98,10 +165,76 @@ export default function WeeklyCheckPage() {
             .then((res) => res.json())
             .then((data: Config) => {
                 setConfig(data);
+                if (data.weeklyCheck) {
+                    if (data.weeklyCheck.minTotalUser !== undefined) setMinUsers(data.weeklyCheck.minTotalUser);
+                    else setMinUsers(50); // Default to 50 if missing
+
+                    if (data.weeklyCheck.minTotalUserLast30 !== undefined) setMinUsersLast30(data.weeklyCheck.minTotalUserLast30);
+                    else setMinUsersLast30(50);
+
+                    if (data.weeklyCheck.minLevel !== undefined) setMinLevel(data.weeklyCheck.minLevel);
+                    else setMinLevel(0);
+                }
                 setLoadingConfig(false);
             })
             .catch((e) => console.error(e));
     }, []);
+
+    // Re-process data when filters, rawData, or headers change
+    useEffect(() => {
+        if (!rawData.length || !headers.length) return;
+
+        // Find level column for filtering
+        const sampleRow = rawData[0] || {};
+        const levelCol = Object.keys(sampleRow).find(k => {
+            const n = normalizeHeader(k);
+            return n === 'level' || n === 'level number' || n === 'level_number';
+        }) || 'Level';
+
+        // 1. General Filter (Level Score & Churn) - apply minLevel filter
+        const generalFiltered = rawData.filter(row => {
+            // Check level
+            const levelVal = parseInt(String(row[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
+            if (levelVal < minLevel) return false;
+
+            // Check total users
+            const totalUserVal = row['TotalUser'] || row['Total User'] || row['TotalUsers'] || row['total_user'];
+            if (!totalUserVal) return false;
+            const num = parseInt(String(totalUserVal).replace(/[.,]/g, ''), 10);
+            return !isNaN(num) && num >= minTotalUser;
+        });
+
+        // 2. Last 30 Levels Logic
+
+        // Filter rawData by minTotalUserLast30 FIRST
+        const candidates = rawData.filter(row => {
+            const totalUserVal = row['TotalUser'] || row['Total User'] || row['TotalUsers'] || row['total_user'];
+            if (!totalUserVal) return false;
+            const num = parseInt(String(totalUserVal).replace(/[.,]/g, ''), 10);
+            return !isNaN(num) && num >= minTotalUserLast30;
+        });
+
+        // Sort candidates by Level descending
+        const sortedByLevel = [...candidates].sort((a, b) => {
+            const levelA = parseInt(String(a[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
+            const levelB = parseInt(String(b[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
+            return levelB - levelA;
+        });
+
+        // Take top 30
+        const last30Filtered = sortedByLevel.slice(0, 30);
+
+        // Generate reports
+        const levelScoreData = generateLevelScoreTopUnsuccessful(generalFiltered);
+        const churnData = generate3DayChurnTopUnsuccessful(generalFiltered);
+
+        setSections(prev => [
+            { ...prev.find(s => s.id === 'levelScore')!, data: levelScoreData.slice(0, 50), headers },
+            { ...prev.find(s => s.id === 'churn')!, data: churnData.slice(0, 50), headers },
+            { ...prev.find(s => s.id === 'last30')!, data: last30Filtered, headers },
+        ]);
+
+    }, [rawData, headers, minTotalUser, minTotalUserLast30, minLevel]);
 
     // Get games that have Level Revize view mapping
     const availableGames = config?.games.filter(
@@ -212,19 +345,26 @@ export default function WeeklyCheckPage() {
                 throw new Error("No data available to parse");
             }
 
+
             const parsed = papa.parse(csvData, { header: true, skipEmptyLines: true });
-            const rawData = parsed.data as any[];
+            const parsedRaw = parsed.data as any[];
+            setRawData(parsedRaw);
+
             const rawHeaders = parsed.meta.fields || [];
-            const headers = processHeaders(rawHeaders);
 
-            // Generate both report views
-            const levelScoreData = generateLevelScoreTopUnsuccessful(rawData);
-            const churnData = generate3DayChurnTopUnsuccessful(rawData);
+            // Process and Sort Headers
+            let processedHeaders = processHeaders(rawHeaders);
+            console.log('Raw headers from Tableau:', rawHeaders);
+            console.log('Processed headers:', processedHeaders);
 
-            setSections([
-                { id: 'levelScore', title: 'Level Score Top Unsuccessful', data: levelScoreData.slice(0, 50), headers, expanded: true, sortColumn: 'Level Score', sortOrder: 'asc' },
-                { id: 'churn', title: '3 Day Churn Top Unsuccessful', data: churnData.slice(0, 50), headers, expanded: true, sortColumn: '3 Days Churn', sortOrder: 'asc' },
-            ]);
+            // Apply custom column order if defined
+            if (config?.weeklyCheck?.columnOrder && config.weeklyCheck.columnOrder.length > 0) {
+                processedHeaders = sortHeaders(processedHeaders, config.weeklyCheck.columnOrder);
+                console.log('Sorted headers:', processedHeaders);
+            }
+            setHeaders(processedHeaders);
+
+            // Initial data processing is now handled by the useEffect above reacting to setRawData
 
         } catch (err: any) {
             setError(err.message);
@@ -334,9 +474,44 @@ export default function WeeklyCheckPage() {
                     </div>
                 </div>
             )}
-            <div className="space-y-2">
-                <h1 className="text-2xl font-bold">Weekly Check</h1>
-                <p className="text-muted-foreground">Review key metrics from Level Revize data</p>
+            <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+                    <div>
+                        <h1 className="text-2xl font-bold">Weekly Check</h1>
+                        <p className="text-muted-foreground">Review key metrics from Level Revize data</p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-4 items-end">
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Min Level</label>
+                            <Input
+                                type="number"
+                                value={minLevel}
+                                onChange={(e) => setMinLevel(Number(e.target.value))}
+                                className="w-20 h-8 bg-background"
+                                min={0}
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Min Users (General)</label>
+                            <Input
+                                type="number"
+                                value={minTotalUser}
+                                onChange={(e) => setMinUsers(Number(e.target.value))}
+                                className="w-24 h-8 bg-background"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Min Users (Last 30)</label>
+                            <Input
+                                type="number"
+                                value={minTotalUserLast30}
+                                onChange={(e) => setMinUsersLast30(Number(e.target.value))}
+                                className="w-24 h-8 bg-background"
+                            />
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Controls */}
@@ -384,16 +559,16 @@ export default function WeeklyCheckPage() {
 
                     {section.expanded && section.data.length > 0 && (
                         <div>
-                            <div className="max-h-[400px] overflow-auto">
+                            <div className="max-h-[400px] overflow-auto relative">
                                 <Table>
                                     <TableHeader>
-                                        <TableRow className="bg-muted/50">
-                                            <TableHead className="whitespace-nowrap font-bold text-foreground sticky left-0 bg-muted/50 z-10">
+                                        <TableRow className="bg-muted" style={{ position: 'sticky', top: 0, zIndex: 20 }}>
+                                            <TableHead className="whitespace-nowrap font-bold text-foreground bg-muted" style={{ position: 'sticky', left: 0, zIndex: 30 }}>
                                                 New Move
                                             </TableHead>
-                                            {section.headers.slice(0, 12).map((header) => (
-                                                <TableHead key={header} className="whitespace-nowrap font-bold text-foreground">
-                                                    {header}
+                                            {section.headers.slice(0, 50).map((header) => (
+                                                <TableHead key={header} className="whitespace-nowrap font-bold text-foreground bg-muted">
+                                                    {config?.weeklyCheck?.columnRenames?.[header] || header}
                                                 </TableHead>
                                             ))}
                                         </TableRow>
@@ -415,7 +590,7 @@ export default function WeeklyCheckPage() {
                                                             placeholder="0"
                                                         />
                                                     </TableCell>
-                                                    {section.headers.slice(0, 12).map((header) => (
+                                                    {section.headers.slice(0, 50).map((header) => (
                                                         <TableCell key={`${i}-${header}`} className="whitespace-nowrap font-medium text-muted-foreground">
                                                             {formatTableValue(row[header], header)}
                                                         </TableCell>

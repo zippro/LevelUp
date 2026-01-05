@@ -624,9 +624,9 @@ export default function UpdateListPage() {
                             {/* Drop zone before version */}
                             <div
                                 className={cn(
-                                    "h-3 rounded transition-all",
+                                    "h-5 rounded transition-all",
                                     dragType === 'version' && dropTargetIndex === versionIndex && dropTargetVersionId === null
-                                        ? "bg-primary/40 h-6 border-2 border-dashed border-primary"
+                                        ? "bg-primary/40 h-8 border-2 border-dashed border-primary"
                                         : dragType === 'version' ? "bg-muted/30" : ""
                                 )}
                                 onDragOver={(e) => {
@@ -651,12 +651,6 @@ export default function UpdateListPage() {
                             />
 
                             <Card
-                                draggable
-                                onDragStart={(e) => {
-                                    setDragType('version');
-                                    setDragId(version.id);
-                                    e.dataTransfer.effectAllowed = 'move';
-                                }}
                                 onDragOver={(e) => {
                                     e.preventDefault();
                                     // Allow dropping backlog items or reordering versions
@@ -693,7 +687,17 @@ export default function UpdateListPage() {
                             >
                                 <CardHeader className="py-3">
                                     <div className="flex items-center gap-3">
-                                        <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab active:cursor-grabbing" />
+                                        <div
+                                            draggable
+                                            onDragStart={(e) => {
+                                                setDragType('version');
+                                                setDragId(version.id);
+                                                e.dataTransfer.effectAllowed = 'move';
+                                            }}
+                                            className="cursor-grab active:cursor-grabbing p-1 -ml-1 hover:bg-muted/50 rounded"
+                                        >
+                                            <GripVertical className="h-5 w-5 text-muted-foreground" />
+                                        </div>
                                         <Checkbox
                                             checked={version.done}
                                             onChange={() => toggleVersionDone(version.id)}
@@ -771,9 +775,9 @@ export default function UpdateListPage() {
                                                     {/* Drop zone before todo */}
                                                     <div
                                                         className={cn(
-                                                            "h-1 -my-0.5 mx-2 rounded transition-all",
+                                                            "h-3 -my-1.5 mx-2 rounded transition-all",
                                                             dragType === 'todo' && dropTargetIndex === todoIndex && dropTargetVersionId === version.id
-                                                                ? "bg-primary/50 h-2"
+                                                                ? "bg-primary/50 h-3"
                                                                 : ""
                                                         )}
                                                         onDragOver={(e) => {
@@ -802,15 +806,6 @@ export default function UpdateListPage() {
                                                     />
 
                                                     <div
-                                                        draggable
-                                                        onDragStart={(e) => {
-                                                            e.stopPropagation();
-                                                            setDragType('todo');
-                                                            setDragId(todo.id);
-                                                            setDragSourceVersionId(version.id);
-                                                            e.dataTransfer.effectAllowed = 'move';
-                                                            e.dataTransfer.setData('text/plain', todo.id);
-                                                        }}
                                                         onDragEnd={clearDragState}
                                                         className={cn(
                                                             "flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors group",
@@ -818,7 +813,20 @@ export default function UpdateListPage() {
                                                             dragType === 'todo' && dragId === todo.id && "opacity-30 scale-[0.98]"
                                                         )}
                                                     >
-                                                        <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab active:cursor-grabbing" />
+                                                        <div
+                                                            draggable
+                                                            onDragStart={(e) => {
+                                                                e.stopPropagation();
+                                                                setDragType('todo');
+                                                                setDragId(todo.id);
+                                                                setDragSourceVersionId(version.id);
+                                                                e.dataTransfer.effectAllowed = 'move';
+                                                                e.dataTransfer.setData('text/plain', todo.id);
+                                                            }}
+                                                            className="cursor-grab active:cursor-grabbing p-0.5 hover:bg-muted rounded"
+                                                        >
+                                                            <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                                        </div>
                                                         <Checkbox
                                                             checked={todo.done}
                                                             onChange={() => toggleTodoDone(version.id, todo.id)}
@@ -1041,9 +1049,9 @@ export default function UpdateListPage() {
                                         {/* Drop zone */}
                                         <div
                                             className={cn(
-                                                "h-1 rounded transition-all",
+                                                "h-3 rounded transition-all",
                                                 dragType === 'backlog' && dropTargetIndex === index
-                                                    ? "bg-primary/50 h-2"
+                                                    ? "bg-primary/50 h-3"
                                                     : ""
                                             )}
                                             onDragOver={(e) => {
@@ -1061,13 +1069,6 @@ export default function UpdateListPage() {
                                             }}
                                         />
                                         <div
-                                            draggable
-                                            onDragStart={(e) => {
-                                                e.stopPropagation();
-                                                setDragType('backlog');
-                                                setDragId(item.id);
-                                                e.dataTransfer.effectAllowed = 'move';
-                                            }}
                                             onDragEnd={clearDragState}
                                             className={cn(
                                                 "flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors group text-sm",
@@ -1075,7 +1076,18 @@ export default function UpdateListPage() {
                                                 dragType === 'backlog' && dragId === item.id && "opacity-30 scale-[0.98]"
                                             )}
                                         >
-                                            <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab active:cursor-grabbing flex-shrink-0" />
+                                            <div
+                                                draggable
+                                                onDragStart={(e) => {
+                                                    e.stopPropagation();
+                                                    setDragType('backlog');
+                                                    setDragId(item.id);
+                                                    e.dataTransfer.effectAllowed = 'move';
+                                                }}
+                                                className="cursor-grab active:cursor-grabbing p-0.5 hover:bg-muted rounded flex-shrink-0"
+                                            >
+                                                <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                            </div>
                                             <Checkbox
                                                 checked={item.done}
                                                 onChange={() => toggleBacklogDone(item.id)}

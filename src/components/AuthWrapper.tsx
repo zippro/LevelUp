@@ -3,7 +3,19 @@
 import { useAuth } from "@/context/AuthContext";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Sidebar } from "@/components/Sidebar";
+import { Sidebar, SidebarProvider, useSidebar } from "@/components/Sidebar";
+
+function MainContent({ children }: { children: React.ReactNode }) {
+    const { isCollapsed } = useSidebar();
+
+    return (
+        <main className={`min-h-screen p-4 md:p-8 pt-[72px] md:pt-8 transition-all duration-300 ${isCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>
+            <div className="w-full mx-auto">
+                {children}
+            </div>
+        </main>
+    );
+}
 
 export function AuthWrapper({ children }: { children: React.ReactNode }) {
     const { user, loading } = useAuth();
@@ -36,13 +48,11 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50/50">
-            <Sidebar />
-            <main className="md:ml-64 min-h-screen p-4 md:p-8 pt-[72px] md:pt-8">
-                <div className="max-w-6xl mx-auto">
-                    {children}
-                </div>
-            </main>
-        </div>
+        <SidebarProvider>
+            <div className="min-h-screen bg-gray-50/50">
+                <Sidebar />
+                <MainContent>{children}</MainContent>
+            </div>
+        </SidebarProvider>
     );
 }

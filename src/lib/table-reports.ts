@@ -156,7 +156,6 @@ export const PERCENTAGE_COLUMNS = [
     'Avg. FirstTryWinPercent',
     'Avg. FirstTryWin',
     'PlayOnWinRatio',
-    'Repeat',      // Matches any column with "Repeat" in it (Avg. Repeat Ratio, etc.)
 ];
 
 // Format value for table display (converts decimals to percentages)

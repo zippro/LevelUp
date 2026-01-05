@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 // Force dynamic to ensure we don't cache stale config on Vercel
 export const dynamic = 'force-dynamic';
@@ -54,8 +55,19 @@ export async function POST(request: Request) {
     try {
         const body = await request.json();
 
+        // Use Service Role key for admin rights (bypass RLS)
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+        if (!supabaseServiceKey) {
+            console.error("Missing SUPABASE_SERVICE_ROLE_KEY");
+            throw new Error("Server configuration error: Missing Service Role Key");
+        }
+
+        const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+
         // Save to Supabase
-        const { error } = await supabase
+        const { error } = await supabaseAdmin
             .storage
             .from(CONFIG_BUCKET)
             .upload(CONFIG_FILE, JSON.stringify(body, null, 2), {

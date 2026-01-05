@@ -27,10 +27,14 @@ interface GameData {
 }
 
 const METRICS = [
+    { id: 'Instant Churn', label: 'Instant Churn' },
     { id: '3 Days Churn', label: '3 Day Churn' },
     { id: '7 Days Churn', label: '7 Day Churn' },
+    { id: 'In App Value', label: 'In App Value' },
     { id: 'Playon per User', label: 'Playon per User' },
     { id: 'Repeat Rate', label: 'Average Repeat' },
+    { id: 'Avg. FirstTryWinPercent', label: 'Avg First Try Win' },
+    { id: 'Level Play Time', label: 'Avg Level Play Time' },
 ];
 
 const COLORS = [
@@ -44,15 +48,26 @@ const COLORS = [
     '#84CC16', // lime
 ];
 
+// Line styles for different metrics (solid, dashed, dotted, etc.)
+const LINE_STYLES = [
+    '',           // solid
+    '8 4',        // dashed
+    '2 2',        // dotted
+    '12 4 2 4',   // dash-dot
+    '4 4',        // short dashed
+    '1 3',        // sparse dotted
+];
+
 export default function AnalyzePage() {
     const [config, setConfig] = useState<Config | null>(null);
     const [loadingConfig, setLoadingConfig] = useState(true);
     const [selectedGames, setSelectedGames] = useState<string[]>([]);
-    const [selectedMetric, setSelectedMetric] = useState<string>(METRICS[0].id);
+    const [selectedMetrics, setSelectedMetrics] = useState<string[]>([METRICS[0].id]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [gameDataList, setGameDataList] = useState<GameData[]>([]);
     const [showGameDropdown, setShowGameDropdown] = useState(false);
+    const [showMetricDropdown, setShowMetricDropdown] = useState(false);
 
     // Level range filter
     const [minLevel, setMinLevel] = useState<number>(1);
@@ -87,6 +102,18 @@ export default function AnalyzePage() {
         );
     };
 
+    // Toggle metric selection
+    const toggleMetricSelection = (metricId: string) => {
+        setSelectedMetrics(prev => {
+            if (prev.includes(metricId)) {
+                // Don't allow deselecting if it's the only one
+                if (prev.length === 1) return prev;
+                return prev.filter(id => id !== metricId);
+            }
+            return [...prev, metricId];
+        });
+    };
+
     // Helper to find metric value - tries multiple variations
     const findMetricValue = (row: any, metricName: string): number => {
         const keys = Object.keys(row);
@@ -96,6 +123,12 @@ export default function AnalyzePage() {
         const alternatives: Record<string, string[]> = {
             'repeat rate': ['repeat rate', 'repeat ratio', 'avg. repeat rate', 'avg. repeat ratio', 'repeatrate', 'repeatratio'],
             'total user': ['total user', 'total users', 'user count', 'users', 'count of users', 'distinct count of user id', 'cntd(user id)', 'user_count', 'totaluser'],
+            'instant churn': ['instant churn', 'instantchurn', 'instant_churn', 'churn instant'],
+            '3 days churn': ['3 days churn', '3 day churn', '3daychurn', '3_days_churn'],
+            '7 days churn': ['7 days churn', '7 day churn', '7daychurn', '7_days_churn'],
+            'in app value': ['in app value', 'inappvalue', 'in-app value', 'inapp_value', 'in app values'],
+            'avg. firsttrywinpercent': ['avg. firsttrywinpercent', 'firsttrywinpercent', 'first try win', 'firsttrywins', 'avg first try', 'first try'],
+            'level play time': ['level play time', 'levelplaytime', 'play time', 'avg level play time', 'avg. level play time'],
         };
 
         // Get search terms - metric itself plus any alternatives
@@ -292,14 +325,18 @@ export default function AnalyzePage() {
                 gameDataList.forEach(gd => {
                     const row = gd.data.find(r => r.Level === level);
                     if (row) {
-                        point[gd.gameName] = findMetricValue(row, selectedMetric);
+                        // Add data for each selected metric
+                        selectedMetrics.forEach(metric => {
+                            const key = `${gd.gameName}_${metric}`;
+                            point[key] = findMetricValue(row, metric);
+                        });
                         // Store total user count for tooltip
                         point[`${gd.gameName}_TotalUser`] = findMetricValue(row, 'Total User');
                     }
                 });
                 return point;
             });
-    }, [gameDataList, selectedMetric, minLevel, maxLevel]);
+    }, [gameDataList, selectedMetrics, minLevel, maxLevel]);
 
     // Table data - show selected metric by level
     const tableData = useMemo(() => {
@@ -315,11 +352,14 @@ export default function AnalyzePage() {
 
         chartData.forEach(point => {
             gameDataList.forEach(gd => {
-                const value = point[gd.gameName];
-                if (value !== undefined && value !== null) {
-                    min = Math.min(min, value);
-                    max = Math.max(max, value);
-                }
+                selectedMetrics.forEach(metric => {
+                    const key = `${gd.gameName}_${metric}`;
+                    const value = point[key];
+                    if (value !== undefined && value !== null) {
+                        min = Math.min(min, value);
+                        max = Math.max(max, value);
+                    }
+                });
             });
         });
 
@@ -329,7 +369,7 @@ export default function AnalyzePage() {
         const range = max - min;
         const padding = range * 0.05;
         return [Math.max(0, min - padding), Math.min(1, max + padding)];
-    }, [chartData, gameDataList]);
+    }, [chartData, gameDataList, selectedMetrics]);
 
     if (loadingConfig) return <div className="p-8 animate-pulse text-muted-foreground">Loading configuration...</div>;
     if (!config) return <div className="p-8 text-destructive">Failed to load configuration.</div>;
@@ -425,19 +465,36 @@ export default function AnalyzePage() {
                     )}
                 </div>
 
-                {/* Metric Select */}
-                <div className="space-y-1.5 w-[200px]">
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Metric</label>
-                    <Select value={selectedMetric} onValueChange={setSelectedMetric}>
-                        <SelectTrigger className="bg-background shadow-sm">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
+                {/* Multi-select Metrics Dropdown */}
+                <div className="space-y-1.5 relative">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Metrics</label>
+                    <Button
+                        variant="outline"
+                        onClick={() => setShowMetricDropdown(!showMetricDropdown)}
+                        className="w-[200px] justify-between bg-background"
+                    >
+                        <span className="truncate">
+                            {selectedMetrics.length === 0
+                                ? "Select Metrics..."
+                                : `${selectedMetrics.length} metric(s) selected`}
+                        </span>
+                    </Button>
+                    {showMetricDropdown && (
+                        <div className="absolute top-full left-0 mt-1 w-[250px] bg-card border rounded-lg shadow-lg z-50 max-h-[300px] overflow-auto">
                             {METRICS.map(m => (
-                                <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
+                                <label
+                                    key={m.id}
+                                    className="flex items-center gap-2 px-3 py-2 hover:bg-muted/50 cursor-pointer"
+                                >
+                                    <Checkbox
+                                        checked={selectedMetrics.includes(m.id)}
+                                        onChange={() => toggleMetricSelection(m.id)}
+                                    />
+                                    <span className="text-sm">{m.label}</span>
+                                </label>
                             ))}
-                        </SelectContent>
-                    </Select>
+                        </div>
+                    )}
                 </div>
 
                 {/* Level Range */}
@@ -484,7 +541,9 @@ export default function AnalyzePage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <BarChart3 className="h-5 w-5" />
-                            {METRICS.find(m => m.id === selectedMetric)?.label} by Level
+                            {selectedMetrics.length === 1
+                                ? `${METRICS.find(m => m.id === selectedMetrics[0])?.label} by Level`
+                                : `${selectedMetrics.length} Metrics by Level`}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -502,40 +561,44 @@ export default function AnalyzePage() {
                                         domain={yAxisDomain}
                                         tickFormatter={(value) => {
                                             // Format as percentage for churn metrics
-                                            if (selectedMetric.includes('Churn')) {
+                                            if (selectedMetrics.some(m => m.includes('Churn'))) {
                                                 return `${(value * 100).toFixed(0)}%`;
                                             }
                                             return value.toFixed(2);
                                         }}
-                                        label={{ value: selectedMetric, angle: -90, position: 'insideLeft' }}
                                     />
                                     <Tooltip
                                         contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
                                         formatter={(value: any, name: any, props: any) => {
                                             if (value === undefined || value === null) return ['-', name];
 
-                                            // Get total users from payload
-                                            const totalUsers = props.payload[`${name}_TotalUser`];
-                                            const userSuffix = totalUsers ? ` (${totalUsers} users)` : '';
+                                            // Extract game name from series name (format: "GameName - MetricLabel")
+                                            const gameName = name.split(' - ')[0];
+                                            const totalUsers = props.payload[`${gameName}_TotalUser`];
+                                            const userSuffix = totalUsers ? ` (${Math.round(totalUsers).toLocaleString()} users)` : '';
 
                                             // Format as percentage for churn metrics
-                                            if (selectedMetric.includes('Churn')) {
+                                            if (name.includes('Churn')) {
                                                 return [`${(Number(value) * 100).toFixed(2)}%${userSuffix}`, name];
                                             }
                                             return [`${Number(value).toFixed(4)}${userSuffix}`, name];
                                         }}
                                     />
-                                    <Legend />
-                                    {gameDataList.map(gd => (
-                                        <Line
-                                            key={gd.gameId}
-                                            type="monotone"
-                                            dataKey={gd.gameName}
-                                            stroke={gd.color}
-                                            strokeWidth={2}
-                                            dot={false}
-                                        />
-                                    ))}
+                                    <Legend wrapperStyle={{ paddingTop: '10px' }} />
+                                    {gameDataList.flatMap((gd, gameIdx) =>
+                                        selectedMetrics.map((metric, metricIdx) => (
+                                            <Line
+                                                key={`${gd.gameId}_${metric}`}
+                                                type="monotone"
+                                                dataKey={`${gd.gameName}_${metric}`}
+                                                name={`${gd.gameName} - ${METRICS.find(m => m.id === metric)?.label}`}
+                                                stroke={COLORS[gameIdx % COLORS.length]}
+                                                strokeWidth={metricIdx === 0 ? 3 : 2}
+                                                strokeDasharray={LINE_STYLES[metricIdx % LINE_STYLES.length]}
+                                                dot={false}
+                                            />
+                                        ))
+                                    )}
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>
@@ -555,25 +618,32 @@ export default function AnalyzePage() {
                                 <TableHeader>
                                     <TableRow className="bg-muted/50">
                                         <TableHead className="font-bold">Level</TableHead>
-                                        {gameDataList.map(gd => (
-                                            <TableHead key={gd.gameId} className="font-bold" style={{ color: gd.color }}>
-                                                {gd.gameName}
-                                            </TableHead>
-                                        ))}
+                                        {gameDataList.flatMap(gd =>
+                                            selectedMetrics.map(metric => (
+                                                <TableHead key={`${gd.gameId}_${metric}`} className="font-bold" style={{ color: gd.color }}>
+                                                    {gd.gameName} - {METRICS.find(m => m.id === metric)?.label}
+                                                </TableHead>
+                                            ))
+                                        )}
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {tableData.map((row, i) => (
                                         <TableRow key={i} className="hover:bg-muted/30">
                                             <TableCell className="font-medium">{row.Level}</TableCell>
-                                            {gameDataList.map(gd => (
-                                                <TableCell key={gd.gameId}>
-                                                    {row[gd.gameName] !== undefined
-                                                        ? formatTableValue(row[gd.gameName], selectedMetric)
-                                                        : '-'
-                                                    }
-                                                </TableCell>
-                                            ))}
+                                            {gameDataList.flatMap(gd =>
+                                                selectedMetrics.map(metric => {
+                                                    const key = `${gd.gameName}_${metric}`;
+                                                    return (
+                                                        <TableCell key={`${gd.gameId}_${metric}`}>
+                                                            {row[key] !== undefined
+                                                                ? formatTableValue(row[key], metric)
+                                                                : '-'
+                                                            }
+                                                        </TableCell>
+                                                    );
+                                                })
+                                            )}
                                         </TableRow>
                                     ))}
                                 </TableBody>
