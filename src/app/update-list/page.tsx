@@ -29,6 +29,7 @@ interface TodoItem {
     title: string;
     type: 'new' | 'bug';
     done: boolean;
+    description?: string;
     versionId?: string | null;
     position?: number;
     attachments?: Attachment[];
@@ -71,9 +72,9 @@ export default function UpdateListPage() {
     const [dropTargetVersionId, setDropTargetVersionId] = useState<string | null>(null);
 
     // Editing state
-    const [editingTodo, setEditingTodo] = useState<{ versionId: string; todoId: string; title: string } | null>(null);
+    const [editingTodo, setEditingTodo] = useState<{ versionId: string; todoId: string; title: string; description: string } | null>(null);
     const [editingVersion, setEditingVersion] = useState<{ id: string; title: string } | null>(null);
-    const [editingBacklog, setEditingBacklog] = useState<{ id: string; title: string } | null>(null);
+    const [editingBacklog, setEditingBacklog] = useState<{ id: string; title: string; description: string } | null>(null);
     const [showCompletedVersions, setShowCompletedVersions] = useState(true);
 
     // Initial Fetch
@@ -192,6 +193,7 @@ export default function UpdateListPage() {
             id: generateId(),
             title,
             type,
+            description: '',
             done: false
         };
 
@@ -256,18 +258,18 @@ export default function UpdateListPage() {
     // Save todo edit
     const saveTodoEdit = () => {
         if (!editingTodo) return;
-        const { versionId, todoId, title } = editingTodo;
+        const { versionId, todoId, title, description } = editingTodo;
         if (!title.trim()) {
             setEditingTodo(null);
             return;
         }
         setVersions(prev => prev.map(v =>
             v.id === versionId
-                ? { ...v, todos: v.todos.map(t => t.id === todoId ? { ...t, title: title.trim() } : t) }
+                ? { ...v, todos: v.todos.map(t => t.id === todoId ? { ...t, title: title.trim(), description: description?.trim() || '' } : t) }
                 : v
         ));
         setEditingTodo(null);
-        apiUpdateTodo(todoId, { title: title.trim() });
+        apiUpdateTodo(todoId, { title: title.trim(), description: description?.trim() || '' });
     };
 
     // Save version edit
@@ -292,6 +294,7 @@ export default function UpdateListPage() {
             id: generateId(),
             title: backlogInput.trim(),
             type,
+            description: '',
             done: false
         };
         setBacklog(prev => [...prev, item]);
@@ -321,16 +324,16 @@ export default function UpdateListPage() {
     // Save backlog edit
     const saveBacklogEdit = () => {
         if (!editingBacklog) return;
-        const { id, title } = editingBacklog;
+        const { id, title, description } = editingBacklog;
         if (!title.trim()) {
             setEditingBacklog(null);
             return;
         }
         setBacklog(prev => prev.map(t =>
-            t.id === id ? { ...t, title: title.trim() } : t
+            t.id === id ? { ...t, title: title.trim(), description: description?.trim() || '' } : t
         ));
         setEditingBacklog(null);
-        apiUpdateTodo(id, { title: title.trim() });
+        apiUpdateTodo(id, { title: title.trim(), description: description?.trim() || '' });
     };
 
     // Move backlog item by drag
@@ -842,22 +845,51 @@ export default function UpdateListPage() {
                                                         {/* Todo title - editable or static */}
                                                         <div className="flex-1 min-w-0">
                                                             {editingTodo?.todoId === todo.id && editingTodo?.versionId === version.id ? (
-                                                                <Input
-                                                                    value={editingTodo.title}
-                                                                    onChange={(e) => setEditingTodo({ ...editingTodo, title: e.target.value })}
-                                                                    onKeyDown={(e) => {
-                                                                        if (e.key === 'Enter') saveTodoEdit();
-                                                                        if (e.key === 'Escape') setEditingTodo(null);
-                                                                    }}
-                                                                    onBlur={saveTodoEdit}
-                                                                    autoFocus
-                                                                    className="h-7 text-sm"
-                                                                />
+                                                                <div className="space-y-1.5">
+                                                                    <Input
+                                                                        value={editingTodo.title}
+                                                                        onChange={(e) => setEditingTodo({ ...editingTodo, title: e.target.value })}
+                                                                        onKeyDown={(e) => {
+                                                                            if (e.key === 'Enter' && !e.shiftKey) { // Allow shift+enter for new line in textarea if focus moves? Actually Enter usually saves input.
+                                                                                saveTodoEdit();
+                                                                            }
+                                                                            if (e.key === 'Escape') setEditingTodo(null);
+                                                                        }}
+                                                                        autoFocus
+                                                                        className="h-7 text-sm font-medium"
+                                                                    />
+                                                                    <textarea
+                                                                        value={editingTodo.description}
+                                                                        onChange={(e) => setEditingTodo({ ...editingTodo, description: e.target.value })}
+                                                                        className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-y"
+                                                                        placeholder="Add details..."
+                                                                        onKeyDown={(e) => {
+                                                                            if (e.key === 'Enter' && e.metaKey) saveTodoEdit(); // Cmd+Enter to save
+                                                                            if (e.key === 'Escape') setEditingTodo(null);
+                                                                        }}
+                                                                        onBlur={(e) => {
+                                                                            // Only save if focus moves outside the edit container - hard to detect with simpler logic. 
+                                                                            // We'll rely on explicit save via Enter on input or click outside equivalent? 
+                                                                            // Actually, existing onBlur on Input triggered save. Here we have two inputs.
+                                                                            // Removing overly aggressive onBlur for now, user can hit Enter in title or Click away (if we handled click away globally, but we don't here yet).
+                                                                            // We'll keep the Enter behavior on Title and add a small "Save" button or just Cmd+Enter hint.
+                                                                        }}
+                                                                    />
+                                                                    <div className="flex justify-end gap-1">
+                                                                        <Button size="sm" variant="ghost" onClick={() => setEditingTodo(null)} className="h-6 text-xs">Cancel</Button>
+                                                                        <Button size="sm" onClick={saveTodoEdit} className="h-6 text-xs">Save</Button>
+                                                                    </div>
+                                                                </div>
                                                             ) : (
                                                                 <div className="flex flex-col gap-1">
-                                                                    <span className={cn("break-words whitespace-pre-wrap", todo.done && "line-through text-muted-foreground")}>
+                                                                    <span className={cn("break-words whitespace-pre-wrap font-medium", todo.done && "line-through text-muted-foreground")}>
                                                                         {todo.title}
                                                                     </span>
+                                                                    {todo.description && (
+                                                                        <span className={cn("text-xs text-muted-foreground whitespace-pre-wrap break-words", todo.done && "line-through opacity-70")}>
+                                                                            {todo.description}
+                                                                        </span>
+                                                                    )}
 
                                                                     {/* Attachments List */}
                                                                     {todo.attachments && todo.attachments.length > 0 && (
@@ -887,7 +919,7 @@ export default function UpdateListPage() {
                                                             <Button
                                                                 variant="ghost"
                                                                 size="sm"
-                                                                onClick={() => setEditingTodo({ versionId: version.id, todoId: todo.id, title: todo.title })}
+                                                                onClick={() => setEditingTodo({ versionId: version.id, todoId: todo.id, title: todo.title, description: todo.description || '' })}
                                                                 className="h-6 w-6 p-0"
                                                             >
                                                                 <Pencil className="h-3 w-3" />
@@ -1095,22 +1127,42 @@ export default function UpdateListPage() {
 
                                             <div className="flex-1 min-w-0">
                                                 {editingBacklog?.id === item.id ? (
-                                                    <Input
-                                                        value={editingBacklog.title}
-                                                        onChange={(e) => setEditingBacklog({ ...editingBacklog, title: e.target.value })}
-                                                        onKeyDown={(e) => {
-                                                            if (e.key === 'Enter') saveBacklogEdit();
-                                                            if (e.key === 'Escape') setEditingBacklog(null);
-                                                        }}
-                                                        onBlur={saveBacklogEdit}
-                                                        autoFocus
-                                                        className="h-6 text-sm px-1"
-                                                    />
+                                                    <div className="space-y-1.5 w-full">
+                                                        <Input
+                                                            value={editingBacklog.title}
+                                                            onChange={(e) => setEditingBacklog({ ...editingBacklog, title: e.target.value })}
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter' && !e.shiftKey) saveBacklogEdit();
+                                                                if (e.key === 'Escape') setEditingBacklog(null);
+                                                            }}
+                                                            autoFocus
+                                                            className="h-6 text-sm px-1 font-medium"
+                                                        />
+                                                        <textarea
+                                                            value={editingBacklog.description}
+                                                            onChange={(e) => setEditingBacklog({ ...editingBacklog, description: e.target.value })}
+                                                            className="flex min-h-[50px] w-full rounded-md border border-input bg-transparent px-2 py-1 text-xs shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-y"
+                                                            placeholder="Details..."
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter' && e.metaKey) saveBacklogEdit();
+                                                                if (e.key === 'Escape') setEditingBacklog(null);
+                                                            }}
+                                                        />
+                                                        <div className="flex justify-end gap-1">
+                                                            <Button size="sm" variant="ghost" onClick={() => setEditingBacklog(null)} className="h-5 text-[10px] px-1.5">Cancel</Button>
+                                                            <Button size="sm" onClick={saveBacklogEdit} className="h-5 text-[10px] px-1.5">Save</Button>
+                                                        </div>
+                                                    </div>
                                                 ) : (
                                                     <div className="flex flex-col">
-                                                        <span className={cn("break-words whitespace-pre-wrap", item.done && "line-through text-muted-foreground")}>
+                                                        <span className={cn("break-words whitespace-pre-wrap font-medium", item.done && "line-through text-muted-foreground")}>
                                                             {item.title}
                                                         </span>
+                                                        {item.description && (
+                                                            <span className={cn("text-[10px] text-muted-foreground whitespace-pre-wrap break-words mt-0.5", item.done && "line-through opacity-70")}>
+                                                                {item.description}
+                                                            </span>
+                                                        )}
                                                         <div className="flex items-center gap-2 mt-0.5">
                                                             <span className={cn(
                                                                 "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] text-[10px] font-medium leading-none",
@@ -1154,7 +1206,7 @@ export default function UpdateListPage() {
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    onClick={() => setEditingBacklog({ id: item.id, title: item.title })}
+                                                    onClick={() => setEditingBacklog({ id: item.id, title: item.title, description: item.description || '' })}
                                                     className="h-6 w-6 p-0"
                                                 >
                                                     <Pencil className="h-3 w-3" />

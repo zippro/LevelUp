@@ -11,6 +11,7 @@ create table if not exists app_versions (
 create table if not exists app_todos (
   id uuid default gen_random_uuid() primary key,
   title text not null,
+  description text,
   type text check (type in ('new', 'bug')) not null,
   is_done boolean default false,
   version_id uuid references app_versions(id) on delete cascade,

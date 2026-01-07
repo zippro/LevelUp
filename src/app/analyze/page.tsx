@@ -581,6 +581,10 @@ export default function AnalyzePage() {
                                             if (name.includes('Churn')) {
                                                 return [`${(Number(value) * 100).toFixed(2)}%${userSuffix}`, name];
                                             }
+                                            // Format In App Value to 2 decimals
+                                            if (name.includes('In App Value')) {
+                                                return [`${Number(value).toFixed(2)}${userSuffix}`, name];
+                                            }
                                             return [`${Number(value).toFixed(4)}${userSuffix}`, name];
                                         }}
                                     />

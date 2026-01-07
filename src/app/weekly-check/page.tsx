@@ -70,21 +70,24 @@ function processHeaders(allHeaders: string[]): string[] {
 function sortHeaders(headers: string[], order: string[]): string[] {
     if (!order || order.length === 0) return headers;
 
-    // Create a map for quick lookup of order index
+    // Create a map for quick lookup of order index (normalized)
     const orderMap = new Map(order.map((h, i) => [normalizeHeader(h), i]));
 
-    // Separate headers that are in the order list vs those that aren't
-    // Helper to find index in order list, supporting aliases
+    // Helper to find index in order list, supporting aliases and fuzzy matching
     const getOrderIndex = (header: string) => {
         const normalizedH = normalizeHeader(header);
 
-        // 1. Try exact match in orderMap
+        // 1. Try exact normalized match in orderMap
         if (orderMap.has(normalizedH)) return orderMap.get(normalizedH)!;
 
-        // 2. Try alias match
-        // Find which config header corresponds to this CSV header
+        // 2. Try without spaces match (e.g., "TotalUser" matches "Total User")
+        const noSpaceH = normalizedH.replace(/\s+/g, '');
+        for (const [orderKey, idx] of orderMap.entries()) {
+            if (orderKey.replace(/\s+/g, '') === noSpaceH) return idx;
+        }
+
+        // 3. Try alias match
         const matchedConfigHeader = order.find(configH => {
-            // Does configH match this header via aliases?
             const def = HEADER_DEFINITIONS.find(d => normalizeHeader(d.name) === normalizeHeader(configH));
             if (def) {
                 return def.aliases.some(alias => normalizedH === alias || normalizedH.includes(alias));
@@ -108,6 +111,28 @@ function sortHeaders(headers: string[], order: string[]): string[] {
     return [...ordered, ...remaining];
 }
 
+// Get display name for a header - handles fuzzy matching for renames
+function getDisplayName(header: string, renames?: Record<string, string>): string {
+    if (!renames) return header;
+
+    // 1. Try exact match
+    if (renames[header]) return renames[header];
+
+    // 2. Try normalized match
+    const normalizedH = normalizeHeader(header);
+    for (const [key, value] of Object.entries(renames)) {
+        if (normalizeHeader(key) === normalizedH) return value;
+    }
+
+    // 3. Try without spaces match (e.g., "TotalUser" matches "Total User")
+    const noSpaceH = normalizedH.replace(/\s+/g, '');
+    for (const [key, value] of Object.entries(renames)) {
+        if (normalizeHeader(key).replace(/\s+/g, '') === noSpaceH) return value;
+    }
+
+    return header;
+}
+
 interface Config {
     variables: string[];
     games: { id: string; name: string; viewMappings: Record<string, string> }[];
@@ -115,6 +140,7 @@ interface Config {
         minTotalUser?: number;
         minTotalUserLast30?: number;
         minLevel?: number;
+        minDaysSinceEvent?: number;
         columnOrder?: string[];
         columnRenames?: Record<string, string>;
     };
@@ -141,6 +167,7 @@ export default function WeeklyCheckPage() {
     const [minTotalUser, setMinUsers] = useState<number>(50);
     const [minTotalUserLast30, setMinUsersLast30] = useState<number>(50);
     const [minLevel, setMinLevel] = useState<number>(0);
+    const [minDaysSinceEvent, setMinDaysSinceEvent] = useState<number>(0);
 
     // Raw Data State (to support client-side re-filtering)
     const [rawData, setRawData] = useState<any[]>([]);
@@ -174,6 +201,9 @@ export default function WeeklyCheckPage() {
 
                     if (data.weeklyCheck.minLevel !== undefined) setMinLevel(data.weeklyCheck.minLevel);
                     else setMinLevel(0);
+
+                    if (data.weeklyCheck.minDaysSinceEvent !== undefined) setMinDaysSinceEvent(data.weeklyCheck.minDaysSinceEvent);
+                    else setMinDaysSinceEvent(0);
                 }
                 setLoadingConfig(false);
             })
@@ -191,7 +221,39 @@ export default function WeeklyCheckPage() {
             return n === 'level' || n === 'level number' || n === 'level_number';
         }) || 'Level';
 
-        // 1. General Filter (Level Score & Churn) - apply minLevel filter
+        // Find date column for filtering
+        const dateCol = Object.keys(sampleRow).find(k => {
+            const n = normalizeHeader(k);
+            return n.includes('min') && n.includes('time') && n.includes('event');
+        }) || Object.keys(sampleRow).find(k => normalizeHeader(k).includes('time event')) || '';
+
+        // Helper function to parse date string (supports DD/MM/YYYY and YYYY-MM-DD)
+        const parseDate = (dateStr: string): Date | null => {
+            if (!dateStr) return null;
+            const str = dateStr.trim();
+            // Try DD/MM/YYYY format
+            const slashMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (slashMatch) {
+                const [, day, month, year] = slashMatch;
+                return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            }
+            // Try YYYY-MM-DD format
+            const dashMatch = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+            if (dashMatch) {
+                const [, year, month, day] = dashMatch;
+                return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            }
+            return null;
+        };
+
+        // Calculate days since a date
+        const daysSinceDate = (date: Date): number => {
+            const now = new Date();
+            const diffTime = now.getTime() - date.getTime();
+            return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        };
+
+        // 1. General Filter (Level Score & Churn) - apply minLevel and minDaysSinceEvent filters
         const generalFiltered = rawData.filter(row => {
             // Check level
             const levelVal = parseInt(String(row[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
@@ -201,7 +263,21 @@ export default function WeeklyCheckPage() {
             const totalUserVal = row['TotalUser'] || row['Total User'] || row['TotalUsers'] || row['total_user'];
             if (!totalUserVal) return false;
             const num = parseInt(String(totalUserVal).replace(/[.,]/g, ''), 10);
-            return !isNaN(num) && num >= minTotalUser;
+            if (isNaN(num) || num < minTotalUser) return false;
+
+            // Check min days since event (exclude recent levels)
+            if (minDaysSinceEvent > 0 && dateCol) {
+                const dateStr = row[dateCol];
+                if (dateStr) {
+                    const eventDate = parseDate(String(dateStr));
+                    if (eventDate) {
+                        const daysSince = daysSinceDate(eventDate);
+                        if (daysSince < minDaysSinceEvent) return false;
+                    }
+                }
+            }
+
+            return true;
         });
 
         // 2. Last 30 Levels Logic
@@ -234,7 +310,7 @@ export default function WeeklyCheckPage() {
             { ...prev.find(s => s.id === 'last30')!, data: last30Filtered, headers },
         ]);
 
-    }, [rawData, headers, minTotalUser, minTotalUserLast30, minLevel]);
+    }, [rawData, headers, minTotalUser, minTotalUserLast30, minLevel, minDaysSinceEvent]);
 
     // Get games that have Level Revize view mapping
     const availableGames = config?.games.filter(
@@ -510,6 +586,18 @@ export default function WeeklyCheckPage() {
                                 className="w-24 h-8 bg-background"
                             />
                         </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Min Days Old</label>
+                            <Input
+                                type="number"
+                                value={minDaysSinceEvent}
+                                onChange={(e) => setMinDaysSinceEvent(Number(e.target.value))}
+                                className="w-20 h-8 bg-background"
+                                min={0}
+                                placeholder="0"
+                                title="Exclude levels from the last N days (based on Min. Time Event date)"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -568,7 +656,7 @@ export default function WeeklyCheckPage() {
                                             </TableHead>
                                             {section.headers.slice(0, 50).map((header) => (
                                                 <TableHead key={header} className="whitespace-nowrap font-bold text-foreground bg-muted">
-                                                    {config?.weeklyCheck?.columnRenames?.[header] || header}
+                                                    {getDisplayName(header, config?.weeklyCheck?.columnRenames)}
                                                 </TableHead>
                                             ))}
                                         </TableRow>

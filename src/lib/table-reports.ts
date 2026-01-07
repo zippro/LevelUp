@@ -158,11 +158,40 @@ export const PERCENTAGE_COLUMNS = [
     'PlayOnWinRatio',
 ];
 
+// Columns that contain date values - should not be parsed as numbers
+export const DATE_COLUMNS = [
+    'Time Event',
+    'Min. Time Event',
+    'Min Time Event',
+    'Date',
+    'Event Date',
+    'Created',
+    'Updated',
+];
+
+// Check if a string looks like a date (contains / or - as date separators)
+function isDateLikeString(value: string): boolean {
+    // Matches patterns like: 24/03/2025, 2025-03-24, 03/24/2025, etc.
+    return /^\d{1,4}[\/\-]\d{1,2}[\/\-]\d{1,4}/.test(value.trim());
+}
+
 // Format value for table display (converts decimals to percentages)
 export function formatTableValue(value: any, columnName: string): string {
     if (value === null || value === undefined || value === '') return '';
 
     const lowerCol = columnName.toLowerCase();
+
+    // Check if this is a date column - preserve date values as-is
+    const isDateColumn = DATE_COLUMNS.some(d => lowerCol.includes(d.toLowerCase()));
+    if (isDateColumn && typeof value === 'string') {
+        return value; // Return date string as-is
+    }
+
+    // Check if value looks like a date string - preserve it
+    if (typeof value === 'string' && isDateLikeString(value)) {
+        return value; // Return date string as-is
+    }
+
     const isPercentage = PERCENTAGE_COLUMNS.some(p => lowerCol.includes(p.toLowerCase()));
 
     // Parse numeric value (handle both number and string types)

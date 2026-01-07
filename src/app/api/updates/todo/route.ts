@@ -16,6 +16,7 @@ export async function POST(request: Request) {
             .insert({
                 title,
                 type,
+                description: body.description || null,
                 version_id: versionId || null, // null means backlog
                 position: position || 0,
                 is_done: false,
@@ -47,6 +48,7 @@ export async function PUT(request: Request) {
 
         const updates: any = {};
         if (title !== undefined) updates.title = title;
+        if (body.description !== undefined) updates.description = body.description;
         if (done !== undefined) updates.is_done = done;
         if (position !== undefined) updates.position = position;
         // Allow explicitly setting versionId (including to null)

@@ -35,6 +35,7 @@ interface WeeklyCheckConfig {
     minTotalUser: number;
     minTotalUserLast30: number;
     minLevel: number;
+    minDaysSinceEvent: number;
     columnOrder: string[];
     columnRenames?: Record<string, string>; // originalName -> displayName
 }
@@ -54,6 +55,7 @@ export default function WeeklyCheckSettingsPage() {
     const [minTotalUser, setMinTotalUser] = useState<number>(50);
     const [minTotalUserLast30, setMinTotalUserLast30] = useState<number>(50);
     const [minLevel, setMinLevel] = useState<number>(0);
+    const [minDaysSinceEvent, setMinDaysSinceEvent] = useState<number>(0);
     const [columns, setColumns] = useState<string[]>(DEFAULT_COLUMNS);
     const [columnRenames, setColumnRenames] = useState<Record<string, string>>({});
     const [editingColumn, setEditingColumn] = useState<string | null>(null);
@@ -80,6 +82,9 @@ export default function WeeklyCheckSettingsPage() {
                     }
                     if (data.weeklyCheck.minLevel !== undefined) {
                         setMinLevel(data.weeklyCheck.minLevel);
+                    }
+                    if (data.weeklyCheck.minDaysSinceEvent !== undefined) {
+                        setMinDaysSinceEvent(data.weeklyCheck.minDaysSinceEvent);
                     }
                     if (data.weeklyCheck.columnOrder && Array.isArray(data.weeklyCheck.columnOrder)) {
                         const savedOrder = data.weeklyCheck.columnOrder;
@@ -111,6 +116,7 @@ export default function WeeklyCheckSettingsPage() {
                 minTotalUser,
                 minTotalUserLast30,
                 minLevel,
+                minDaysSinceEvent,
                 columnOrder: columns,
                 columnRenames
             }
@@ -165,7 +171,7 @@ export default function WeeklyCheckSettingsPage() {
         }
     };
 
-    // Sync columns with actual headers
+    // Sync columns with actual headers - keeps default columns like "Min. Time Event"
     const syncWithActualHeaders = () => {
         if (actualHeaders.length === 0) return;
 
@@ -173,7 +179,11 @@ export default function WeeklyCheckSettingsPage() {
         const matchingColumns = columns.filter(col => actualHeaders.includes(col));
         // Add any actual headers not in the current list
         const newHeaders = actualHeaders.filter(h => !matchingColumns.includes(h));
-        setColumns([...matchingColumns, ...newHeaders]);
+        // Also add any DEFAULT_COLUMNS that aren't in actual headers (like "Min. Time Event")
+        const preservedDefaults = DEFAULT_COLUMNS.filter(d =>
+            !matchingColumns.includes(d) && !newHeaders.includes(d)
+        );
+        setColumns([...matchingColumns, ...newHeaders, ...preservedDefaults]);
     };
 
     const resetToDefaults = () => {
@@ -270,6 +280,19 @@ export default function WeeklyCheckSettingsPage() {
                             />
                             <p className="text-xs text-muted-foreground mt-2">
                                 Only show levels greater than or equal to this number.
+                            </p>
+                        </div>
+                        <div className="max-w-sm">
+                            <label className="text-sm font-medium mb-1.5 block">Minimum Days Since Event</label>
+                            <Input
+                                type="number"
+                                value={minDaysSinceEvent}
+                                onChange={(e) => setMinDaysSinceEvent(Number(e.target.value))}
+                                className="w-full"
+                                min={0}
+                            />
+                            <p className="text-xs text-muted-foreground mt-2">
+                                Exclude levels from the last N days (based on Min. Time Event date). Only affects Level Score and Churn tables.
                             </p>
                         </div>
                     </CardContent>
