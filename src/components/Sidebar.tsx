@@ -4,15 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, createContext, useContext } from "react";
 import { cn } from "@/lib/utils";
-import { Database, Settings, Table, FolderOpen, BarChart3, CalendarCheck, Menu, X, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
+import { Database, Settings, Table, FolderOpen, BarChart3, CalendarCheck, Menu, X, LogOut, ChevronLeft, ChevronRight, TrendingUp } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 const navItems = [
-    { href: "/", label: "Pull Data", icon: Database },
     { href: "/tables", label: "Tables", icon: Table },
-    { href: "/weekly-check", label: "Weekly Check", icon: CalendarCheck },
     { href: "/analyze", label: "Analyze", icon: BarChart3 },
+    { href: "/weekly-check", label: "Weekly Check", icon: CalendarCheck },
+    { href: "/weekly-reports", label: "Weekly Reports", icon: FolderOpen },
+    { href: "/level-score", label: "Level Score", icon: TrendingUp },
     { href: "/repository", label: "Data Repository", icon: FolderOpen },
+    { href: "/", label: "Pull Data", icon: Database },
     { href: "/settings", label: "Settings", icon: Settings },
 ];
 

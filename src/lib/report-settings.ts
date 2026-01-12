@@ -14,10 +14,24 @@ export interface ReportTypeSettings {
     sheets: Record<string, SheetSortConfig>;
 }
 
+export interface ColumnConfig {
+    originalName: string;
+    displayName?: string;
+    hidden?: boolean;
+    order?: number;
+}
+
+export interface LevelScoreTableSettings {
+    defaultSortColumn: string;
+    defaultSortOrder: 'asc' | 'desc';
+    columns: Record<string, ColumnConfig>;
+}
+
 export interface ReportSettings {
     levelScoreAB: ReportTypeSettings;
     bolgeselRevize: ReportTypeSettings;
     threeDayChurn: ReportTypeSettings;
+    levelScoreTable?: LevelScoreTableSettings;
 }
 
 // Default report settings with sensible values
@@ -70,6 +84,20 @@ export const DEFAULT_REPORT_SETTINGS: ReportSettings = {
             levelScoreSuccess: { sortColumn: 'Level Score', sortOrder: 'desc' },
             churnUnsuccess: { sortColumn: '3 Days Churn', sortOrder: 'asc' },
         }
+    },
+    levelScoreTable: {
+        defaultSortColumn: 'Level',
+        defaultSortOrder: 'asc',
+        columns: {
+            'Level': { originalName: 'Level', hidden: false, order: 1 },
+            'Level Score': { originalName: 'Level Score', hidden: false, order: 2 },
+            'Engagement Score': { originalName: 'Engagement Score', hidden: false, order: 3 },
+            'Monetization Score': { originalName: 'Monetization Score', hidden: false, order: 4 },
+            'Satisfaction Score': { originalName: 'Satisfaction Score', hidden: false, order: 5 },
+            'FinalCluster': { originalName: 'FinalCluster', hidden: false, order: 6 },
+            'Calculated Score': { originalName: 'Calculated Score', hidden: false, order: 7 },
+            'Editable Cluster': { originalName: 'Editable Cluster', hidden: false, order: 8 },
+        }
     }
 };
 
@@ -103,6 +131,14 @@ export function getReportSettings(config: any): ReportSettings {
             sheets: {
                 ...DEFAULT_REPORT_SETTINGS.threeDayChurn.sheets,
                 ...config.reportSettings.threeDayChurn?.sheets
+            }
+        },
+        levelScoreTable: {
+            ...DEFAULT_REPORT_SETTINGS.levelScoreTable!,
+            ...config.reportSettings.levelScoreTable,
+            columns: {
+                ...DEFAULT_REPORT_SETTINGS.levelScoreTable!.columns,
+                ...config.reportSettings.levelScoreTable?.columns
             }
         }
     };

@@ -56,6 +56,26 @@ export default function SettingsHubPage() {
                     </Card>
                 </Link>
 
+                {/* Level Score Settings */}
+                <Link href="/settings/level-score">
+                    <Card className="h-full hover:bg-muted/50 transition-colors cursor-pointer border-l-4 border-l-purple-500">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <FileSpreadsheet className="h-5 w-5 text-purple-500" />
+                                Level Score & Clusters
+                            </CardTitle>
+                            <CardDescription>
+                                Configure score multipliers (clusters) and table column settings.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Button variant="ghost" className="w-full justify-start pl-0 hover:bg-transparent">
+                                Configure <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </Link>
+
                 {/* Report Format Settings */}
                 <Link href="/settings/reports">
                     <Card className="h-full hover:bg-muted/50 transition-colors cursor-pointer border-l-4 border-l-orange-500">

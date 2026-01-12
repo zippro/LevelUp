@@ -84,7 +84,8 @@ export default function UpdateListPage() {
 
     const fetchUpdates = async () => {
         try {
-            setIsLoading(true);
+            // Background update - don't set global loading state
+            // setIsLoading(true);
             const res = await fetch(`/api/updates?t=${Date.now()}`, {
                 cache: 'no-store',
                 headers: {
@@ -217,13 +218,13 @@ export default function UpdateListPage() {
 
         const newDone = !todo.done;
 
-        // Optimistic update
+        // Optimistic update - move to bottom if marking as done
         setVersions(prev => prev.map(v => {
             if (v.id !== versionId) return v;
-            return {
-                ...v,
-                todos: v.todos.map(t => t.id === todoId ? { ...t, done: newDone } : t)
-            };
+            const updatedTodos = v.todos.map(t => t.id === todoId ? { ...t, done: newDone } : t);
+            // Sort: undone items first, done items at bottom
+            updatedTodos.sort((a, b) => (a.done === b.done ? 0 : a.done ? 1 : -1));
+            return { ...v, todos: updatedTodos };
         }));
 
         // API call with correct value
@@ -309,8 +310,13 @@ export default function UpdateListPage() {
 
         const newDone = !item.done;
 
-        // Optimistic update
-        setBacklog(prev => prev.map(t => t.id === todoId ? { ...t, done: newDone } : t));
+        // Optimistic update - move to bottom if marking as done
+        setBacklog(prev => {
+            const updated = prev.map(t => t.id === todoId ? { ...t, done: newDone } : t);
+            // Sort: undone items first, done items at bottom
+            updated.sort((a, b) => (a.done === b.done ? 0 : a.done ? 1 : -1));
+            return updated;
+        });
 
         // API call with correct value
         apiUpdateTodo(todoId, { done: newDone });
@@ -627,10 +633,10 @@ export default function UpdateListPage() {
                             {/* Drop zone before version */}
                             <div
                                 className={cn(
-                                    "h-5 rounded transition-all",
+                                    "rounded transition-all duration-200",
                                     dragType === 'version' && dropTargetIndex === versionIndex && dropTargetVersionId === null
-                                        ? "bg-primary/40 h-8 border-2 border-dashed border-primary"
-                                        : dragType === 'version' ? "bg-muted/30" : ""
+                                        ? "bg-primary/20 h-10 border-2 border-dashed border-primary my-2"
+                                        : dragType === 'version' ? "h-6 my-1 bg-muted/10" : "h-2"
                                 )}
                                 onDragOver={(e) => {
                                     e.preventDefault();
@@ -778,10 +784,10 @@ export default function UpdateListPage() {
                                                     {/* Drop zone before todo */}
                                                     <div
                                                         className={cn(
-                                                            "h-3 -my-1.5 mx-2 rounded transition-all",
+                                                            "mx-2 rounded transition-all duration-200",
                                                             dragType === 'todo' && dropTargetIndex === todoIndex && dropTargetVersionId === version.id
-                                                                ? "bg-primary/50 h-3"
-                                                                : ""
+                                                                ? "bg-primary/20 h-10 my-2 border-2 border-dashed border-primary"
+                                                                : dragType === 'todo' ? "h-4 my-1 hover:bg-primary/10" : "h-1"
                                                         )}
                                                         onDragOver={(e) => {
                                                             e.preventDefault();
@@ -861,7 +867,7 @@ export default function UpdateListPage() {
                                                                     <textarea
                                                                         value={editingTodo.description}
                                                                         onChange={(e) => setEditingTodo({ ...editingTodo, description: e.target.value })}
-                                                                        className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-y"
+                                                                        className="block w-full min-h-[60px] rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-y mt-2"
                                                                         placeholder="Add details..."
                                                                         onKeyDown={(e) => {
                                                                             if (e.key === 'Enter' && e.metaKey) saveTodoEdit(); // Cmd+Enter to save
@@ -956,11 +962,11 @@ export default function UpdateListPage() {
                                             {/* Drop zone at end of todo list */}
                                             <div
                                                 className={cn(
-                                                    "h-8 mx-2 rounded border-2 border-dashed transition-all flex items-center justify-center",
+                                                    "mx-2 rounded border-2 border-dashed transition-all flex items-center justify-center duration-200",
                                                     dragType === 'todo' && dropTargetIndex === version.todos.length && dropTargetVersionId === version.id
-                                                        ? "border-primary bg-primary/10"
-                                                        : "border-transparent",
-                                                    dragType === 'todo' ? "border-muted-foreground/30" : ""
+                                                        ? "border-primary bg-primary/10 h-12 my-2 opacity-100"
+                                                        : "border-transparent h-2 opacity-0",
+                                                    dragType === 'todo' ? "opacity-100 hover:bg-muted/20 h-10 border-muted-foreground/20" : ""
                                                 )}
                                                 onDragOver={(e) => {
                                                     e.preventDefault();
@@ -1003,10 +1009,10 @@ export default function UpdateListPage() {
                     {activeVersions.length > 0 && (
                         <div
                             className={cn(
-                                "h-2 rounded transition-all",
+                                "rounded transition-all duration-200",
                                 dragType === 'version' && dropTargetIndex === activeVersions.length && dropTargetVersionId === null
-                                    ? "bg-primary/30 h-4"
-                                    : ""
+                                    ? "bg-primary/20 h-12 border-2 border-dashed border-primary my-4"
+                                    : "h-4"
                             )}
                             onDragOver={(e) => {
                                 e.preventDefault();
@@ -1081,10 +1087,10 @@ export default function UpdateListPage() {
                                         {/* Drop zone */}
                                         <div
                                             className={cn(
-                                                "h-3 rounded transition-all",
+                                                "rounded transition-all duration-200",
                                                 dragType === 'backlog' && dropTargetIndex === index
-                                                    ? "bg-primary/50 h-3"
-                                                    : ""
+                                                    ? "bg-primary/20 h-10 my-2 border-2 border-dashed border-primary"
+                                                    : dragType === 'backlog' ? "h-3 my-0.5 hover:bg-primary/10" : "h-1"
                                             )}
                                             onDragOver={(e) => {
                                                 e.preventDefault();

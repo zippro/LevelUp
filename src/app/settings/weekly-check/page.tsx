@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ArrowLeft, GripVertical, Save, RefreshCw, AlertCircle } from "lucide-react";
+import { ArrowLeft, GripVertical, Save, RefreshCw, AlertCircle, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,8 @@ const DEFAULT_COLUMNS = [
     "Playon per User",
     "RM Total",
     "Avg. Total Moves",
+    "New Cluster",
+    "Score",
     "Min. Time Event"
 ];
 
@@ -36,8 +39,15 @@ interface WeeklyCheckConfig {
     minTotalUserLast30: number;
     minLevel: number;
     minDaysSinceEvent: number;
+    finalCluster?: string;
     columnOrder: string[];
-    columnRenames?: Record<string, string>; // originalName -> displayName
+    columnRenames?: Record<string, string>;
+    hiddenColumns?: string[];
+    // Successful tab defaults
+    successMinTotalUser?: number;
+    successMinLevel?: number;
+    successMinDaysSinceEvent?: number;
+    successFinalCluster?: string;
 }
 
 interface AppConfig {
@@ -51,13 +61,21 @@ export default function WeeklyCheckSettingsPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
-    // Form State
+    // Unsuccessful Tab Form State
     const [minTotalUser, setMinTotalUser] = useState<number>(50);
     const [minTotalUserLast30, setMinTotalUserLast30] = useState<number>(50);
     const [minLevel, setMinLevel] = useState<number>(0);
     const [minDaysSinceEvent, setMinDaysSinceEvent] = useState<number>(0);
+    const [finalCluster, setFinalCluster] = useState<string>('1,2,3,4');
+    // Successful Tab Form State
+    const [successMinTotalUser, setSuccessMinTotalUser] = useState<number>(50);
+    const [successMinLevel, setSuccessMinLevel] = useState<number>(0);
+    const [successMinDaysSinceEvent, setSuccessMinDaysSinceEvent] = useState<number>(0);
+    const [successFinalCluster, setSuccessFinalCluster] = useState<string>('1,2,3,4');
+    // Column config
     const [columns, setColumns] = useState<string[]>(DEFAULT_COLUMNS);
     const [columnRenames, setColumnRenames] = useState<Record<string, string>>({});
+    const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
     const [editingColumn, setEditingColumn] = useState<string | null>(null);
     const [actualHeaders, setActualHeaders] = useState<string[]>([]);
     const [loadingHeaders, setLoadingHeaders] = useState(false);
@@ -90,12 +108,28 @@ export default function WeeklyCheckSettingsPage() {
                         const savedOrder = data.weeklyCheck.columnOrder;
                         // Add any new default columns that aren't in the saved order
                         const missingDefaults = DEFAULT_COLUMNS.filter(col => !savedOrder.includes(col));
-                        setColumns([...savedOrder, ...missingDefaults]);
+                        setColumns(Array.from(new Set([...savedOrder, ...missingDefaults])));
                     } else {
                         setColumns(DEFAULT_COLUMNS);
                     }
                     if (data.weeklyCheck.columnRenames) {
                         setColumnRenames(data.weeklyCheck.columnRenames);
+                    }
+                    if (data.weeklyCheck.hiddenColumns) {
+                        setHiddenColumns(data.weeklyCheck.hiddenColumns);
+                    }
+                    // Successful tab defaults
+                    if (data.weeklyCheck.successMinTotalUser !== undefined) {
+                        setSuccessMinTotalUser(data.weeklyCheck.successMinTotalUser);
+                    }
+                    if (data.weeklyCheck.successMinLevel !== undefined) {
+                        setSuccessMinLevel(data.weeklyCheck.successMinLevel);
+                    }
+                    if (data.weeklyCheck.successMinDaysSinceEvent !== undefined) {
+                        setSuccessMinDaysSinceEvent(data.weeklyCheck.successMinDaysSinceEvent);
+                    }
+                    if (data.weeklyCheck.successFinalCluster !== undefined) {
+                        setSuccessFinalCluster(data.weeklyCheck.successFinalCluster);
                     }
                 }
             }
@@ -117,8 +151,14 @@ export default function WeeklyCheckSettingsPage() {
                 minTotalUserLast30,
                 minLevel,
                 minDaysSinceEvent,
+                finalCluster,
                 columnOrder: columns,
-                columnRenames
+                columnRenames,
+                hiddenColumns,
+                successMinTotalUser,
+                successMinLevel,
+                successMinDaysSinceEvent,
+                successFinalCluster
             }
         };
 
@@ -161,6 +201,9 @@ export default function WeeklyCheckSettingsPage() {
                     const csvText = await fileData.text();
                     const parsed = papa.parse(csvText, { header: true, preview: 1 });
                     const rawHeaders = parsed.meta.fields || [];
+                    // Add virtual columns that are added dynamically in UI
+                    if (!rawHeaders.includes('New Cluster')) rawHeaders.push('New Cluster');
+                    if (!rawHeaders.includes('Score')) rawHeaders.push('Score');
                     setActualHeaders(rawHeaders);
                 }
             }
@@ -183,13 +226,24 @@ export default function WeeklyCheckSettingsPage() {
         const preservedDefaults = DEFAULT_COLUMNS.filter(d =>
             !matchingColumns.includes(d) && !newHeaders.includes(d)
         );
-        setColumns([...matchingColumns, ...newHeaders, ...preservedDefaults]);
+        setColumns(Array.from(new Set([...matchingColumns, ...newHeaders, ...preservedDefaults])));
     };
 
     const resetToDefaults = () => {
         if (confirm("Reset to default columns?")) {
             setColumns(DEFAULT_COLUMNS);
+            setHiddenColumns([]);
         }
+    };
+
+    // Toggle column visibility
+    const toggleColumnVisibility = (e: React.MouseEvent, col: string) => {
+        e.stopPropagation(); // Prevent drag start when clicking button
+        setHiddenColumns(prev =>
+            prev.includes(col)
+                ? prev.filter(c => c !== col)
+                : [...prev, col]
+        );
     };
 
     // Drag and Drop Logic
@@ -295,6 +349,101 @@ export default function WeeklyCheckSettingsPage() {
                                 Exclude levels from the last N days (based on Min. Time Event date). Only affects Level Score and Churn tables.
                             </p>
                         </div>
+                        <div className="max-w-sm">
+                            <label className="text-sm font-medium mb-1.5 block">Final Cluster (Unsuccessful)</label>
+                            <div className="flex gap-1">
+                                {['1', '2', '3', '4'].map(c => {
+                                    const selected = finalCluster.split(',').includes(c);
+                                    return (
+                                        <button
+                                            key={c}
+                                            type="button"
+                                            onClick={() => {
+                                                const current = finalCluster ? finalCluster.split(',') : [];
+                                                const updated = selected ? current.filter(x => x !== c) : [...current, c];
+                                                setFinalCluster(updated.join(','));
+                                            }}
+                                            className={cn(
+                                                "w-10 h-10 rounded-md text-sm font-medium transition-colors",
+                                                selected
+                                                    ? "bg-primary text-primary-foreground"
+                                                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                            )}
+                                        >
+                                            {c}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Successful Tab Defaults */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Successful Tab Defaults</CardTitle>
+                        <CardDescription>
+                            Default filter values for the Successful tab (can be changed per session).
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="max-w-sm">
+                            <label className="text-sm font-medium mb-1.5 block">Min Users (Successful)</label>
+                            <Input
+                                type="number"
+                                value={successMinTotalUser}
+                                onChange={(e) => setSuccessMinTotalUser(Number(e.target.value))}
+                                className="w-full"
+                            />
+                        </div>
+                        <div className="max-w-sm">
+                            <label className="text-sm font-medium mb-1.5 block">Min Level (Successful)</label>
+                            <Input
+                                type="number"
+                                value={successMinLevel}
+                                onChange={(e) => setSuccessMinLevel(Number(e.target.value))}
+                                className="w-full"
+                                min={0}
+                            />
+                        </div>
+                        <div className="max-w-sm">
+                            <label className="text-sm font-medium mb-1.5 block">Min Days Old (Successful)</label>
+                            <Input
+                                type="number"
+                                value={successMinDaysSinceEvent}
+                                onChange={(e) => setSuccessMinDaysSinceEvent(Number(e.target.value))}
+                                className="w-full"
+                                min={0}
+                            />
+                        </div>
+                        <div className="max-w-sm">
+                            <label className="text-sm font-medium mb-1.5 block">Final Cluster (Successful)</label>
+                            <div className="flex gap-1">
+                                {['1', '2', '3', '4'].map(c => {
+                                    const selected = successFinalCluster.split(',').includes(c);
+                                    return (
+                                        <button
+                                            key={c}
+                                            type="button"
+                                            onClick={() => {
+                                                const current = successFinalCluster ? successFinalCluster.split(',') : [];
+                                                const updated = selected ? current.filter(x => x !== c) : [...current, c];
+                                                setSuccessFinalCluster(updated.join(','));
+                                            }}
+                                            className={cn(
+                                                "w-10 h-10 rounded-md text-sm font-medium transition-colors",
+                                                selected
+                                                    ? "bg-primary text-primary-foreground"
+                                                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                            )}
+                                        >
+                                            {c}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
 
@@ -305,7 +454,7 @@ export default function WeeklyCheckSettingsPage() {
                             <div>
                                 <CardTitle>Column Display & Order</CardTitle>
                                 <CardDescription>
-                                    Drag and drop to reorder columns. Click a column name to rename it.
+                                    Drag to reorder. Click text to rename. Click eye to toggle visibility.
                                 </CardDescription>
                             </div>
                             <div className="flex gap-2">
@@ -334,56 +483,77 @@ export default function WeeklyCheckSettingsPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="border rounded-lg bg-card">
-                            {columns.map((col, index) => (
-                                <div
-                                    key={col}
-                                    draggable
-                                    onDragStart={(e) => handleDragStart(e, col)}
-                                    onDragOver={(e) => handleDragOver(e, index)}
-                                    onDragEnd={handleDragEnd}
-                                    className={cn(
-                                        "flex items-center gap-3 p-3 border-b last:border-0 bg-card hover:bg-muted/50 transition-colors",
-                                        draggedItem === col && "opacity-50"
-                                    )}
-                                >
-                                    <GripVertical className="h-5 w-5 text-muted-foreground cursor-move" />
-                                    <div className="flex-1 flex items-center gap-2">
-                                        <span className="text-xs text-muted-foreground">{col}</span>
-                                        <span className="text-muted-foreground">→</span>
-                                        {editingColumn === col ? (
-                                            <Input
-                                                defaultValue={columnRenames[col] || col}
-                                                className="h-7 w-48"
-                                                autoFocus
-                                                onBlur={(e) => {
-                                                    const val = e.target.value.trim();
-                                                    if (val && val !== col) {
-                                                        setColumnRenames(prev => ({ ...prev, [col]: val }));
-                                                    } else {
-                                                        // Remove rename if same as original
-                                                        const { [col]: _, ...rest } = columnRenames;
-                                                        setColumnRenames(rest);
-                                                    }
-                                                    setEditingColumn(null);
-                                                }}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter') {
-                                                        (e.target as HTMLInputElement).blur();
-                                                    }
-                                                }}
-                                            />
-                                        ) : (
-                                            <span
-                                                className="font-medium cursor-pointer hover:text-primary"
-                                                onClick={() => setEditingColumn(col)}
-                                                title="Click to rename"
-                                            >
-                                                {columnRenames[col] || col}
-                                            </span>
+                            {columns.map((col, index) => {
+                                const isHidden = hiddenColumns.includes(col);
+                                return (
+                                    <div
+                                        key={col}
+                                        draggable
+                                        onDragStart={(e) => handleDragStart(e, col)}
+                                        onDragOver={(e) => handleDragOver(e, index)}
+                                        onDragEnd={handleDragEnd}
+                                        className={cn(
+                                            "flex items-center gap-3 p-3 border-b last:border-0 bg-card hover:bg-muted/50 transition-colors",
+                                            draggedItem === col && "opacity-50",
+                                            isHidden && "opacity-60 bg-muted/20"
                                         )}
+                                    >
+                                        <GripVertical className="h-5 w-5 text-muted-foreground cursor-move" />
+
+                                        <div className="flex-1 flex items-center gap-2">
+                                            <span className={cn("text-xs text-muted-foreground", isHidden && "line-through")}>{col}</span>
+                                            <span className="text-muted-foreground">→</span>
+                                            {editingColumn === col ? (
+                                                <Input
+                                                    defaultValue={columnRenames[col] || col}
+                                                    className="h-7 w-48"
+                                                    autoFocus
+                                                    onBlur={(e) => {
+                                                        const val = e.target.value.trim();
+                                                        if (val && val !== col) {
+                                                            setColumnRenames(prev => ({ ...prev, [col]: val }));
+                                                        } else {
+                                                            // Remove rename if same as original
+                                                            const { [col]: _, ...rest } = columnRenames;
+                                                            setColumnRenames(rest);
+                                                        }
+                                                        setEditingColumn(null);
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            (e.target as HTMLInputElement).blur();
+                                                        }
+                                                    }}
+                                                />
+                                            ) : (
+                                                <span
+                                                    className={cn(
+                                                        "font-medium cursor-pointer hover:text-primary",
+                                                        isHidden && "text-muted-foreground line-through"
+                                                    )}
+                                                    onClick={() => setEditingColumn(col)}
+                                                    title="Click to rename"
+                                                >
+                                                    {columnRenames[col] || col}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className={cn(
+                                                "h-8 w-8 p-0",
+                                                isHidden ? "text-muted-foreground" : "text-foreground"
+                                            )}
+                                            onClick={(e) => toggleColumnVisibility(e, col)}
+                                            title={isHidden ? "Show column" : "Hide column"}
+                                        >
+                                            {isHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        </Button>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
 
                         <div className="mt-4 flex gap-2">

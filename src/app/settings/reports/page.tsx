@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowUp, ArrowDown, Save, RotateCcw } from "lucide-react";
-import { DEFAULT_REPORT_SETTINGS, ReportSettings, SheetSortConfig } from "@/lib/report-settings";
+import { DEFAULT_REPORT_SETTINGS, type ReportSettings, type SheetSortConfig, type LevelScoreTableSettings, type ColumnConfig, type ReportTypeSettings } from "@/lib/report-settings";
 
 const REPORT_TYPES = [
     { id: 'levelScoreAB', name: 'Level Score AB' },
@@ -110,19 +110,22 @@ export default function ReportSettingsPage() {
     };
 
     const updateSheetConfig = (reportType: string, sheetKey: string, field: keyof SheetSortConfig, value: any) => {
-        setSettings(prev => ({
-            ...prev,
-            [reportType]: {
-                ...prev[reportType as keyof ReportSettings],
-                sheets: {
-                    ...prev[reportType as keyof ReportSettings].sheets,
-                    [sheetKey]: {
-                        ...prev[reportType as keyof ReportSettings].sheets[sheetKey],
-                        [field]: value
+        setSettings(prev => {
+            const currentTypeSettings = prev[reportType as keyof ReportSettings] as ReportTypeSettings;
+            return {
+                ...prev,
+                [reportType]: {
+                    ...currentTypeSettings,
+                    sheets: {
+                        ...currentTypeSettings.sheets,
+                        [sheetKey]: {
+                            ...currentTypeSettings.sheets[sheetKey],
+                            [field]: value
+                        }
                     }
                 }
-            }
-        }));
+            };
+        });
     };
 
     const updateHeaderColor = (reportType: string, color: string) => {
@@ -139,7 +142,7 @@ export default function ReportSettingsPage() {
 
     if (loading) return <div>Loading settings...</div>;
 
-    const currentReportSettings = settings[selectedReport as keyof ReportSettings];
+    const currentReportSettings = settings[selectedReport as keyof ReportSettings] as ReportTypeSettings;
     const sheets = SHEET_NAMES[selectedReport] || {};
     const sortColumns = SORT_COLUMNS[selectedReport] || ['Level'];
 
@@ -166,19 +169,28 @@ export default function ReportSettingsPage() {
                         </Select>
                     </div>
 
-                    {/* Header Color */}
-                    <div className="flex items-center gap-4">
-                        <span className="w-32">Header Color:</span>
+                    {/* Header Style */}
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-lg font-medium">Header Style</h2>
+                            <p className="text-sm text-muted-foreground">Customize header appearance for this report.</p>
+                        </div>
                         <div className="flex items-center gap-2">
-                            <Input
-                                type="color"
-                                value={`#${currentReportSettings.headerColor}`}
-                                onChange={(e) => updateHeaderColor(selectedReport, e.target.value)}
-                                className="w-16 h-10 p-1 cursor-pointer"
-                            />
-                            <span className="text-sm text-muted-foreground">
-                                #{currentReportSettings.headerColor}
-                            </span>
+                            <span className="text-sm font-medium">Color:</span>
+                            <div className="flex items-center gap-2">
+                                <Input
+                                    type="color"
+                                    className="w-12 h-8 p-1 cursor-pointer"
+                                    value={`#${currentReportSettings.headerColor || '000000'}`}
+                                    onChange={(e) => updateHeaderColor(selectedReport, e.target.value)}
+                                />
+                                <Input
+                                    type="text"
+                                    className="w-24 h-8 font-mono text-xs uppercase"
+                                    value={currentReportSettings.headerColor || '000000'}
+                                    onChange={(e) => updateHeaderColor(selectedReport, e.target.value)}
+                                />
+                            </div>
                         </div>
                     </div>
 

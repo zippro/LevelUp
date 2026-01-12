@@ -58,6 +58,49 @@ const LINE_STYLES = [
     '1 3',        // sparse dotted
 ];
 
+// Custom Tooltip Component
+const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-popover/95 backdrop-blur-sm border rounded-xl shadow-xl p-3 text-sm z-50 max-w-[400px]">
+                <p className="font-bold mb-2 pb-1 border-b">Level {label}</p>
+                <div className="space-y-1">
+                    {payload.map((entry: any, index: number) => {
+                        const name = entry.name;
+                        const value = entry.value;
+                        const color = entry.color;
+
+                        // Extract game name from series name (format: "GameName - MetricLabel")
+                        const gameName = name.split(' - ')[0]; // Assuming "GameName - Metric" format
+                        const totalUsers = entry.payload[`${gameName}_TotalUser`];
+                        const userSuffix = totalUsers ? ` (${Math.round(totalUsers).toLocaleString()} users)` : '';
+
+                        let formattedValue = `${Number(value).toFixed(4)}`;
+
+                        if (name.includes('Churn')) {
+                            formattedValue = `${(Number(value) * 100).toFixed(2)}%`;
+                        } else if (name.includes('In App Value')) {
+                            formattedValue = `${Number(value).toFixed(2)}`;
+                        }
+
+                        return (
+                            <div key={index} className="flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                                <span className="font-medium text-muted-foreground">{name}:</span>
+                                <span className="font-mono font-bold">
+                                    {formattedValue}
+                                    <span className="text-xs text-muted-foreground font-normal ml-1">{userSuffix}</span>
+                                </span>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    }
+    return null;
+};
+
 export default function AnalyzePage() {
     const [config, setConfig] = useState<Config | null>(null);
     const [loadingConfig, setLoadingConfig] = useState(true);
@@ -567,27 +610,7 @@ export default function AnalyzePage() {
                                             return value.toFixed(2);
                                         }}
                                     />
-                                    <Tooltip
-                                        contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
-                                        formatter={(value: any, name: any, props: any) => {
-                                            if (value === undefined || value === null) return ['-', name];
-
-                                            // Extract game name from series name (format: "GameName - MetricLabel")
-                                            const gameName = name.split(' - ')[0];
-                                            const totalUsers = props.payload[`${gameName}_TotalUser`];
-                                            const userSuffix = totalUsers ? ` (${Math.round(totalUsers).toLocaleString()} users)` : '';
-
-                                            // Format as percentage for churn metrics
-                                            if (name.includes('Churn')) {
-                                                return [`${(Number(value) * 100).toFixed(2)}%${userSuffix}`, name];
-                                            }
-                                            // Format In App Value to 2 decimals
-                                            if (name.includes('In App Value')) {
-                                                return [`${Number(value).toFixed(2)}${userSuffix}`, name];
-                                            }
-                                            return [`${Number(value).toFixed(4)}${userSuffix}`, name];
-                                        }}
-                                    />
+                                    <Tooltip content={<CustomTooltip />} />
                                     <Legend wrapperStyle={{ paddingTop: '10px' }} />
                                     {gameDataList.flatMap((gd, gameIdx) =>
                                         selectedMetrics.map((metric, metricIdx) => (
@@ -622,32 +645,45 @@ export default function AnalyzePage() {
                                 <TableHeader>
                                     <TableRow className="bg-muted/50">
                                         <TableHead className="font-bold">Level</TableHead>
-                                        {gameDataList.flatMap(gd =>
-                                            selectedMetrics.map(metric => (
+                                        {gameDataList.flatMap(gd => [
+                                            // Always add User Column first
+                                            <TableHead key={`${gd.gameId}_TotalUser`} className="font-bold border-l" style={{ color: gd.color }}>
+                                                {gd.gameName} - Users
+                                            </TableHead>,
+                                            // Then other metrics
+                                            ...selectedMetrics.map(metric => (
                                                 <TableHead key={`${gd.gameId}_${metric}`} className="font-bold" style={{ color: gd.color }}>
                                                     {gd.gameName} - {METRICS.find(m => m.id === metric)?.label}
                                                 </TableHead>
                                             ))
-                                        )}
+                                        ])}
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {tableData.map((row, i) => (
                                         <TableRow key={i} className="hover:bg-muted/30">
                                             <TableCell className="font-medium">{row.Level}</TableCell>
-                                            {gameDataList.flatMap(gd =>
-                                                selectedMetrics.map(metric => {
-                                                    const key = `${gd.gameName}_${metric}`;
-                                                    return (
-                                                        <TableCell key={`${gd.gameId}_${metric}`}>
-                                                            {row[key] !== undefined
-                                                                ? formatTableValue(row[key], metric)
-                                                                : '-'
-                                                            }
-                                                        </TableCell>
-                                                    );
-                                                })
-                                            )}
+                                            {gameDataList.flatMap(gd => {
+                                                const userKey = `${gd.gameName}_TotalUser`;
+                                                return [
+                                                    // User Cell
+                                                    <TableCell key={`${gd.gameId}_TotalUser`} className="border-l bg-muted/10 font-mono text-xs">
+                                                        {row[userKey] !== undefined ? Math.round(row[userKey]).toLocaleString() : '-'}
+                                                    </TableCell>,
+                                                    // Metric Cells
+                                                    ...selectedMetrics.map(metric => {
+                                                        const key = `${gd.gameName}_${metric}`;
+                                                        return (
+                                                            <TableCell key={`${gd.gameId}_${metric}`}>
+                                                                {row[key] !== undefined
+                                                                    ? formatTableValue(row[key], metric)
+                                                                    : '-'
+                                                                }
+                                                            </TableCell>
+                                                        );
+                                                    })
+                                                ];
+                                            })}
                                         </TableRow>
                                     ))}
                                 </TableBody>

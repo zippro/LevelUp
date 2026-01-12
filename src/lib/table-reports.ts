@@ -120,11 +120,31 @@ export function generate3DayChurnTopUnsuccessful(
         });
 }
 
+// Generate 3 Day Churn Top Successful - sorted by 3 Days Churn DESC (highest churn first = worst retention)
+export function generate3DayChurnTopSuccessful(
+    data: LevelRow[],
+    settings?: ReportSettings
+): LevelRow[] {
+    const sortOrder = settings?.threeDayChurn?.sheets?.churnSuccess?.sortOrder || 'desc';
+
+    return [...data]
+        .filter(r => {
+            const churn = findMetricValue(r, '3 Days Churn');
+            return churn > 0;
+        })
+        .sort((a, b) => {
+            const aChurn = findMetricValue(a, '3 Days Churn');
+            const bChurn = findMetricValue(b, '3 Days Churn');
+            return sortOrder === 'desc' ? bChurn - aChurn : aChurn - bChurn;
+        });
+}
+
 // Get the appropriate report generator function name -> function mapping
 export const TABLE_REPORT_GENERATORS: Record<string, (data: LevelRow[], settings?: ReportSettings) => LevelRow[]> = {
     'Level Score Top Unsuccessful': generateLevelScoreTopUnsuccessful,
     'Level Score Top Successful': generateLevelScoreTopSuccessful,
     '3 Day Churn Top Unsuccessful': generate3DayChurnTopUnsuccessful,
+    '3 Day Churn Top Successful': generate3DayChurnTopSuccessful,
 };
 
 // Define which reports are available for each variable

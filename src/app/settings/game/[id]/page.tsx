@@ -15,8 +15,31 @@ interface Config {
         name: string;
         viewMappings: Record<string, string>;
         urlMappings?: Record<string, string>;
+        scoreMultipliers?: ScoreMultipliers;
     }[];
 }
+
+interface ScoreMultipliers {
+    cluster1: MultiplierSet;
+    cluster2: MultiplierSet;
+    cluster3: MultiplierSet;
+    cluster4: MultiplierSet;
+    default: MultiplierSet;
+}
+
+interface MultiplierSet {
+    monetization: number;
+    engagement: number;
+    satisfaction: number;
+}
+
+const DEFAULT_MULTIPLIERS: ScoreMultipliers = {
+    cluster1: { monetization: 0.20, engagement: 0.20, satisfaction: 0.60 },
+    cluster2: { monetization: 0.25, engagement: 0.25, satisfaction: 0.50 },
+    cluster3: { monetization: 0.30, engagement: 0.35, satisfaction: 0.35 },
+    cluster4: { monetization: 0.35, engagement: 0.35, satisfaction: 0.30 },
+    default: { monetization: 0.30, engagement: 0.30, satisfaction: 0.40 },
+};
 
 export default function GameDetailsPage() {
     const params = useParams();
@@ -31,6 +54,7 @@ export default function GameDetailsPage() {
     // State for URL inputs
     const [urls, setUrls] = useState<Record<string, string>>({});
     const [lookingUp, setLookingUp] = useState<Record<string, boolean>>({});
+    const [multipliers, setMultipliers] = useState<ScoreMultipliers>(DEFAULT_MULTIPLIERS);
 
     useEffect(() => {
         fetch("/api/config")
@@ -41,6 +65,7 @@ export default function GameDetailsPage() {
                 if (game) {
                     setMappings(game.viewMappings || {});
                     setUrls(game.urlMappings || {});
+                    setMultipliers(game.scoreMultipliers || DEFAULT_MULTIPLIERS);
                 } else {
                     // Handle not found?
                 }
@@ -55,7 +80,7 @@ export default function GameDetailsPage() {
 
         const updatedGames = config.games.map((g) => {
             if (g.id === gameId) {
-                return { ...g, viewMappings: mappings, urlMappings: urls };
+                return { ...g, viewMappings: mappings, urlMappings: urls, scoreMultipliers: multipliers };
             }
             return g;
         });
@@ -159,11 +184,13 @@ export default function GameDetailsPage() {
                 </CardContent>
             </Card>
 
+
+
             <div className="flex justify-end">
                 <Button onClick={handleSave} disabled={saving}>
                     {saving ? "Saving..." : <><Save className="mr-2 h-4 w-4" /> Save Configuration</>}
                 </Button>
             </div>
-        </div>
+        </div >
     );
 }

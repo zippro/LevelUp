@@ -5,12 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Loader2, RefreshCw, ArrowUp, ArrowDown, ChevronDown, ChevronUp, Download } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, RefreshCw, ChevronDown, ChevronUp, Download } from "lucide-react";
 import papa from 'papaparse';
 import { cn } from "@/lib/utils";
-import { generateLevelScoreTopUnsuccessful, generate3DayChurnTopUnsuccessful, formatTableValue } from "@/lib/table-reports";
+import { generateLevelScoreTopUnsuccessful, generateLevelScoreTopSuccessful, generate3DayChurnTopUnsuccessful, generate3DayChurnTopSuccessful, formatTableValue } from "@/lib/table-reports";
 import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
+
+interface SavedScore {
+    level: number;
+    score: number;
+    cluster: string | null;
+}
 
 const HEADER_DEFINITIONS = [
     { name: "Total Move", aliases: ["total move", "totalmove", "total moves", "move count", "avg. total moves", "avg total moves"] },
@@ -21,115 +28,64 @@ const HEADER_DEFINITIONS = [
     { name: "Min. Time Event", aliases: ["min. time event", "min time event", "min event time", "mineventtime", "min_time_event", "minimum time event"] }
 ];
 
-// Helper to normalize header for comparison
 const normalizeHeader = (h: string) => h.toLowerCase().trim();
 
 function processHeaders(allHeaders: string[]): string[] {
     let headers = [...allHeaders];
-
-    // 1. Deduplicate Level Score (remove "Level Score Along", etc.)
-    const hasLevelScore = headers.some(h => {
-        const normalized = normalizeHeader(h);
-        return normalized.includes('level score');
-    });
-
+    const hasLevelScore = headers.some(h => normalizeHeader(h).includes('level score'));
     if (hasLevelScore) {
         headers = headers.filter(h => {
             const normalized = normalizeHeader(h);
-            return normalized !== 'level score along' &&
-                normalized !== 'level score-' &&
-                normalized !== 'level score 29072024';
+            return normalized !== 'level score along' && normalized !== 'level score-' && normalized !== 'level score 29072024';
         });
     }
-
-    // 2. Identify available priority headers using aliases
     const presentPriorityHeaders: string[] = [];
-
     HEADER_DEFINITIONS.forEach(def => {
-        // Find if any alias matches an available header
         const match = headers.find(h => {
             const normalized = normalizeHeader(h);
             return def.aliases.some(alias => normalized === alias || normalized.includes(alias));
         });
-
-        if (match) {
-            presentPriorityHeaders.push(match);
-        }
+        if (match) presentPriorityHeaders.push(match);
     });
-
-    // 3. Separate priority and other headers
-    // Filter out priority headers from the main list so we don't duplicate them
-    const otherHeaders = headers.filter(h =>
-        !presentPriorityHeaders.includes(h)
-    );
-
-    // 4. Combine: Priority + Others
+    const otherHeaders = headers.filter(h => !presentPriorityHeaders.includes(h));
     return [...presentPriorityHeaders, ...otherHeaders];
 }
 
 function sortHeaders(headers: string[], order: string[]): string[] {
     if (!order || order.length === 0) return headers;
-
-    // Create a map for quick lookup of order index (normalized)
     const orderMap = new Map(order.map((h, i) => [normalizeHeader(h), i]));
-
-    // Helper to find index in order list, supporting aliases and fuzzy matching
     const getOrderIndex = (header: string) => {
         const normalizedH = normalizeHeader(header);
-
-        // 1. Try exact normalized match in orderMap
         if (orderMap.has(normalizedH)) return orderMap.get(normalizedH)!;
-
-        // 2. Try without spaces match (e.g., "TotalUser" matches "Total User")
         const noSpaceH = normalizedH.replace(/\s+/g, '');
         for (const [orderKey, idx] of orderMap.entries()) {
             if (orderKey.replace(/\s+/g, '') === noSpaceH) return idx;
         }
-
-        // 3. Try alias match
         const matchedConfigHeader = order.find(configH => {
             const def = HEADER_DEFINITIONS.find(d => normalizeHeader(d.name) === normalizeHeader(configH));
-            if (def) {
-                return def.aliases.some(alias => normalizedH === alias || normalizedH.includes(alias));
-            }
+            if (def) return def.aliases.some(alias => normalizedH === alias || normalizedH.includes(alias));
             return false;
         });
-
-        if (matchedConfigHeader) {
-            return orderMap.get(normalizeHeader(matchedConfigHeader));
-        }
-
+        if (matchedConfigHeader) return orderMap.get(normalizeHeader(matchedConfigHeader));
         return -1;
     };
-
-    // Sort the headers
     const headersWithIndex = headers.map(h => ({ h, idx: getOrderIndex(h) }));
-
     const ordered = headersWithIndex.filter(x => x.idx !== -1 && x.idx !== undefined).sort((a, b) => a.idx! - b.idx!).map(x => x.h);
     const remaining = headersWithIndex.filter(x => x.idx === -1 || x.idx === undefined).map(x => x.h);
-
     return [...ordered, ...remaining];
 }
 
-// Get display name for a header - handles fuzzy matching for renames
 function getDisplayName(header: string, renames?: Record<string, string>): string {
     if (!renames) return header;
-
-    // 1. Try exact match
     if (renames[header]) return renames[header];
-
-    // 2. Try normalized match
     const normalizedH = normalizeHeader(header);
     for (const [key, value] of Object.entries(renames)) {
         if (normalizeHeader(key) === normalizedH) return value;
     }
-
-    // 3. Try without spaces match (e.g., "TotalUser" matches "Total User")
     const noSpaceH = normalizedH.replace(/\s+/g, '');
     for (const [key, value] of Object.entries(renames)) {
         if (normalizeHeader(key).replace(/\s+/g, '') === noSpaceH) return value;
     }
-
     return header;
 }
 
@@ -143,6 +99,12 @@ interface Config {
         minDaysSinceEvent?: number;
         columnOrder?: string[];
         columnRenames?: Record<string, string>;
+        hiddenColumns?: string[];
+        // Successful tab filters
+        successMinTotalUser?: number;
+        successMinLevel?: number;
+        successMinDaysSinceEvent?: number;
+        successFinalCluster?: string;
     };
 }
 
@@ -152,8 +114,6 @@ interface TableSection {
     data: any[];
     headers: string[];
     expanded: boolean;
-    sortColumn: string;
-    sortOrder: 'asc' | 'desc';
 }
 
 export default function WeeklyCheckPage() {
@@ -162,30 +122,65 @@ export default function WeeklyCheckPage() {
     const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState("unsuccessful");
 
-    // Filter State (Local)
+    // Unsuccessful Tab Filters
     const [minTotalUser, setMinUsers] = useState<number>(50);
-    const [minTotalUserLast30, setMinUsersLast30] = useState<number>(50);
     const [minLevel, setMinLevel] = useState<number>(0);
     const [minDaysSinceEvent, setMinDaysSinceEvent] = useState<number>(0);
+    const [finalClusters, setFinalClusters] = useState<string[]>(['1', '2', '3', '4']);
 
-    // Raw Data State (to support client-side re-filtering)
+    // Successful Tab Filters
+    const [successMinTotalUser, setSuccessMinUsers] = useState<number>(50);
+    const [successMinLevel, setSuccessMinLevel] = useState<number>(0);
+    const [successMinDaysSinceEvent, setSuccessMinDaysSinceEvent] = useState<number>(0);
+    const [successFinalClusters, setSuccessFinalClusters] = useState<string[]>(['1', '2', '3', '4']);
+
+    // Last 30 Filter
+    const [minTotalUserLast30, setMinUsersLast30] = useState<number>(50);
+
+    // Raw Data
     const [rawData, setRawData] = useState<any[]>([]);
     const [headers, setHeaders] = useState<string[]>([]);
 
-    // Derived Sections
-    const [sections, setSections] = useState<TableSection[]>([
-        { id: 'levelScore', title: 'Level Score Top Unsuccessful', data: [], headers: [], expanded: true, sortColumn: 'Level Score', sortOrder: 'asc' },
-        { id: 'churn', title: '3 Day Churn Top Unsuccessful', data: [], headers: [], expanded: true, sortColumn: '3 Days Churn', sortOrder: 'asc' },
-        { id: 'last30', title: 'Last 30 Levels', data: [], headers: [], expanded: true, sortColumn: 'Level', sortOrder: 'desc' },
+    // Sections per tab
+    const [unsuccessfulSections, setUnsuccessfulSections] = useState<TableSection[]>([
+        { id: 'levelScoreUnsuccess', title: 'Level Score Top Unsuccessful', data: [], headers: [], expanded: true },
+        { id: 'churnUnsuccess', title: '3 Day Churn Top Unsuccessful', data: [], headers: [], expanded: true },
     ]);
+    const [successfulSections, setSuccessfulSections] = useState<TableSection[]>([
+        { id: 'levelScoreSuccess', title: 'Level Score Top Successful', data: [], headers: [], expanded: true },
+        { id: 'churnSuccess', title: '3 Day Churn Top Successful', data: [], headers: [], expanded: true },
+    ]);
+    const [last30Section, setLast30Section] = useState<TableSection>(
+        { id: 'last30', title: 'Last 30 Levels', data: [], headers: [], expanded: true }
+    );
 
-    // New Move values - keyed by sectionId-level
-    const [newMoveValues, setNewMoveValues] = useState<Record<string, string>>({});
-
-    // Cache dialog state
+    // Actions state: key = "sectionId-level", value = { type: 'M'|'R'|'BR'|'TR'|'S'|'SS', moveValue?: number, description?: string }
+    interface LevelAction {
+        type: 'M' | 'R' | 'BR' | 'TR' | 'S' | 'SS' | '';
+        moveValue?: number;
+        description?: string;
+    }
+    const [actions, setActions] = useState<Record<string, LevelAction>>({});
     const [showCacheDialog, setShowCacheDialog] = useState(false);
     const [cachedDataInfo, setCachedDataInfo] = useState<{ fileName: string; createdAt: Date } | null>(null);
+    const [showExportDialog, setShowExportDialog] = useState(false);
+    const [exportData, setExportData] = useState<string>('');
+    const [exportHeaders, setExportHeaders] = useState<string[]>([]);
+    const [exportSummary, setExportSummary] = useState<string>('');
+
+    // Combined Report State
+    interface CombinedReportSection {
+        title: string;
+        content: string;
+        headers: string[];
+        summary: string;
+    }
+    const [combinedReport, setCombinedReport] = useState<CombinedReportSection[]>([]);
+    const [showWeeklyReportDialog, setShowWeeklyReportDialog] = useState(false);
+
+    // ... (lines 165-398 unchanged)
 
     useEffect(() => {
         fetch("/api/config")
@@ -193,96 +188,134 @@ export default function WeeklyCheckPage() {
             .then((data: Config) => {
                 setConfig(data);
                 if (data.weeklyCheck) {
-                    if (data.weeklyCheck.minTotalUser !== undefined) setMinUsers(data.weeklyCheck.minTotalUser);
-                    else setMinUsers(50); // Default to 50 if missing
-
-                    if (data.weeklyCheck.minTotalUserLast30 !== undefined) setMinUsersLast30(data.weeklyCheck.minTotalUserLast30);
-                    else setMinUsersLast30(50);
-
-                    if (data.weeklyCheck.minLevel !== undefined) setMinLevel(data.weeklyCheck.minLevel);
-                    else setMinLevel(0);
-
-                    if (data.weeklyCheck.minDaysSinceEvent !== undefined) setMinDaysSinceEvent(data.weeklyCheck.minDaysSinceEvent);
-                    else setMinDaysSinceEvent(0);
+                    // Unsuccessful defaults
+                    setMinUsers(data.weeklyCheck.minTotalUser ?? 50);
+                    setMinLevel(data.weeklyCheck.minLevel ?? 0);
+                    setMinDaysSinceEvent(data.weeklyCheck.minDaysSinceEvent ?? 0);
+                    setMinUsersLast30(data.weeklyCheck.minTotalUserLast30 ?? 50);
+                    // Successful defaults
+                    setSuccessMinUsers(data.weeklyCheck.successMinTotalUser ?? data.weeklyCheck.minTotalUser ?? 50);
+                    setSuccessMinLevel(data.weeklyCheck.successMinLevel ?? data.weeklyCheck.minLevel ?? 0);
+                    setSuccessMinDaysSinceEvent(data.weeklyCheck.successMinDaysSinceEvent ?? data.weeklyCheck.minDaysSinceEvent ?? 0);
+                    // successFinalCluster is omitted - use default ['1','2','3','4']
                 }
                 setLoadingConfig(false);
             })
             .catch((e) => console.error(e));
     }, []);
 
-    // Re-process data when filters, rawData, or headers change
+    // Helper functions for filtering
+    const parseDate = (dateStr: string): Date | null => {
+        if (!dateStr) return null;
+        const str = dateStr.trim();
+        const slashMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (slashMatch) {
+            const [, day, month, year] = slashMatch;
+            return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        }
+        const dashMatch = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+        if (dashMatch) {
+            const [, year, month, day] = dashMatch;
+            return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        }
+        return null;
+    };
+
+    const daysSinceDate = (date: Date): number => {
+        const now = new Date();
+        return Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    };
+
+    // Filter function generator
+    const createFilter = (minUsers: number, minLvl: number, minDays: number, clusters: string[]) => {
+        return (row: any, levelCol: string, dateCol: string) => {
+            const levelVal = parseInt(String(row[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
+            if (levelVal < minLvl) return false;
+
+            const totalUserVal = row['TotalUser'] || row['Total User'] || row['TotalUsers'] || row['total_user'];
+            if (!totalUserVal) return false;
+            const num = parseInt(String(totalUserVal).replace(/[.,]/g, ''), 10);
+            if (isNaN(num) || num < minUsers) return false;
+
+            if (minDays > 0 && dateCol) {
+                const dateStr = row[dateCol];
+                if (dateStr) {
+                    const eventDate = parseDate(String(dateStr));
+                    if (eventDate && daysSinceDate(eventDate) < minDays) return false;
+                }
+            }
+
+            // Multi-select New Cluster filter (uses effective cluster - saved or final)
+            // Only filter if the row actually has a cluster value
+            if (clusters.length > 0 && clusters.length < 4) {
+                const clusterVal = String(row['New Cluster'] || '').trim();
+                // Only apply filter if cluster value exists - allow empty values to pass
+                if (clusterVal && !clusters.includes(clusterVal)) return false;
+            }
+            return true;
+
+        };
+    };
+
+    // Process data for Unsuccessful tab
     useEffect(() => {
         if (!rawData.length || !headers.length) return;
+        const sampleRow = rawData[0] || {};
+        const levelCol = Object.keys(sampleRow).find(k => {
+            const n = normalizeHeader(k);
+            return n === 'level' || n === 'level number' || n === 'level_number';
+        }) || 'Level';
+        const dateCol = Object.keys(sampleRow).find(k => {
+            const n = normalizeHeader(k);
+            return n.includes('min') && n.includes('time') && n.includes('event');
+        }) || '';
 
-        // Find level column for filtering
+        const filter = createFilter(minTotalUser, minLevel, minDaysSinceEvent, finalClusters);
+        const filtered = rawData.filter(row => filter(row, levelCol, dateCol));
+
+        const levelScoreData = generateLevelScoreTopUnsuccessful(filtered);
+        const churnData = generate3DayChurnTopUnsuccessful(filtered);
+
+        setUnsuccessfulSections([
+            { ...unsuccessfulSections[0], data: levelScoreData.slice(0, 50), headers },
+            { ...unsuccessfulSections[1], data: churnData.slice(0, 50), headers },
+        ]);
+    }, [rawData, headers, minTotalUser, minLevel, minDaysSinceEvent, finalClusters]);
+
+    // Process data for Successful tab
+    useEffect(() => {
+        if (!rawData.length || !headers.length) return;
+        const sampleRow = rawData[0] || {};
+        const levelCol = Object.keys(sampleRow).find(k => {
+            const n = normalizeHeader(k);
+            return n === 'level' || n === 'level number' || n === 'level_number';
+        }) || 'Level';
+        const dateCol = Object.keys(sampleRow).find(k => {
+            const n = normalizeHeader(k);
+            return n.includes('min') && n.includes('time') && n.includes('event');
+        }) || '';
+
+        const filter = createFilter(successMinTotalUser, successMinLevel, successMinDaysSinceEvent, successFinalClusters);
+        const filtered = rawData.filter(row => filter(row, levelCol, dateCol));
+
+        const levelScoreData = generateLevelScoreTopSuccessful(filtered);
+        const churnData = generate3DayChurnTopSuccessful(filtered);
+
+        setSuccessfulSections([
+            { ...successfulSections[0], data: levelScoreData.slice(0, 50), headers },
+            { ...successfulSections[1], data: churnData.slice(0, 50), headers },
+        ]);
+    }, [rawData, headers, successMinTotalUser, successMinLevel, successMinDaysSinceEvent, successFinalClusters]);
+
+    // Process data for Last 30 tab
+    useEffect(() => {
+        if (!rawData.length || !headers.length) return;
         const sampleRow = rawData[0] || {};
         const levelCol = Object.keys(sampleRow).find(k => {
             const n = normalizeHeader(k);
             return n === 'level' || n === 'level number' || n === 'level_number';
         }) || 'Level';
 
-        // Find date column for filtering
-        const dateCol = Object.keys(sampleRow).find(k => {
-            const n = normalizeHeader(k);
-            return n.includes('min') && n.includes('time') && n.includes('event');
-        }) || Object.keys(sampleRow).find(k => normalizeHeader(k).includes('time event')) || '';
-
-        // Helper function to parse date string (supports DD/MM/YYYY and YYYY-MM-DD)
-        const parseDate = (dateStr: string): Date | null => {
-            if (!dateStr) return null;
-            const str = dateStr.trim();
-            // Try DD/MM/YYYY format
-            const slashMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-            if (slashMatch) {
-                const [, day, month, year] = slashMatch;
-                return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-            }
-            // Try YYYY-MM-DD format
-            const dashMatch = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-            if (dashMatch) {
-                const [, year, month, day] = dashMatch;
-                return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-            }
-            return null;
-        };
-
-        // Calculate days since a date
-        const daysSinceDate = (date: Date): number => {
-            const now = new Date();
-            const diffTime = now.getTime() - date.getTime();
-            return Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        };
-
-        // 1. General Filter (Level Score & Churn) - apply minLevel and minDaysSinceEvent filters
-        const generalFiltered = rawData.filter(row => {
-            // Check level
-            const levelVal = parseInt(String(row[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
-            if (levelVal < minLevel) return false;
-
-            // Check total users
-            const totalUserVal = row['TotalUser'] || row['Total User'] || row['TotalUsers'] || row['total_user'];
-            if (!totalUserVal) return false;
-            const num = parseInt(String(totalUserVal).replace(/[.,]/g, ''), 10);
-            if (isNaN(num) || num < minTotalUser) return false;
-
-            // Check min days since event (exclude recent levels)
-            if (minDaysSinceEvent > 0 && dateCol) {
-                const dateStr = row[dateCol];
-                if (dateStr) {
-                    const eventDate = parseDate(String(dateStr));
-                    if (eventDate) {
-                        const daysSince = daysSinceDate(eventDate);
-                        if (daysSince < minDaysSinceEvent) return false;
-                    }
-                }
-            }
-
-            return true;
-        });
-
-        // 2. Last 30 Levels Logic
-
-        // Filter rawData by minTotalUserLast30 FIRST
         const candidates = rawData.filter(row => {
             const totalUserVal = row['TotalUser'] || row['Total User'] || row['TotalUsers'] || row['total_user'];
             if (!totalUserVal) return false;
@@ -290,77 +323,40 @@ export default function WeeklyCheckPage() {
             return !isNaN(num) && num >= minTotalUserLast30;
         });
 
-        // Sort candidates by Level descending
         const sortedByLevel = [...candidates].sort((a, b) => {
             const levelA = parseInt(String(a[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
             const levelB = parseInt(String(b[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
             return levelB - levelA;
         });
 
-        // Take top 30
-        const last30Filtered = sortedByLevel.slice(0, 30);
+        setLast30Section({ ...last30Section, data: sortedByLevel.slice(0, 30), headers });
+    }, [rawData, headers, minTotalUserLast30]);
 
-        // Generate reports
-        const levelScoreData = generateLevelScoreTopUnsuccessful(generalFiltered);
-        const churnData = generate3DayChurnTopUnsuccessful(generalFiltered);
-
-        setSections(prev => [
-            { ...prev.find(s => s.id === 'levelScore')!, data: levelScoreData.slice(0, 50), headers },
-            { ...prev.find(s => s.id === 'churn')!, data: churnData.slice(0, 50), headers },
-            { ...prev.find(s => s.id === 'last30')!, data: last30Filtered, headers },
-        ]);
-
-    }, [rawData, headers, minTotalUser, minTotalUserLast30, minLevel, minDaysSinceEvent]);
-
-    // Get games that have Level Revize view mapping
-    const availableGames = config?.games.filter(
-        (g) => g.viewMappings && g.viewMappings["Level Revize"]
-    );
+    const availableGames = config?.games.filter(g => g.viewMappings && g.viewMappings["Level Revize"]);
 
     const handleLoad = async () => {
         if (!selectedGameId || !config) return;
-
         const game = config.games.find(g => g.id === selectedGameId);
         const viewId = game?.viewMappings?.["Level Revize"];
+        if (!viewId) { setError("No Level Revize view found for this game."); return; }
 
-        if (!viewId) {
-            setError("No Level Revize view found for this game.");
-            return;
-        }
-
-        // Check for cached data first
         const gameName = game ? game.name : selectedGameId;
-        const { data: files } = await supabase.storage
-            .from('data-repository')
-            .list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } });
-
-        const matchingFile = files?.find(f =>
-            f.name.includes(gameName) && f.name.includes("Level Revize")
-        );
+        const { data: files } = await supabase.storage.from('data-repository').list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } });
+        const matchingFile = files?.find(f => f.name.includes(gameName) && f.name.includes("Level Revize"));
 
         if (matchingFile) {
-            setCachedDataInfo({
-                fileName: matchingFile.name,
-                createdAt: new Date(matchingFile.created_at)
-            });
+            setCachedDataInfo({ fileName: matchingFile.name, createdAt: new Date(matchingFile.created_at) });
             setShowCacheDialog(true);
         } else {
-            // No cached data, fetch fresh
             await loadData(true);
         }
     };
 
-    // Load data with option to use cache or fetch fresh
     const loadData = async (forceFresh: boolean) => {
         if (!selectedGameId || !config) return;
-
         const game = config.games.find(g => g.id === selectedGameId);
         const viewId = game?.viewMappings?.["Level Revize"];
-
-        if (!viewId) {
-            setError("No Level Revize view found for this game.");
-            return;
-        }
+        if (!viewId) { setError("No Level Revize view found for this game."); return; }
 
         setLoading(true);
         setError(null);
@@ -371,77 +367,95 @@ export default function WeeklyCheckPage() {
             let csvData: string | null = null;
 
             if (!forceFresh) {
-                // Try to use cached data
-                const { data: files } = await supabase.storage
-                    .from('data-repository')
-                    .list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } });
-
-                const matchingFile = files?.find(f =>
-                    f.name.includes(gameName) && f.name.includes("Level Revize")
-                );
-
+                const { data: files } = await supabase.storage.from('data-repository').list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } });
+                const matchingFile = files?.find(f => f.name.includes(gameName) && f.name.includes("Level Revize"));
                 if (matchingFile) {
-                    const { data: fileData } = await supabase.storage
-                        .from('data-repository')
-                        .download(matchingFile.name);
-
-                    if (fileData) {
-                        csvData = await fileData.text();
-                    }
+                    const { data: fileData } = await supabase.storage.from('data-repository').download(matchingFile.name);
+                    if (fileData) csvData = await fileData.text();
                 }
             }
 
-            // If no cached data or force fresh, fetch from Tableau
             if (!csvData) {
                 const response = await fetch("/api/sync-tableau", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        viewId: viewId,
-                        tableName: "level_design_data",
-                    }),
+                    body: JSON.stringify({ viewId, tableName: "level_design_data" }),
                 });
-
                 const result = await response.json();
                 if (!response.ok) throw new Error(result.error || "Failed to fetch data");
                 csvData = result.data;
 
-                // Save to repository
                 if (csvData) {
                     const timestamp = format(new Date(), "yyyy-MM-dd HH-mm-ss");
                     const fileName = `${gameName} - Level Revize - ${timestamp}.csv`;
-                    await supabase.storage
-                        .from('data-repository')
-                        .upload(fileName, csvData, { contentType: 'text/csv', upsert: false });
+                    await supabase.storage.from('data-repository').upload(fileName, csvData, { contentType: 'text/csv', upsert: false });
                 }
             }
 
-            // Parse CSV (ensure csvData is not null)
-            if (!csvData) {
-                throw new Error("No data available to parse");
-            }
-
+            if (!csvData) throw new Error("No data available to parse");
 
             const parsed = papa.parse(csvData, { header: true, skipEmptyLines: true });
-            const parsedRaw = parsed.data as any[];
-            setRawData(parsedRaw);
+            let rawRows = parsed.data as any[];
 
-            const rawHeaders = parsed.meta.fields || [];
+            // Fetch Saved Scores
+            try {
+                // Add timestamp to prevent caching
+                const savedRes = await fetch(`/api/level-scores?gameId=${selectedGameId}&t=${Date.now()}`, {
+                    cache: 'no-store',
+                    headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+                });
+                if (savedRes.ok) {
+                    const savedData: SavedScore[] = await savedRes.json();
+                    const savedMap = new Map(savedData.map(s => [s.level, s]));
 
-            // Process and Sort Headers
-            let processedHeaders = processHeaders(rawHeaders);
-            console.log('Raw headers from Tableau:', rawHeaders);
-            console.log('Processed headers:', processedHeaders);
+                    // Inject Saved Scores into Raw Data
+                    rawRows = rawRows.map(row => {
+                        // Find Level Column
+                        const levelCol = Object.keys(row).find(k => {
+                            const n = normalizeHeader(k);
+                            return n === 'level' || n === 'level number' || n === 'level_number';
+                        }) || 'Level';
 
-            // Apply custom column order if defined
-            if (config?.weeklyCheck?.columnOrder && config.weeklyCheck.columnOrder.length > 0) {
+                        const levelVal = parseInt(String(row[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
+                        const saved = savedMap.get(levelVal);
+
+                        // Find Final Cluster Column
+                        const clusterCol = Object.keys(row).find(k => {
+                            const n = normalizeHeader(k);
+                            return n.includes('final') && n.includes('cluster');
+                        });
+                        const finalClusterVal = clusterCol ? row[clusterCol] : '';
+
+                        // Determine Effective Cluster
+                        const effectiveCluster = saved?.cluster || finalClusterVal;
+
+                        return {
+                            ...row,
+                            'New Cluster': effectiveCluster,
+                            'Score': saved?.score !== undefined ? saved.score : '',
+                            '__FinalCluster': finalClusterVal // Internal field for comparison
+                        };
+                    });
+                }
+            } catch (err) {
+                console.error("Failed to load saved scores", err);
+            }
+
+            setRawData(rawRows);
+
+            let processedHeaders = processHeaders(parsed.meta.fields || []);
+            // Add new headers
+            if (!processedHeaders.includes('New Cluster')) processedHeaders.push('New Cluster');
+            if (!processedHeaders.includes('Score')) processedHeaders.push('Score');
+
+            if (config?.weeklyCheck?.columnOrder?.length) {
                 processedHeaders = sortHeaders(processedHeaders, config.weeklyCheck.columnOrder);
-                console.log('Sorted headers:', processedHeaders);
+            }
+            if (config?.weeklyCheck?.hiddenColumns?.length) {
+                const hiddenSet = new Set(config.weeklyCheck.hiddenColumns);
+                processedHeaders = processedHeaders.filter(h => !hiddenSet.has(h));
             }
             setHeaders(processedHeaders);
-
-            // Initial data processing is now handled by the useEffect above reacting to setRawData
-
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -449,58 +463,572 @@ export default function WeeklyCheckPage() {
         }
     };
 
-    // Handle new move value change
-    const handleNewMoveChange = (sectionId: string, level: number, value: string) => {
+    const handleActionTypeChange = (sectionId: string, level: number, type: 'M' | 'R' | 'BR' | 'TR' | 'S' | 'SS' | '') => {
         const key = `${sectionId}-${level}`;
-        setNewMoveValues(prev => ({
+        setActions(prev => ({
             ...prev,
-            [key]: value
+            [key]: { ...prev[key], type, moveValue: undefined, description: undefined }
         }));
     };
 
-    // Export new moves to TXT file
-    const exportNewMoves = (sectionId: string) => {
-        const section = sections.find(s => s.id === sectionId);
-        if (!section) return;
+    const handleActionMoveChange = (sectionId: string, level: number, moveValue: number) => {
+        const key = `${sectionId}-${level}`;
+        setActions(prev => ({
+            ...prev,
+            [key]: { ...prev[key], moveValue }
+        }));
+    };
 
-        const lines: string[] = [];
-        section.data.forEach(row => {
-            const level = row['Level'];
-            if (level === undefined) return;
+    const handleActionDescriptionChange = (sectionId: string, level: number, description: string) => {
+        const key = `${sectionId}-${level}`;
+        setActions(prev => ({
+            ...prev,
+            [key]: { ...prev[key], description }
+        }));
+    };
 
-            const key = `${sectionId}-${level}`;
-            const newMove = newMoveValues[key];
+    const exportActions = (section: TableSection, isSuccessfulTab: boolean = false) => {
+        if (isSuccessfulTab) {
+            const grouped: Record<string, { level: number; description: string }[]> = {
+                'Select': [],
+                'Super Select': []
+            };
 
-            if (newMove && newMove.trim() !== '') {
-                // Get current revision number and add 1
-                const currentRevision = parseInt(row['RevisionNumber'] || row['Revision Number'] || '0') || 0;
-                const newRevision = currentRevision + 1;
-                lines.push(`${level}\t${newRevision}\t${newMove}`);
+            section.data.forEach(row => {
+                const level = row['Level'];
+                if (level === undefined) return;
+                const key = `${section.id}-${level}`;
+                const action = actions[key];
+                if (!action?.type) return;
+
+                if (action.type === 'S') {
+                    grouped['Select'].push({ level, description: action.description || '-' });
+                } else if (action.type === 'SS') {
+                    grouped['Super Select'].push({ level, description: action.description || '-' });
+                }
+            });
+
+            // Build table string for successful tab
+            let output = '';
+            for (const [actionName, items] of Object.entries(grouped)) {
+                if (items.length === 0) continue;
+                items.forEach((item, idx) => {
+                    output += `${idx === 0 ? actionName : ''}\t${item.level}\t${item.description}\n`;
+                });
             }
-        });
 
-        if (lines.length === 0) {
-            alert('No new move values entered. Please enter values in the "New Move" column.');
+            if (!output.trim()) { alert('No actions entered.'); return; }
+            setExportData(output);
+            setExportHeaders(['Action', 'Level', 'Description']);
+            setShowExportDialog(true);
             return;
         }
 
-        const content = lines.join('\n');
-        const blob = new Blob([content], { type: 'text/plain' });
+        const grouped: Record<string, { level: number; revisionNumber: number; newMove: string; description: string; totalMove: number }[]> = {
+            'Revise': [],
+            'Big Revise': [],
+            'Time Revise': [],
+            'Move Change': []
+        };
+
+        section.data.forEach(row => {
+            const level = row['Level'];
+            if (level === undefined) return;
+            const key = `${section.id}-${level}`;
+            const action = actions[key];
+            if (!action?.type) return;
+
+            const currentRevision = parseInt(row['RevisionNumber'] || row['Revision Number'] || '0') || 0;
+            const totalMove = Math.round(parseFloat(row['Total Move'] || row['Avg. Total Moves'] || row['TotalMove'] || '0') || 0);
+
+            if (action.type === 'R') {
+                grouped['Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
+            } else if (action.type === 'BR') {
+                grouped['Big Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
+            } else if (action.type === 'TR') {
+                grouped['Time Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
+            } else if (action.type === 'M') {
+                const mv = action.moveValue || 0;
+                grouped['Move Change'].push({ level, revisionNumber: currentRevision + 1, newMove: String(totalMove + mv), description: '-', totalMove });
+            }
+        });
+
+        // Build table string
+        let output = '';
+        for (const [actionName, items] of Object.entries(grouped)) {
+            if (items.length === 0) continue;
+            items.forEach((item, idx) => {
+                output += `${idx === 0 ? actionName : ''}\t${item.level}\t${item.revisionNumber}\t${item.newMove}\t${item.description}\n`;
+            });
+        }
+
+        if (!output.trim()) {
+            alert('No actions entered.');
+            return;
+        }
+
+        // Generate Move Summary
+        const moveGroups: Record<number, number[]> = {};
+        grouped['Move Change'].forEach(item => {
+            const mv = parseInt(item.newMove) - item.totalMove; // Calculate move change from NewMove - TotalMove. 
+            // Wait, previous logic was: newMove = String(totalMove + mv). So mv = newMove - totalMove.
+            // Actually, in the loop above: `const mv = action.moveValue || 0;`
+            // We can just re-access the action logical, or parse it?
+            // Let's just use the values from the grouped array? 
+            // The grouped array has `newMove`. `totalMove`.
+
+            // Better: Iterate the actions again or capture it during the loop.
+            // Let's just capture it during the loop for cleanliness.
+            // Actually, let's keep it simple and iterate the grouped array IF we have the info needed.
+            // grouped['Move Change'] item has: { level, revisionNumber, newMove, description, totalMove }
+            // newMove is string. totalMove is number.
+            // diff = parseInt(newMove) - totalMove.
+        });
+
+        // Let's redo the grouping properly in one pass or just reuse the actions check.
+        const moveSummaryGroups: Record<number, number[]> = {};
+
+        section.data.forEach(row => {
+            const level = row['Level'];
+            if (level === undefined) return;
+            const key = `${section.id}-${level}`;
+            const action = actions[key];
+            if (action?.type === 'M' && action.moveValue !== undefined) {
+                const mv = action.moveValue;
+                if (!moveSummaryGroups[mv]) moveSummaryGroups[mv] = [];
+                moveSummaryGroups[mv].push(level);
+            }
+        });
+
+        let summaryStr = '';
+        if (Object.keys(moveSummaryGroups).length > 0) {
+            summaryStr = '\nMoves Summary:\n';
+            // Sort by move value? User example: -1, 1, 3.
+            Object.keys(moveSummaryGroups).sort((a, b) => Number(a) - Number(b)).forEach(mvStr => {
+                const mv = Number(mvStr);
+                const levels = moveSummaryGroups[mv];
+                // Sort levels from small to big
+                levels.sort((a, b) => Number(a) - Number(b));
+                summaryStr += `${mv} move ${levels.join(' ')}\n`;
+            });
+        }
+
+        if (!output.trim()) {
+            alert('No actions entered.');
+            return;
+        }
+
+        setExportData(output);
+        setExportSummary(summaryStr); // Set summary
+        setExportHeaders(['Action', 'Level', 'Revision Number', 'New Move', 'Description']);
+        setShowExportDialog(true);
+    };
+
+    const copyExportData = () => {
+        // Add headers to clipboard data
+        const withHeaders = `${exportHeaders.join('\t')}\n${exportData}\n${exportSummary}`;
+        navigator.clipboard.writeText(withHeaders);
+        alert('Copied to clipboard!');
+        setShowExportDialog(false);
+    };
+
+    const downloadAsXLS = () => {
+        // Create XLS content with headers
+        const headers = exportHeaders.join('\t') + '\n';
+        const xlsContent = headers + exportData + '\n' + exportSummary;
+
+        // Create a Blob with XLS mimetype
+        const blob = new Blob([xlsContent], { type: 'application/vnd.ms-excel' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${section.title.replace(/\s+/g, '_')}_NewMoves.txt`;
+        a.download = 'Weekly_Check_Actions.xls';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     };
 
-    const toggleSection = (id: string) => {
-        setSections(prev => prev.map(s =>
-            s.id === id ? { ...s, expanded: !s.expanded } : s
-        ));
+    // Combine Actions - adds current section to weekly report
+    const combineActions = (section: TableSection, isSuccessfulTab: boolean = false) => {
+        let content = '';
+        let headers: string[] = [];
+        let summary = '';
+
+        if (isSuccessfulTab) {
+            const grouped: Record<string, { level: number; description: string }[]> = {
+                'Select': [],
+                'Super Select': []
+            };
+
+            section.data.forEach(row => {
+                const level = row['Level'];
+                if (level === undefined) return;
+                const key = `${section.id}-${level}`;
+                const action = actions[key];
+                if (!action?.type) return;
+
+                if (action.type === 'S') {
+                    grouped['Select'].push({ level, description: action.description || '-' });
+                } else if (action.type === 'SS') {
+                    grouped['Super Select'].push({ level, description: action.description || '-' });
+                }
+            });
+
+            headers = ['Action', 'Level', 'Description'];
+            for (const [actionName, items] of Object.entries(grouped)) {
+                if (items.length === 0) continue;
+                items.forEach((item, idx) => {
+                    content += `${idx === 0 ? actionName : ''}\t${item.level}\t${item.description}\n`;
+                });
+            }
+        } else {
+            const grouped: Record<string, { level: number; revisionNumber: number; newMove: string; description: string; totalMove: number }[]> = {
+                'Revise': [],
+                'Big Revise': [],
+                'Time Revise': [],
+                'Move Change': []
+            };
+
+            section.data.forEach(row => {
+                const level = row['Level'];
+                if (level === undefined) return;
+                const key = `${section.id}-${level}`;
+                const action = actions[key];
+                if (!action?.type) return;
+
+                const currentRevision = parseInt(row['RevisionNumber'] || row['Revision Number'] || '0') || 0;
+                const totalMove = Math.round(parseFloat(row['Total Move'] || row['Avg. Total Moves'] || row['TotalMove'] || '0') || 0);
+
+                if (action.type === 'R') {
+                    grouped['Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
+                } else if (action.type === 'BR') {
+                    grouped['Big Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
+                } else if (action.type === 'TR') {
+                    grouped['Time Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
+                } else if (action.type === 'M') {
+                    const mv = action.moveValue || 0;
+                    grouped['Move Change'].push({ level, revisionNumber: currentRevision + 1, newMove: String(totalMove + mv), description: '-', totalMove });
+                }
+            });
+
+            headers = ['Action', 'Level', 'Revision Number', 'New Move', 'Description'];
+            for (const [actionName, items] of Object.entries(grouped)) {
+                if (items.length === 0) continue;
+                items.forEach((item, idx) => {
+                    content += `${idx === 0 ? actionName : ''}\t${item.level}\t${item.revisionNumber}\t${item.newMove}\t${item.description}\n`;
+                });
+            }
+
+            // Move Summary
+            const moveSummaryGroups: Record<number, number[]> = {};
+            section.data.forEach(row => {
+                const level = row['Level'];
+                if (level === undefined) return;
+                const key = `${section.id}-${level}`;
+                const action = actions[key];
+                if (action?.type === 'M' && action.moveValue !== undefined) {
+                    const mv = action.moveValue;
+                    if (!moveSummaryGroups[mv]) moveSummaryGroups[mv] = [];
+                    moveSummaryGroups[mv].push(level);
+                }
+            });
+
+            if (Object.keys(moveSummaryGroups).length > 0) {
+                summary = 'Moves Summary: ';
+                Object.keys(moveSummaryGroups).sort((a, b) => Number(a) - Number(b)).forEach(mvStr => {
+                    const mv = Number(mvStr);
+                    const levels = moveSummaryGroups[mv].sort((a, b) => a - b);
+                    summary += `${mv} move: ${levels.join(' ')}  `;
+                });
+            }
+        }
+
+        if (!content.trim()) {
+            alert('No actions to combine in this section.');
+            return;
+        }
+
+        // Add to combined report (replace if same section title exists)
+        setCombinedReport(prev => {
+            const filtered = prev.filter(s => s.title !== section.title);
+            return [...filtered, { title: section.title, content, headers, summary }];
+        });
+
+        alert(`Added "${section.title}" to Weekly Report! (${combinedReport.length + 1} sections total)`);
     };
+
+    // Download Weekly Report as XLS
+    const downloadWeeklyReport = () => {
+        if (combinedReport.length === 0) {
+            alert('No sections combined yet. Click "Combine Actions" on each section first.');
+            return;
+        }
+
+        const gameName = config?.games.find(g => g.id === selectedGameId)?.name || 'Unknown Game';
+        const dateStr = new Date().toLocaleDateString('en-GB');
+
+        let xlsContent = `Game: ${gameName}\nDate: ${dateStr}\n\n`;
+
+        // Individual sections
+        combinedReport.forEach(section => {
+            xlsContent += `=== ${section.title} ===\n`;
+            xlsContent += section.headers.join('\t') + '\n';
+            xlsContent += section.content;
+            if (section.summary) {
+                xlsContent += section.summary + '\n';
+            }
+            xlsContent += '\n';
+        });
+
+        // Create merged table (all actions combined)
+        xlsContent += `=== MERGED TABLE ===\n`;
+        xlsContent += 'Section\tAction\tLevel\tRevision Number\tNew Move\tDescription\n';
+
+        combinedReport.forEach(section => {
+            const lines = section.content.split('\n').filter(Boolean);
+            let currentAction = '';
+            lines.forEach(line => {
+                const parts = line.split('\t');
+                if (parts[0]) currentAction = parts[0];
+                // Add section name as first column
+                xlsContent += `${section.title}\t${currentAction}\t${parts.slice(1).join('\t')}\n`;
+            });
+        });
+
+        // Combined moves summary
+        const allMoveSummaries: Record<number, number[]> = {};
+        combinedReport.forEach(section => {
+            if (section.summary) {
+                // Parse "Moves Summary: -1 move: 100 101  1 move: 200 201"
+                const matches = section.summary.matchAll(/(-?\d+)\s*move:\s*([\d\s]+)/g);
+                for (const match of matches) {
+                    const mv = parseInt(match[1]);
+                    const levels = match[2].trim().split(/\s+/).map(Number).filter(n => !isNaN(n));
+                    if (!allMoveSummaries[mv]) allMoveSummaries[mv] = [];
+                    allMoveSummaries[mv].push(...levels);
+                }
+            }
+        });
+
+        if (Object.keys(allMoveSummaries).length > 0) {
+            xlsContent += '\n=== COMBINED MOVES SUMMARY ===\n';
+            Object.keys(allMoveSummaries).sort((a, b) => Number(a) - Number(b)).forEach(mvStr => {
+                const mv = Number(mvStr);
+                const levels = [...new Set(allMoveSummaries[mv])].sort((a, b) => a - b);
+                xlsContent += `${mv} move: ${levels.join(' ')}\n`;
+            });
+        }
+
+        const blob = new Blob([xlsContent], { type: 'application/vnd.ms-excel' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Weekly_Report_${gameName.replace(/\s+/g, '_')}_${dateStr.replace(/\//g, '-')}.xls`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        setShowWeeklyReportDialog(false);
+    };
+
+    // Helper to get combined moves summary for display
+    const getCombinedMovesSummary = (): string => {
+        const allMoveSummaries: Record<number, number[]> = {};
+        combinedReport.forEach(section => {
+            if (section.summary) {
+                const matches = section.summary.matchAll(/(-?\d+)\s*move:\s*([\d\s]+)/g);
+                for (const match of matches) {
+                    const mv = parseInt(match[1]);
+                    const levels = match[2].trim().split(/\s+/).map(Number).filter(n => !isNaN(n));
+                    if (!allMoveSummaries[mv]) allMoveSummaries[mv] = [];
+                    allMoveSummaries[mv].push(...levels);
+                }
+            }
+        });
+
+        if (Object.keys(allMoveSummaries).length === 0) return '';
+
+        let summary = '';
+        Object.keys(allMoveSummaries).sort((a, b) => Number(a) - Number(b)).forEach(mvStr => {
+            const mv = Number(mvStr);
+            const levels = [...new Set(allMoveSummaries[mv])].sort((a, b) => a - b);
+            summary += `${mv} move: ${levels.join(' ')}  `;
+        });
+        return summary.trim();
+    };
+
+    // Save Weekly Report to database
+    const [savingReport, setSavingReport] = useState(false);
+    const saveWeeklyReport = async () => {
+        if (combinedReport.length === 0 || !selectedGameId || !config) return;
+
+        setSavingReport(true);
+        const gameName = config.games.find(g => g.id === selectedGameId)?.name || 'Unknown Game';
+
+        try {
+            const res = await fetch('/api/weekly-reports', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    gameId: selectedGameId,
+                    gameName,
+                    reportData: combinedReport
+                })
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || 'Failed to save');
+            }
+
+            alert('Report saved successfully! View it in Weekly Reports.');
+        } catch (err: any) {
+            alert('Failed to save report: ' + err.message);
+        } finally {
+            setSavingReport(false);
+        }
+    };
+
+    const toggleSection = (sectionId: string, tabType: 'unsuccessful' | 'successful' | 'last30') => {
+        if (tabType === 'unsuccessful') {
+            setUnsuccessfulSections(prev => prev.map(s => s.id === sectionId ? { ...s, expanded: !s.expanded } : s));
+        } else if (tabType === 'successful') {
+            setSuccessfulSections(prev => prev.map(s => s.id === sectionId ? { ...s, expanded: !s.expanded } : s));
+        } else {
+            setLast30Section(prev => ({ ...prev, expanded: !prev.expanded }));
+        }
+    };
+
+    const renderSection = (section: TableSection, tabType: 'unsuccessful' | 'successful' | 'last30') => (
+        <div key={section.id} className="rounded-xl border shadow-sm bg-card overflow-hidden">
+            <button
+                onClick={() => toggleSection(section.id, tabType)}
+                className="w-full flex items-center justify-between p-4 bg-muted/30 hover:bg-muted/50 transition-colors"
+            >
+                <h2 className="text-lg font-semibold">{section.title}</h2>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                    <span className="text-sm">{section.data.length} rows</span>
+                    {section.expanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                </div>
+            </button>
+
+            {section.expanded && section.data.length > 0 && (
+                <div>
+                    <div className="max-h-[400px] overflow-auto relative">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-muted" style={{ position: 'sticky', top: 0, zIndex: 20 }}>
+                                    <TableHead className="whitespace-nowrap font-bold text-foreground bg-muted" style={{ position: 'sticky', left: 0, zIndex: 30, minWidth: '200px' }}>Action</TableHead>
+                                    {section.headers.slice(0, 50).map((header) => (
+                                        <TableHead key={header} className="whitespace-nowrap font-bold text-foreground bg-muted">
+                                            {getDisplayName(header, config?.weeklyCheck?.columnRenames)}
+                                        </TableHead>
+                                    ))}
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {section.data.map((row, i) => {
+                                    const level = row['Level'];
+                                    const key = `${section.id}-${level}`;
+                                    const action = actions[key] || { type: '' };
+                                    return (
+                                        <TableRow key={i} className="hover:bg-muted/30">
+                                            <TableCell className="whitespace-nowrap sticky left-0 bg-card z-10" style={{ minWidth: '200px' }}>
+                                                <div className="flex gap-1 items-center">
+                                                    <Select
+                                                        value={action.type || ''}
+                                                        onValueChange={(val) => handleActionTypeChange(section.id, level, val as any)}
+                                                    >
+                                                        <SelectTrigger className="w-16 h-8">
+                                                            <SelectValue placeholder="-" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {tabType === 'successful' ? (
+                                                                <>
+                                                                    <SelectItem value="S">S</SelectItem>
+                                                                    <SelectItem value="SS">SS</SelectItem>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <SelectItem value="M">M</SelectItem>
+                                                                    <SelectItem value="R">R</SelectItem>
+                                                                    <SelectItem value="BR">BR</SelectItem>
+                                                                    <SelectItem value="TR">TR</SelectItem>
+                                                                </>
+                                                            )}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    {action.type === 'M' && (
+                                                        <Select
+                                                            value={action.moveValue !== undefined ? String(action.moveValue) : ''}
+                                                            onValueChange={(val) => handleActionMoveChange(section.id, level, parseInt(val))}
+                                                        >
+                                                            <SelectTrigger className="w-14 h-8">
+                                                                <SelectValue placeholder="0" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="-3">-3</SelectItem>
+                                                                <SelectItem value="-2">-2</SelectItem>
+                                                                <SelectItem value="-1">-1</SelectItem>
+                                                                <SelectItem value="1">+1</SelectItem>
+                                                                <SelectItem value="2">+2</SelectItem>
+                                                                <SelectItem value="3">+3</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    )}
+                                                    {(action.type === 'R' || action.type === 'BR' || action.type === 'TR' || action.type === 'S' || action.type === 'SS') && (
+                                                        <Input
+                                                            type="text"
+                                                            className="w-32 h-8 text-xs"
+                                                            value={action.description || ''}
+                                                            onChange={(e) => handleActionDescriptionChange(section.id, level, e.target.value)}
+                                                            placeholder="Description..."
+                                                        />
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                            {section.headers.slice(0, 50).map((header) => {
+                                                const isNewCluster = header === 'New Cluster';
+                                                const isBold = isNewCluster && row['New Cluster'] !== row['__FinalCluster'];
+
+                                                return (
+                                                    <TableCell
+                                                        key={`${i}-${header}`}
+                                                        className={cn(
+                                                            "whitespace-nowrap font-medium text-muted-foreground",
+                                                            isBold && "font-bold text-foreground border-2 border-primary/20 bg-primary/5"
+                                                        )}
+                                                    >
+                                                        {formatTableValue(row[header], header)}
+                                                    </TableCell>
+                                                );
+                                            })}
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+                    </div>
+                    <div className="p-3 border-t bg-muted/20 flex justify-end gap-2">
+                        <Button variant="outline" size="sm" onClick={() => combineActions(section, tabType === 'successful')} className="gap-2">
+                            + Combine
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => exportActions(section, tabType === 'successful')} className="gap-2">
+                            <Download className="h-4 w-4" /> Export Actions
+                        </Button>
+                    </div>
+                </div>
+            )}
+
+            {section.expanded && section.data.length === 0 && (
+                <div className="p-8 text-center text-muted-foreground">
+                    No data loaded. Select a game and click "Load Data".
+                </div>
+            )}
+        </div>
+    );
 
     if (loadingConfig) return <div className="p-8 animate-pulse text-muted-foreground">Loading configuration...</div>;
     if (!config) return <div className="p-8 text-destructive">Failed to load configuration.</div>;
@@ -512,92 +1040,153 @@ export default function WeeklyCheckPage() {
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-in fade-in duration-200">
                     <div className="bg-card rounded-xl shadow-2xl border p-6 max-w-md w-full mx-4 animate-in zoom-in-95 duration-200">
                         <h3 className="text-lg font-semibold mb-2">Existing Data Found</h3>
-                        <p className="text-muted-foreground mb-4">
-                            Data for this selection was saved on:
-                        </p>
+                        <p className="text-muted-foreground mb-4">Data for this selection was saved on:</p>
                         <div className="bg-muted/50 rounded-lg p-3 mb-4">
                             <p className="font-medium text-sm">{cachedDataInfo.fileName}</p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                                {format(cachedDataInfo.createdAt, "MMMM d, yyyy 'at' HH:mm")}
-                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">{format(cachedDataInfo.createdAt, "MMMM d, yyyy 'at' HH:mm")}</p>
                         </div>
-                        <p className="text-sm text-muted-foreground mb-4">
-                            Would you like to use this saved data or fetch new data from Tableau?
-                        </p>
                         <div className="flex gap-3">
-                            <Button
-                                variant="outline"
-                                className="flex-1"
-                                onClick={() => loadData(false)}
-                            >
-                                Use Saved Data
-                            </Button>
-                            <Button
-                                className="flex-1"
-                                onClick={() => loadData(true)}
-                            >
-                                Fetch New Data
-                            </Button>
+                            <Button variant="outline" className="flex-1" onClick={() => loadData(false)}>Use Saved Data</Button>
+                            <Button className="flex-1" onClick={() => loadData(true)}>Fetch New Data</Button>
                         </div>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-full mt-2 text-muted-foreground"
-                            onClick={() => { setShowCacheDialog(false); setCachedDataInfo(null); }}
-                        >
-                            Cancel
-                        </Button>
+                        <Button variant="ghost" size="sm" className="w-full mt-2 text-muted-foreground" onClick={() => { setShowCacheDialog(false); setCachedDataInfo(null); }}>Cancel</Button>
                     </div>
                 </div>
             )}
+
+            {/* Export Actions Dialog */}
+            {showExportDialog && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-in fade-in duration-200">
+                    <div className="bg-card rounded-xl shadow-2xl border p-6 max-w-2xl w-full mx-4 animate-in zoom-in-95 duration-200">
+                        <h3 className="text-lg font-semibold mb-2">Export Actions</h3>
+                        <p className="text-muted-foreground mb-4 text-sm">Copy this table data to paste into your spreadsheet:</p>
+                        <div className="bg-muted rounded-lg p-3 mb-4 overflow-auto max-h-[300px]">
+                            <table className="w-full text-sm font-mono">
+                                <thead>
+                                    <tr className="border-b">
+                                        {exportHeaders.map((header) => (
+                                            <th key={header} className="text-left py-1 pr-4 font-bold">{header}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {exportData.split('\n').filter(Boolean).map((line, idx) => {
+                                        const parts = line.split('\t');
+                                        return (
+                                            <tr key={idx} className="border-b border-muted-foreground/20">
+                                                {exportHeaders.map((_, i) => (
+                                                    <td key={i} className="py-1 pr-4">{parts[i] || ''}</td>
+                                                ))}
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                        {exportSummary && (
+                            <div className="bg-muted/50 rounded-lg p-3 mb-4 overflow-auto max-h-[200px]">
+                                <pre className="text-xs font-mono whitespace-pre-wrap">{exportSummary.trim()}</pre>
+                            </div>
+                        )}
+                        <div className="flex gap-3">
+                            <Button className="flex-1" onClick={copyExportData}>Copy to Clipboard</Button>
+                            <Button variant="secondary" className="flex-1" onClick={downloadAsXLS}>Download XLS</Button>
+                            <Button variant="outline" onClick={() => setShowExportDialog(false)}>Close</Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Weekly Report Dialog */}
+            {showWeeklyReportDialog && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="bg-card rounded-xl p-6 max-w-3xl w-full max-h-[90vh] overflow-auto shadow-2xl">
+                        <h3 className="text-lg font-semibold mb-2">📋 Weekly Report</h3>
+                        <p className="text-muted-foreground mb-4 text-sm">
+                            {config?.games.find(g => g.id === selectedGameId)?.name || 'Unknown Game'} - {new Date().toLocaleDateString('en-GB')}
+                        </p>
+
+                        {combinedReport.length === 0 ? (
+                            <p className="text-muted-foreground text-center py-8">
+                                No sections combined yet. Click "+ Combine" on each section first.
+                            </p>
+                        ) : (
+                            <div className="space-y-4">
+                                {combinedReport.map((section, idx) => (
+                                    <div key={idx} className="border rounded-lg overflow-hidden">
+                                        <div className="bg-muted/50 px-4 py-2 font-semibold flex justify-between items-center">
+                                            <span>{section.title}</span>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setCombinedReport(prev => prev.filter((_, i) => i !== idx))}
+                                                className="h-6 px-2 text-destructive hover:text-destructive"
+                                            >
+                                                Remove
+                                            </Button>
+                                        </div>
+                                        <div className="p-3 overflow-auto max-h-[200px]">
+                                            <table className="w-full text-sm font-mono">
+                                                <thead>
+                                                    <tr className="border-b">
+                                                        {section.headers.map((header) => (
+                                                            <th key={header} className="text-left py-1 pr-4 font-bold">{header}</th>
+                                                        ))}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {section.content.split('\n').filter(Boolean).map((line, lineIdx) => {
+                                                        const parts = line.split('\t');
+                                                        return (
+                                                            <tr key={lineIdx} className="border-b border-muted-foreground/20">
+                                                                {section.headers.map((_, i) => (
+                                                                    <td key={i} className="py-1 pr-4">{parts[i] || ''}</td>
+                                                                ))}
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                            {section.summary && (
+                                                <div className="mt-2 text-xs text-muted-foreground">{section.summary}</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Combined Moves Summary */}
+                        {getCombinedMovesSummary() && (
+                            <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
+                                <h4 className="font-semibold text-sm mb-2">📊 Combined Moves Summary</h4>
+                                <p className="font-mono text-sm">{getCombinedMovesSummary()}</p>
+                            </div>
+                        )}
+
+                        <div className="flex gap-3 mt-6">
+                            <Button variant="secondary" onClick={saveWeeklyReport} disabled={combinedReport.length === 0 || savingReport}>
+                                {savingReport ? 'Saving...' : '💾 Save Report'}
+                            </Button>
+                            <Button className="flex-1" onClick={downloadWeeklyReport} disabled={combinedReport.length === 0}>
+                                Download Merged XLS
+                            </Button>
+                            <Button variant="outline" onClick={() => setCombinedReport([])}>
+                                Clear All
+                            </Button>
+                            <Button variant="outline" onClick={() => setShowWeeklyReportDialog(false)}>
+                                Close
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
                     <div>
                         <h1 className="text-2xl font-bold">Weekly Check</h1>
                         <p className="text-muted-foreground">Review key metrics from Level Revize data</p>
-                    </div>
-
-                    <div className="flex flex-wrap gap-4 items-end">
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold text-muted-foreground">Min Level</label>
-                            <Input
-                                type="number"
-                                value={minLevel}
-                                onChange={(e) => setMinLevel(Number(e.target.value))}
-                                className="w-20 h-8 bg-background"
-                                min={0}
-                            />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold text-muted-foreground">Min Users (General)</label>
-                            <Input
-                                type="number"
-                                value={minTotalUser}
-                                onChange={(e) => setMinUsers(Number(e.target.value))}
-                                className="w-24 h-8 bg-background"
-                            />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold text-muted-foreground">Min Users (Last 30)</label>
-                            <Input
-                                type="number"
-                                value={minTotalUserLast30}
-                                onChange={(e) => setMinUsersLast30(Number(e.target.value))}
-                                className="w-24 h-8 bg-background"
-                            />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold text-muted-foreground">Min Days Old</label>
-                            <Input
-                                type="number"
-                                value={minDaysSinceEvent}
-                                onChange={(e) => setMinDaysSinceEvent(Number(e.target.value))}
-                                className="w-20 h-8 bg-background"
-                                min={0}
-                                placeholder="0"
-                                title="Exclude levels from the last N days (based on Min. Time Event date)"
-                            />
-                        </div>
                     </div>
                 </div>
             </div>
@@ -611,105 +1200,125 @@ export default function WeeklyCheckPage() {
                             <SelectValue placeholder="Select a Game..." />
                         </SelectTrigger>
                         <SelectContent>
-                            {availableGames?.map(g => (
-                                <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
-                            ))}
+                            {availableGames?.map(g => (<SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>))}
                             {availableGames?.length === 0 && <SelectItem value="none" disabled>No games available</SelectItem>}
                         </SelectContent>
                     </Select>
                 </div>
-
                 <Button onClick={handleLoad} disabled={loading || !selectedGameId} className="shadow-sm w-full sm:w-auto">
                     {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
                     Load Data
                 </Button>
+                {combinedReport.length > 0 && (
+                    <Button variant="secondary" onClick={() => setShowWeeklyReportDialog(true)} className="shadow-sm w-full sm:w-auto gap-2">
+                        📋 Weekly Report ({combinedReport.length})
+                    </Button>
+                )}
             </div>
 
             {error && (
-                <div className="p-4 text-sm text-destructive bg-destructive/10 rounded-md border border-destructive/20">
-                    {error}
-                </div>
+                <div className="p-4 text-sm text-destructive bg-destructive/10 rounded-md border border-destructive/20">{error}</div>
             )}
 
-            {/* Table Sections */}
-            {sections.map(section => (
-                <div key={section.id} className="rounded-xl border shadow-sm bg-card overflow-hidden">
-                    <button
-                        onClick={() => toggleSection(section.id)}
-                        className="w-full flex items-center justify-between p-4 bg-muted/30 hover:bg-muted/50 transition-colors"
-                    >
-                        <h2 className="text-lg font-semibold">{section.title}</h2>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                            <span className="text-sm">{section.data.length} rows</span>
-                            {section.expanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-                        </div>
-                    </button>
+            {/* Tabs */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="unsuccessful">Unsuccessful</TabsTrigger>
+                    <TabsTrigger value="successful">Successful</TabsTrigger>
+                    <TabsTrigger value="last30">Last 30 Levels</TabsTrigger>
+                </TabsList>
 
-                    {section.expanded && section.data.length > 0 && (
-                        <div>
-                            <div className="max-h-[400px] overflow-auto relative">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow className="bg-muted" style={{ position: 'sticky', top: 0, zIndex: 20 }}>
-                                            <TableHead className="whitespace-nowrap font-bold text-foreground bg-muted" style={{ position: 'sticky', left: 0, zIndex: 30 }}>
-                                                New Move
-                                            </TableHead>
-                                            {section.headers.slice(0, 50).map((header) => (
-                                                <TableHead key={header} className="whitespace-nowrap font-bold text-foreground bg-muted">
-                                                    {getDisplayName(header, config?.weeklyCheck?.columnRenames)}
-                                                </TableHead>
-                                            ))}
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {section.data.map((row, i) => {
-                                            const level = row['Level'];
-                                            const key = `${section.id}-${level}`;
-                                            return (
-                                                <TableRow key={i} className="hover:bg-muted/30">
-                                                    <TableCell className="whitespace-nowrap sticky left-0 bg-card z-10">
-                                                        <Input
-                                                            type="number"
-                                                            min={-3}
-                                                            max={3}
-                                                            className="w-16 h-8 text-center"
-                                                            value={newMoveValues[key] || ''}
-                                                            onChange={(e) => handleNewMoveChange(section.id, level, e.target.value)}
-                                                            placeholder="0"
-                                                        />
-                                                    </TableCell>
-                                                    {section.headers.slice(0, 50).map((header) => (
-                                                        <TableCell key={`${i}-${header}`} className="whitespace-nowrap font-medium text-muted-foreground">
-                                                            {formatTableValue(row[header], header)}
-                                                        </TableCell>
-                                                    ))}
-                                                </TableRow>
+                {/* Unsuccessful Tab */}
+                <TabsContent value="unsuccessful" className="space-y-4 mt-4">
+                    <div className="flex flex-wrap gap-4 items-end p-3 bg-muted/30 rounded-lg border">
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Min Level</label>
+                            <Input type="number" value={minLevel} onChange={(e) => setMinLevel(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Min Users</label>
+                            <Input type="number" value={minTotalUser} onChange={(e) => setMinUsers(Number(e.target.value))} className="w-24 h-8 bg-background" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Min Days Old</label>
+                            <Input type="number" value={minDaysSinceEvent} onChange={(e) => setMinDaysSinceEvent(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">New Cluster</label>
+                            <div className="flex gap-1">
+                                {['1', '2', '3', '4'].map(c => (
+                                    <button
+                                        key={c}
+                                        type="button"
+                                        onClick={() => {
+                                            setFinalClusters(prev =>
+                                                prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
                                             );
-                                        })}
-                                    </TableBody>
-                                </Table>
-                            </div>
-                            <div className="p-3 border-t bg-muted/20 flex justify-end">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => exportNewMoves(section.id)}
-                                    className="gap-2"
-                                >
-                                    <Download className="h-4 w-4" />
-                                    Export New Moves
-                                </Button>
+                                        }}
+                                        className={cn(
+                                            "w-8 h-8 rounded-md text-sm font-medium transition-colors",
+                                            finalClusters.includes(c)
+                                                ? "bg-primary text-primary-foreground"
+                                                : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                        )}
+                                    >
+                                        {c}
+                                    </button>
+                                ))}
                             </div>
                         </div>
-                    )}
+                    </div>
+                    {unsuccessfulSections.map(s => renderSection(s, 'unsuccessful'))}
+                </TabsContent>
 
-                    {section.expanded && section.data.length === 0 && (
-                        <div className="p-8 text-center text-muted-foreground">
-                            No data loaded. Select a game and click "Load Data".
+                {/* Successful Tab */}
+                <TabsContent value="successful" className="space-y-4 mt-4">
+                    <div className="flex flex-wrap gap-4 items-end p-3 bg-muted/30 rounded-lg border">
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Min Level</label>
+                            <Input type="number" value={successMinLevel} onChange={(e) => setSuccessMinLevel(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
                         </div>
-                    )}
-                </div>
-            ))}
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Min Users</label>
+                            <Input type="number" value={successMinTotalUser} onChange={(e) => setSuccessMinUsers(Number(e.target.value))} className="w-24 h-8 bg-background" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Min Days Old</label>
+                            <Input type="number" value={successMinDaysSinceEvent} onChange={(e) => setSuccessMinDaysSinceEvent(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">New Cluster</label>
+                            <div className="flex gap-1">
+                                {['1', '2', '3', '4'].map(c => (
+                                    <button
+                                        key={c}
+                                        type="button"
+                                        onClick={() => {
+                                            setSuccessFinalClusters(prev =>
+                                                prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
+                                            );
+                                        }}
+                                        className={cn(
+                                            "w-8 h-8 rounded-md text-sm font-medium transition-colors",
+                                            successFinalClusters.includes(c)
+                                                ? "bg-primary text-primary-foreground"
+                                                : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                        )}
+                                    >
+                                        {c}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    {successfulSections.map(s => renderSection(s, 'successful'))}
+                </TabsContent>
+
+                {/* Last 30 Levels Tab */}
+                <TabsContent value="last30" className="space-y-4 mt-4">
+                    {renderSection(last30Section, 'last30')}
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }
