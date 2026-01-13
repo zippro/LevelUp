@@ -641,6 +641,47 @@ export default function WeeklyCheckPage() {
             });
         }
 
+        // Build Level Details Table for all actioned levels
+        const actionedLevels: { level: number; actionType: string; row: Record<string, any> }[] = [];
+        section.data.forEach(row => {
+            const level = row['Level'];
+            if (level === undefined) return;
+            const key = `${section.id}-${level}`;
+            const levelActions = actions[key] || [];
+            levelActions.forEach(action => {
+                if (action?.type) {
+                    const actionLabel = action.type === 'R' ? 'R' : action.type === 'BR' ? 'BR' : action.type === 'TR' ? 'TR' : action.type === 'M' ? 'M' : action.type;
+                    actionedLevels.push({ level, actionType: actionLabel, row });
+                }
+            });
+        });
+
+        // Sort by level ascending and build table
+        actionedLevels.sort((a, b) => a.level - b.level);
+
+        if (actionedLevels.length > 0) {
+            summaryStr += '\n\nRevise Levels Details:\n';
+            summaryStr += 'Level\tAction\t3 Day Churn\tRepeat\tPlayon per User\tTotal Moves\tLevel Play Time\tAvg First Try Win\n';
+            actionedLevels.forEach(item => {
+                const r = item.row;
+                const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
+                const repeat = r['Repeat'] || r['Repeat Rate'] || '-';
+                const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
+                const totalMoves = r['Total Move'] || r['Avg. Total Moves'] || r['TotalMove'] || '-';
+                const playTime = r['Level Play Time'] || r['LevelPlayTime'] || r['Play Time'] || '-';
+                const firstTryWin = r['Avg First Try Win'] || r['First Try Win'] || r['FirstTryWin'] || '-';
+
+                const formatVal = (v: any) => {
+                    if (v === '-' || v === undefined || v === null) return '-';
+                    const num = parseFloat(v);
+                    if (isNaN(num)) return String(v);
+                    return num.toFixed(2);
+                };
+
+                summaryStr += `${item.level}\t${item.actionType}\t${formatVal(churn3d)}\t${formatVal(repeat)}\t${formatVal(playon)}\t${formatVal(totalMoves)}\t${formatVal(playTime)}\t${formatVal(firstTryWin)}\n`;
+            });
+        }
+
         if (!output.trim()) {
             alert('No actions entered.');
             return;
@@ -774,6 +815,46 @@ export default function WeeklyCheckPage() {
                     const mv = Number(mvStr);
                     const levels = moveSummaryGroups[mv].sort((a, b) => a - b);
                     summary += `${mv} move: ${levels.join(' ')}  `;
+                });
+            }
+
+            // Build Level Details Table for all actioned levels
+            const actionedLevels: { level: number; actionType: string; row: Record<string, any> }[] = [];
+            section.data.forEach(row => {
+                const level = row['Level'];
+                if (level === undefined) return;
+                const key = `${section.id}-${level}`;
+                const levelActions = actions[key] || [];
+                levelActions.forEach(action => {
+                    if (action?.type) {
+                        const actionLabel = action.type === 'R' ? 'R' : action.type === 'BR' ? 'BR' : action.type === 'TR' ? 'TR' : action.type === 'M' ? 'M' : action.type;
+                        actionedLevels.push({ level, actionType: actionLabel, row });
+                    }
+                });
+            });
+
+            // Sort by level ascending and build table
+            actionedLevels.sort((a, b) => a.level - b.level);
+
+            if (actionedLevels.length > 0) {
+                summary += '\n\nRevise Levels Details:\nLevel\tAction\t3 Day Churn\tRepeat\tPlayon per User\tTotal Moves\tLevel Play Time\tAvg First Try Win\n';
+                actionedLevels.forEach(item => {
+                    const r = item.row;
+                    const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
+                    const repeat = r['Repeat'] || r['Repeat Rate'] || '-';
+                    const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
+                    const totalMoves = r['Total Move'] || r['Avg. Total Moves'] || r['TotalMove'] || '-';
+                    const playTime = r['Level Play Time'] || r['LevelPlayTime'] || r['Play Time'] || '-';
+                    const firstTryWin = r['Avg First Try Win'] || r['First Try Win'] || r['FirstTryWin'] || '-';
+
+                    const formatVal = (v: any) => {
+                        if (v === '-' || v === undefined || v === null) return '-';
+                        const num = parseFloat(v);
+                        if (isNaN(num)) return String(v);
+                        return num.toFixed(2);
+                    };
+
+                    summary += `${item.level}\t${item.actionType}\t${formatVal(churn3d)}\t${formatVal(repeat)}\t${formatVal(playon)}\t${formatVal(totalMoves)}\t${formatVal(playTime)}\t${formatVal(firstTryWin)}\n`;
                 });
             }
         }
