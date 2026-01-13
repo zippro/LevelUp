@@ -1124,6 +1124,25 @@ export default function WeeklyCheckPage() {
         }
     };
 
+    const updateCluster = async (level: number, cluster: string) => {
+        // Optimistic update
+        setSavedScores(prev => ({ ...prev, [level]: cluster }));
+
+        try {
+            await fetch("/api/level-scores", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    gameId: selectedGameId || config?.games[0]?.id, // fallback if needed
+                    levels: [{ level, cluster }]
+                }),
+            });
+        } catch (e) {
+            console.error("Failed to save cluster", e);
+            alert("Failed to save cluster");
+        }
+    };
+
     const renderSection = (section: TableSection, tabType: 'unsuccessful' | 'successful' | 'last30') => (
         <div key={section.id} className="rounded-xl border shadow-sm bg-card overflow-hidden">
             <button
@@ -1144,6 +1163,7 @@ export default function WeeklyCheckPage() {
                             <TableHeader>
                                 <TableRow className="bg-muted" style={{ position: 'sticky', top: 0, zIndex: 20 }}>
                                     <TableHead className="whitespace-nowrap font-bold text-foreground bg-muted" style={{ position: 'sticky', left: 0, zIndex: 30 }}>Action</TableHead>
+                                    <TableHead className="whitespace-nowrap font-bold text-foreground bg-muted">Clu</TableHead>
                                     {section.headers.slice(0, 50).map((header) => (
                                         <TableHead key={header} className="whitespace-nowrap font-bold text-foreground bg-muted">
                                             {getDisplayName(header, config?.weeklyCheck?.columnRenames)}
@@ -1340,6 +1360,22 @@ export default function WeeklyCheckPage() {
                                                         ))}
                                                     </div>
                                                 </div>
+                                            </TableCell>
+                                            <TableCell className="whitespace-nowrap bg-card z-10 w-min px-1">
+                                                <Select
+                                                    value={savedScores[Number(row['Level'])] || '-'}
+                                                    onValueChange={(v) => updateCluster(Number(row['Level']), v)}
+                                                >
+                                                    <SelectTrigger className="h-8 w-[60px] border-none shadow-none text-xs font-bold text-blue-600">
+                                                        <SelectValue placeholder="-" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="1">1</SelectItem>
+                                                        <SelectItem value="2">2</SelectItem>
+                                                        <SelectItem value="3">3</SelectItem>
+                                                        <SelectItem value="4">4</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
                                             </TableCell>
                                             {section.headers.slice(0, 50).map((header) => {
                                                 const isNewCluster = header === 'New Cluster';
