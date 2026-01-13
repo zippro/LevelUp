@@ -394,10 +394,10 @@ export default function LevelScorePage() {
                 const finalCluster = row['Final Cluster'] || row['FinalCluster'] || '';
 
                 // Clustering fields parsing
-                const avgRepeatRatio = parseFloat(row['Avg. Repeat Ratio (birleşik)'] || row['Avg. Repeat Ratio'] || row['Repeat'] || '0');
+                const avgRepeatRatio = parseFloat(row['Avg. Repeat Rate'] || row['Avg. Repeat Ratio'] || row['Repeat'] || '0');
                 const avgTotalMoves = parseFloat(row['Avg. Total Moves'] || row['Total Moves'] || '0');
-                const rmFixed = parseFloat(row['RM Fixed'] || row['RM'] || '0');
-                const levelPlayTime = parseFloat(row['Avg. Level Play Time (birleşik)'] || row['Level Play Time fixed'] || row['Level Play Time'] || '0');
+                const rmFixed = parseFloat(row['Avg. RM Fixed'] || row['RM Fixed'] || row['RM'] || '0');
+                const levelPlayTime = parseFloat(row['Avg. Level Play'] || row['Avg. Level Play Time'] || row['Level Play Time'] || '0');
 
 
                 const saved = savedMap[level];

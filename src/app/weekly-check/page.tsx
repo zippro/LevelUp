@@ -181,7 +181,9 @@ export default function WeeklyCheckPage() {
     const [showExportDialog, setShowExportDialog] = useState(false);
     const [exportData, setExportData] = useState<string>('');
     const [exportHeaders, setExportHeaders] = useState<string[]>([]);
+    const [savedScores, setSavedScores] = useState<Record<number, string>>({}); // New Cluster state
     const [exportSummary, setExportSummary] = useState<string>('');
+
     const [exportDetails, setExportDetails] = useState<any[]>([]);
 
     // Combined Report State
@@ -374,6 +376,24 @@ export default function WeeklyCheckPage() {
         setShowCacheDialog(false);
 
         try {
+            // Fetch saved level scores (clusters)
+            const savedRes = await fetch(`/api/level-scores?gameId=${selectedGameId}&t=${Date.now()}`);
+            if (savedRes.ok) {
+                const savedData = await savedRes.json();
+                const savedMap: Record<number, string> = {};
+                if (Array.isArray(savedData)) {
+                    savedData.forEach((s: any) => {
+                        if (s.cluster) savedMap[s.level] = s.cluster;
+                    });
+                }
+                setSavedScores(savedMap);
+            }
+        } catch (e) {
+            console.error("Failed to load saved scores", e);
+        }
+
+        try {
+
             const gameName = game ? game.name : selectedGameId;
             let csvData: string | null = null;
 
@@ -1179,6 +1199,7 @@ export default function WeeklyCheckPage() {
                                                                                         <th className="p-1 font-medium text-right">Time</th>
                                                                                         <th className="p-1 font-medium text-right">1stWin</th>
                                                                                         <th className="p-1 font-medium text-right">Rem</th>
+                                                                                        <th className="p-1 font-medium text-right text-blue-600">New</th>
                                                                                     </tr>
                                                                                 </thead>
                                                                                 <tbody>
@@ -1219,6 +1240,7 @@ export default function WeeklyCheckPage() {
                                                                                                 <td className="p-1 text-right">{formatVal(playTime)}</td>
                                                                                                 <td className="p-1 text-right">{formatPercent(firstTryWin)}</td>
                                                                                                 <td className="p-1 text-right">{formatVal(remaining)}</td>
+                                                                                                <td className="p-1 text-right font-medium text-blue-600">{savedScores[parseInt(r['Level'])] || '-'}</td>
                                                                                             </tr>
                                                                                         );
                                                                                     })}
