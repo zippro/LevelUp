@@ -174,6 +174,7 @@ export default function WeeklyCheckPage() {
     const [exportData, setExportData] = useState<string>('');
     const [exportHeaders, setExportHeaders] = useState<string[]>([]);
     const [exportSummary, setExportSummary] = useState<string>('');
+    const [exportDetails, setExportDetails] = useState<any[]>([]);
 
     // Combined Report State
     interface CombinedReportSection {
@@ -664,6 +665,7 @@ export default function WeeklyCheckPage() {
         // Sort by level ascending and build table
         actionedLevels.sort((a, b) => a.level - b.level);
 
+        const detailsArray: any[] = [];
         if (actionedLevels.length > 0) {
             summaryStr += '\n\nRevise Levels Details:\n';
             summaryStr += 'Level\tAction\t3 Day Churn\tRepeat\tPlayon per User\tTotal Moves\tLevel Play Time\tAvg First Try Win\tRemaining Move\n';
@@ -684,7 +686,20 @@ export default function WeeklyCheckPage() {
                     return num.toFixed(2);
                 };
 
-                summaryStr += `${item.level}\t${item.actionType}\t${formatVal(churn3d)}\t${formatVal(repeat)}\t${formatVal(playon)}\t${formatVal(totalMoves)}\t${formatVal(playTime)}\t${formatVal(firstTryWin)}\t${formatVal(remaining)}\n`;
+                const formattedRow = {
+                    level: item.level,
+                    action: item.actionType,
+                    churn3d: formatVal(churn3d),
+                    repeat: formatVal(repeat),
+                    playon: formatVal(playon),
+                    totalMoves: formatVal(totalMoves),
+                    playTime: formatVal(playTime),
+                    firstTryWin: formatVal(firstTryWin),
+                    remaining: formatVal(remaining)
+                };
+                detailsArray.push(formattedRow);
+
+                summaryStr += `${formattedRow.level}\t${formattedRow.action}\t${formattedRow.churn3d}\t${formattedRow.repeat}\t${formattedRow.playon}\t${formattedRow.totalMoves}\t${formattedRow.playTime}\t${formattedRow.firstTryWin}\t${formattedRow.remaining}\n`;
             });
         }
 
@@ -695,6 +710,7 @@ export default function WeeklyCheckPage() {
 
         setExportData(output);
         setExportSummary(summaryStr); // Set summary
+        setExportDetails(detailsArray); // Set details for visual table
         setExportHeaders(['Action', 'Level', 'Revision Number', 'New Move', 'Description']);
         setShowExportDialog(true);
     };
@@ -1314,9 +1330,59 @@ export default function WeeklyCheckPage() {
                                 </tbody>
                             </table>
                         </div>
-                        {exportSummary && (
-                            <div className="bg-muted/50 rounded-lg p-3 mb-4 overflow-auto max-h-[200px]">
-                                <pre className="text-xs font-mono whitespace-pre-wrap">{exportSummary.trim()}</pre>
+                        {/* Summary / Revise Levels Details */}
+                        {(exportSummary.includes("Moves Summary") || exportDetails.length > 0) && (
+                            <div className="bg-muted/50 rounded-lg p-3 mb-4 space-y-4">
+                                {/* Moves Summary Text */}
+                                {exportSummary.includes("Moves Summary") && (
+                                    <div className="text-sm font-mono whitespace-pre-wrap">
+                                        {exportSummary.split("Revise Levels Details")[0].split("Moves Summary:")[1]?.trim() ? (
+                                            <>
+                                                <div className="font-semibold mb-1">Moves Summary:</div>
+                                                {exportSummary.split("Revise Levels Details")[0].split("Moves Summary:")[1]}
+                                            </>
+                                        ) : null}
+                                    </div>
+                                )}
+
+                                {/* Visual Table for Revise Levels Details */}
+                                {exportDetails.length > 0 && (
+                                    <div>
+                                        <div className="font-semibold text-sm mb-2">Revise Levels Details:</div>
+                                        <div className="border rounded-md bg-background overflow-hidden">
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow className="bg-muted hover:bg-muted">
+                                                        <TableHead className="h-8 py-1">Level</TableHead>
+                                                        <TableHead className="h-8 py-1">Action</TableHead>
+                                                        <TableHead className="h-8 py-1 text-right">3d Churn</TableHead>
+                                                        <TableHead className="h-8 py-1 text-right">Repeat</TableHead>
+                                                        <TableHead className="h-8 py-1 text-right">Playon</TableHead>
+                                                        <TableHead className="h-8 py-1 text-right">Moves</TableHead>
+                                                        <TableHead className="h-8 py-1 text-right">Time</TableHead>
+                                                        <TableHead className="h-8 py-1 text-right">1stWin</TableHead>
+                                                        <TableHead className="h-8 py-1 text-right">Rem</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {exportDetails.map((row, i) => (
+                                                        <TableRow key={i} className="hover:bg-muted/50">
+                                                            <TableCell className="py-1 font-medium">{row.level}</TableCell>
+                                                            <TableCell className="py-1">{row.action}</TableCell>
+                                                            <TableCell className="py-1 text-right">{row.churn3d}</TableCell>
+                                                            <TableCell className="py-1 text-right">{row.repeat}</TableCell>
+                                                            <TableCell className="py-1 text-right">{row.playon}</TableCell>
+                                                            <TableCell className="py-1 text-right">{row.totalMoves}</TableCell>
+                                                            <TableCell className="py-1 text-right">{row.playTime}</TableCell>
+                                                            <TableCell className="py-1 text-right">{row.firstTryWin}</TableCell>
+                                                            <TableCell className="py-1 text-right">{row.remaining}</TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
                         <div className="flex gap-3">
