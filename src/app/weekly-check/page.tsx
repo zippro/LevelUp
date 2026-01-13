@@ -677,6 +677,11 @@ export default function WeeklyCheckPage() {
                 const firstTryWin = r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || r['FirstTryWin'] || '-';
                 const remaining = r['Average remaining move'] || r['avg remaining move'] || r['remaining moves'] || '-';
 
+                // DEBUG: Print keys for the first row to identify missing columns
+                if (summaryStr.indexOf('DEBUG KEYS') === -1) {
+                    summaryStr += `\nDEBUG KEYS: ${Object.keys(r).join(', ')}\n\n`;
+                }
+
                 const formatVal = (v: any) => {
                     if (v === '-' || v === undefined || v === null) return '-';
                     const num = parseFloat(v);
@@ -1128,12 +1133,11 @@ export default function WeeklyCheckPage() {
                                                         };
 
                                                         return (
-                                                            <div className="flex items-center gap-2 mb-2">
-                                                                <span className="font-medium text-sm text-muted-foreground mr-1">Lvl {row['Level']}</span>
+                                                            <div className="flex items-center gap-2 mb-2 mr-2">
                                                                 <HoverCard>
                                                                     <HoverCardTrigger asChild>
-                                                                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-muted">
-                                                                            <Search className="h-3.5 w-3.5 text-muted-foreground" />
+                                                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-muted bg-muted/50 rounded-full">
+                                                                            <Search className="h-4 w-4 text-primary" />
                                                                         </Button>
                                                                     </HoverCardTrigger>
                                                                     <HoverCardContent className="w-[500px] p-4" align="start">
