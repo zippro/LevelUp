@@ -1280,7 +1280,7 @@ export default function WeeklyCheckPage() {
                                     const levelActions = actions[key] || [{ type: '' }];
                                     return (
                                         <TableRow key={i} className="hover:bg-muted/30">
-                                            <TableCell className="whitespace-nowrap sticky left-0 bg-card z-10 w-min">
+                                            <TableCell className="whitespace-nowrap sticky left-0 bg-card z-10 p-2">
                                                 <div className="flex flex-row items-start gap-1">
                                                     <div className="mt-1 flex-shrink-0">
                                                         {row['Level'] && (() => {
@@ -1374,7 +1374,7 @@ export default function WeeklyCheckPage() {
                                                             };
 
                                                             return (
-                                                                <div className="flex items-center">
+                                                                <div className="flex items-center gap-2 min-w-[70px]">
                                                                     <Popover>
                                                                         <PopoverTrigger asChild>
                                                                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-muted bg-muted/50 rounded-full border border-border/50">
