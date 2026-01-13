@@ -76,8 +76,9 @@ export function generateLevelScoreTopUnsuccessful(
         //     return levelScore > 0;
         // })
         .sort((a, b) => {
-            const aScore = findMetricValue(a, 'Level Score');
-            const bScore = findMetricValue(b, 'Level Score');
+            // Sort by Score column (not Level Score)
+            const aScore = findMetricValue(a, 'Score');
+            const bScore = findMetricValue(b, 'Score');
             return sortOrder === 'asc' ? aScore - bScore : bScore - aScore;
         });
 }
