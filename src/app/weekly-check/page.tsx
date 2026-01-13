@@ -974,14 +974,14 @@ export default function WeeklyCheckPage() {
                                                     {levelActions.map((action, actionIndex) => (
                                                         <div key={actionIndex} className="flex gap-1 items-center">
                                                             <Select
-                                                                value={action.type || ''}
-                                                                onValueChange={(val) => handleActionTypeChange(section.id, level, val as any, actionIndex)}
+                                                                value={action.type || '_clear'}
+                                                                onValueChange={(val) => handleActionTypeChange(section.id, level, val === '_clear' ? '' : val as any, actionIndex)}
                                                             >
                                                                 <SelectTrigger className="w-16 h-8">
                                                                     <SelectValue placeholder="-" />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
-                                                                    <SelectItem value="">-</SelectItem>
+                                                                    <SelectItem value="_clear">-</SelectItem>
                                                                     {tabType === 'successful' ? (
                                                                         <>
                                                                             <SelectItem value="S">S</SelectItem>

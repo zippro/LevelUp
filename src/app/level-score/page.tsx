@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -78,6 +78,25 @@ export default function LevelScorePage() {
     const [savedScores, setSavedScores] = useState<Record<number, SavedScore>>({});
     // Debug keys removed
     const [tableSettings, setTableSettings] = useState<LevelScoreTableSettings>(DEFAULT_TABLE_SETTINGS);
+
+    // Go to level
+    const [goToLevel, setGoToLevel] = useState<string>('');
+    const tableContainerRef = useRef<HTMLDivElement>(null);
+
+    const scrollToLevel = (level: string) => {
+        if (!level || !tableContainerRef.current) return;
+        const rows = tableContainerRef.current.querySelectorAll('tr[data-level]');
+        for (const row of rows) {
+            if (row.getAttribute('data-level') === level) {
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                (row as HTMLElement).style.backgroundColor = 'hsl(var(--primary) / 0.2)';
+                setTimeout(() => {
+                    (row as HTMLElement).style.backgroundColor = '';
+                }, 2000);
+                break;
+            }
+        }
+    };
 
 
     useEffect(() => {
@@ -332,12 +351,31 @@ export default function LevelScorePage() {
                         </Button>
                     </>
                 )}
+
+                {/* Go to Level */}
+                {data.length > 0 && (
+                    <div className="space-y-1.5 w-full sm:w-[120px]">
+                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Go to Level</label>
+                        <Input
+                            type="number"
+                            placeholder="Level..."
+                            value={goToLevel}
+                            onChange={(e) => setGoToLevel(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    scrollToLevel(goToLevel);
+                                }
+                            }}
+                            className="bg-background shadow-sm"
+                        />
+                    </div>
+                )}
             </div>
 
             {/* Table */}
             {data.length > 0 && (
                 <div className="rounded-xl border shadow-sm bg-card overflow-hidden">
-                    <div className="max-h-[600px] overflow-auto">
+                    <div ref={tableContainerRef} className="max-h-[600px] overflow-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-muted" style={{ position: 'sticky', top: 0, zIndex: 10 }}>
@@ -350,7 +388,7 @@ export default function LevelScorePage() {
                             </TableHeader>
                             <TableBody>
                                 {data.map((row) => (
-                                    <TableRow key={row.level} className="hover:bg-muted/30">
+                                    <TableRow key={row.level} data-level={String(row.level)} className="hover:bg-muted/30">
                                         {visibleColumns.map(col => {
                                             const dataKey = DATA_MAPPING[col.originalName];
 
