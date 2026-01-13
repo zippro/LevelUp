@@ -1082,20 +1082,26 @@ export default function WeeklyCheckPage() {
                                                                     .filter(x => x && x['Level'] !== undefined)
                                                                     .sort((a, b) => Number(a['Level']) - Number(b['Level']));
                                                                 const currentIndex = sorted.findIndex(r => Number(r['Level']) === currentLevel);
-                                                                if (currentIndex === -1) return { prev: [], next: [] };
+                                                                if (currentIndex === -1) return { prev: [], current: null, next: [] };
 
                                                                 const prev = sorted.slice(Math.max(0, currentIndex - 5), currentIndex);
+                                                                const current = sorted[currentIndex];
                                                                 const next = sorted.slice(currentIndex + 1, currentIndex + 6);
-                                                                return { prev, next };
+                                                                return { prev, current, next };
                                                             };
 
-                                                            const { prev, next } = getNeighboringLevels(Number(row['Level']), rawData);
+                                                            const { prev, current, next } = getNeighboringLevels(Number(row['Level']), rawData);
 
-                                                            const renderMiniTable = (data: any[], title: string) => {
+                                                            const combinedData = [
+                                                                ...prev,
+                                                                ...(current ? [{ ...current, isCurrent: true }] : []),
+                                                                ...next
+                                                            ];
+
+                                                            const renderMiniTable = (data: any[]) => {
                                                                 if (data.length === 0) return null;
                                                                 return (
                                                                     <div className="mb-2">
-                                                                        <div className="font-semibold text-xs mb-1 text-muted-foreground">{title}</div>
                                                                         <div className="border rounded-md overflow-hidden">
                                                                             <table className="w-full text-[10px]">
                                                                                 <thead className="bg-muted">
@@ -1112,6 +1118,7 @@ export default function WeeklyCheckPage() {
                                                                                 </thead>
                                                                                 <tbody>
                                                                                     {data.map((r, ri) => {
+                                                                                        const isCurrent = r.isCurrent;
                                                                                         const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
                                                                                         const repeat = r['Avg. Repeat Rate'] || r['Repeat'] || r['Repeat Rate'] || '-';
                                                                                         const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
@@ -1128,7 +1135,10 @@ export default function WeeklyCheckPage() {
                                                                                         };
 
                                                                                         return (
-                                                                                            <tr key={ri} className="border-t hover:bg-muted/50">
+                                                                                            <tr key={ri} className={cn(
+                                                                                                "border-t hover:bg-muted/50 transition-colors",
+                                                                                                isCurrent && "bg-muted font-bold border-primary/20"
+                                                                                            )}>
                                                                                                 <td className="p-1 font-medium">{r['Level']}</td>
                                                                                                 <td className="p-1 text-right">{formatVal(churn3d)}</td>
                                                                                                 <td className="p-1 text-right">{formatVal(repeat)}</td>
@@ -1157,8 +1167,7 @@ export default function WeeklyCheckPage() {
                                                                         </PopoverTrigger>
                                                                         <PopoverContent className="w-[500px] p-4" align="start" side="bottom">
                                                                             <h4 className="font-semibold text-sm mb-2">Level Context: {row['Level']}</h4>
-                                                                            {renderMiniTable(prev, 'Previous 5 Levels')}
-                                                                            {renderMiniTable(next, 'Next 5 Levels')}
+                                                                            {renderMiniTable(combinedData)}
                                                                         </PopoverContent>
                                                                     </Popover>
                                                                 </div>
