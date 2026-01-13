@@ -148,30 +148,13 @@ export default function LevelScorePage() {
         if (level <= 900) return 26;
         if (level <= 950) return 27;
         if (level <= 1000) return 28;
-        if (level <= 2000) return 26;
-        if (level <= 2200) return 27;
-        if (level <= 2400) return 28;
-        if (level <= 2600) return 29;
         if (level <= 3000) return 30; // 2901-3000
 
-        // 200-level buckets for better distribution
-        if (level <= 3200) return 31;
-        if (level <= 3400) return 32;
-        if (level <= 3600) return 33;
-        if (level <= 3800) return 34;
-        if (level <= 4000) return 35;
-        if (level <= 4200) return 36;
-        if (level <= 4400) return 37;
-        if (level <= 4600) return 38;
-        if (level <= 4800) return 39;
-        if (level <= 5000) return 40;
-        if (level <= 5200) return 41;
-        if (level <= 5400) return 42;
-        if (level <= 5600) return 43;
-        if (level <= 5800) return 44;
-        if (level <= 6000) return 45;
-
-        return Math.floor((level - 6000) / 200) + 46;
+        // Dynamic 50-level buckets for >3000
+        // 3001-3050 -> 31
+        // 3051-3100 -> 32
+        // etc.
+        return 31 + Math.floor((level - 3001) / 50);
     };
 
     const performClustering = () => {
@@ -232,12 +215,11 @@ export default function LevelScorePage() {
                 });
 
                 // Logarithmic Scaling (Log1p) to handle outliers
-                const scaledFeatures = rawFeatures.map(row => {
-                    return [
-                        Math.log1p(row[0]), // Repeat
-                        row[1],             // RM Ratio (already 0-1ish usually)
-                        Math.log1p(row[2])  // PlayTime (can be huge)
-                    ];
+                const scaledFeatures = rawFeatures.map((row, idx) => {
+                    const r = Math.log1p(row[0]);
+                    const rm = row[1];
+                    const pt = Math.log1p(row[2]);
+                    return [r, rm, pt];
                 });
 
                 // Then standardize to 0-1 range to align weights
