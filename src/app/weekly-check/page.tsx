@@ -8,10 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, RefreshCw, ChevronDown, ChevronUp, Download, Ban, Search } from "lucide-react";
 import {
-    HoverCard,
-    HoverCardContent,
-    HoverCardTrigger,
-} from "@/components/ui/hover-card";
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 import papa from 'papaparse';
 import { cn } from "@/lib/utils";
 import { generateLevelScoreTopUnsuccessful, generateLevelScoreTopSuccessful, generate3DayChurnTopUnsuccessful, generate3DayChurnTopSuccessful, formatTableValue } from "@/lib/table-reports";
@@ -1063,158 +1063,166 @@ export default function WeeklyCheckPage() {
                                     return (
                                         <TableRow key={i} className="hover:bg-muted/30">
                                             <TableCell className="whitespace-nowrap sticky left-0 bg-card z-10" style={{ minWidth: '280px' }}>
-                                                <div className="flex flex-col gap-1">
-                                                    {row['Level'] && (() => {
-                                                        const getNeighboringLevels = (currentLevel: number, allData: any[]) => {
-                                                            const currentIndex = allData.findIndex(r => Number(r['Level']) === currentLevel);
-                                                            if (currentIndex === -1) return { prev: [], next: [] };
+                                                <div className="flex flex-row items-start gap-2 max-w-[450px]">
+                                                    <div className="mt-1 flex-shrink-0">
+                                                        {row['Level'] && (() => {
+                                                            const getNeighboringLevels = (currentLevel: number, allData: any[]) => {
+                                                                const sorted = [...allData]
+                                                                    .filter(x => x && x['Level'] !== undefined)
+                                                                    .sort((a, b) => Number(a['Level']) - Number(b['Level']));
+                                                                const currentIndex = sorted.findIndex(r => Number(r['Level']) === currentLevel);
+                                                                if (currentIndex === -1) return { prev: [], next: [] };
 
-                                                            const prev = allData.slice(Math.max(0, currentIndex - 5), currentIndex);
-                                                            const next = allData.slice(currentIndex + 1, currentIndex + 6);
-                                                            return { prev, next };
-                                                        };
+                                                                const prev = sorted.slice(Math.max(0, currentIndex - 5), currentIndex);
+                                                                const next = sorted.slice(currentIndex + 1, currentIndex + 6);
+                                                                return { prev, next };
+                                                            };
 
-                                                        const { prev, next } = getNeighboringLevels(Number(row['Level']), section.data);
+                                                            const { prev, next } = getNeighboringLevels(Number(row['Level']), rawData);
 
-                                                        const renderMiniTable = (data: any[], title: string) => {
-                                                            if (data.length === 0) return null;
-                                                            return (
-                                                                <div className="mb-2">
-                                                                    <div className="font-semibold text-xs mb-1 text-muted-foreground">{title}</div>
-                                                                    <div className="border rounded-md overflow-hidden">
-                                                                        <table className="w-full text-[10px]">
-                                                                            <thead className="bg-muted">
-                                                                                <tr>
-                                                                                    <th className="p-1 font-medium text-left">Lvl</th>
-                                                                                    <th className="p-1 font-medium text-right">Churn</th>
-                                                                                    <th className="p-1 font-medium text-right">Rep</th>
-                                                                                    <th className="p-1 font-medium text-right">Playon</th>
-                                                                                    <th className="p-1 font-medium text-right">Moves</th>
-                                                                                    <th className="p-1 font-medium text-right">Time</th>
-                                                                                    <th className="p-1 font-medium text-right">1stWin</th>
-                                                                                    <th className="p-1 font-medium text-right">Rem</th>
-                                                                                </tr>
-                                                                            </thead>
-                                                                            <tbody>
-                                                                                {data.map((r, ri) => {
-                                                                                    const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
-                                                                                    const repeat = r['Repeat'] || r['Repeat Rate'] || r['Avg. Repeat Rate'] || '-';
-                                                                                    const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
-                                                                                    const totalMoves = r['Total Move'] || r['Avg. Total Moves'] || r['TotalMove'] || '-';
-                                                                                    const playTime = r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || '-';
-                                                                                    const firstTryWin = r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || '-';
-                                                                                    const remaining = r['Average remaining move'] || r['avg remaining move'] || r['remaining moves'] || '-';
+                                                            const renderMiniTable = (data: any[], title: string) => {
+                                                                if (data.length === 0) return null;
+                                                                return (
+                                                                    <div className="mb-2">
+                                                                        <div className="font-semibold text-xs mb-1 text-muted-foreground">{title}</div>
+                                                                        <div className="border rounded-md overflow-hidden">
+                                                                            <table className="w-full text-[10px]">
+                                                                                <thead className="bg-muted">
+                                                                                    <tr>
+                                                                                        <th className="p-1 font-medium text-left">Lvl</th>
+                                                                                        <th className="p-1 font-medium text-right">Churn</th>
+                                                                                        <th className="p-1 font-medium text-right">Rep</th>
+                                                                                        <th className="p-1 font-medium text-right">Playon</th>
+                                                                                        <th className="p-1 font-medium text-right">Moves</th>
+                                                                                        <th className="p-1 font-medium text-right">Time</th>
+                                                                                        <th className="p-1 font-medium text-right">1stWin</th>
+                                                                                        <th className="p-1 font-medium text-right">Rem</th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody>
+                                                                                    {data.map((r, ri) => {
+                                                                                        const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
+                                                                                        const repeat = r['Repeat'] || r['Repeat Rate'] || r['Avg. Repeat Rate'] || '-';
+                                                                                        const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
+                                                                                        const totalMoves = r['Total Move'] || r['Avg. Total Moves'] || r['TotalMove'] || '-';
+                                                                                        const playTime = r['Level Play Time'] || r['Avg. Level Play Time'] || r['LevelPlayTime'] || '-';
+                                                                                        const firstTryWin = r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || '-';
+                                                                                        const remaining = r['Avg. RM Fixed'] || r['Average remaining move'] || r['avg remaining move'] || r['remaining moves'] || '-';
 
-                                                                                    const formatVal = (v: any) => {
-                                                                                        if (v === '-' || v === undefined) return '-';
-                                                                                        const num = parseFloat(v);
-                                                                                        if (isNaN(num)) return String(v).substring(0, 4);
-                                                                                        return num.toFixed(2);
-                                                                                    };
+                                                                                        const formatVal = (v: any) => {
+                                                                                            if (v === '-' || v === undefined) return '-';
+                                                                                            const num = parseFloat(v);
+                                                                                            if (isNaN(num)) return String(v).substring(0, 4);
+                                                                                            return num.toFixed(2);
+                                                                                        };
 
-                                                                                    return (
-                                                                                        <tr key={ri} className="border-t hover:bg-muted/50">
-                                                                                            <td className="p-1 font-medium">{r['Level']}</td>
-                                                                                            <td className="p-1 text-right">{formatVal(churn3d)}</td>
-                                                                                            <td className="p-1 text-right">{formatVal(repeat)}</td>
-                                                                                            <td className="p-1 text-right">{formatVal(playon)}</td>
-                                                                                            <td className="p-1 text-right">{formatVal(totalMoves)}</td>
-                                                                                            <td className="p-1 text-right">{formatVal(playTime)}</td>
-                                                                                            <td className="p-1 text-right">{formatVal(firstTryWin)}</td>
-                                                                                            <td className="p-1 text-right">{formatVal(remaining)}</td>
-                                                                                        </tr>
-                                                                                    );
-                                                                                })}
-                                                                            </tbody>
-                                                                        </table>
+                                                                                        return (
+                                                                                            <tr key={ri} className="border-t hover:bg-muted/50">
+                                                                                                <td className="p-1 font-medium">{r['Level']}</td>
+                                                                                                <td className="p-1 text-right">{formatVal(churn3d)}</td>
+                                                                                                <td className="p-1 text-right">{formatVal(repeat)}</td>
+                                                                                                <td className="p-1 text-right">{formatVal(playon)}</td>
+                                                                                                <td className="p-1 text-right">{formatVal(totalMoves)}</td>
+                                                                                                <td className="p-1 text-right">{formatVal(playTime)}</td>
+                                                                                                <td className="p-1 text-right">{formatVal(firstTryWin)}</td>
+                                                                                                <td className="p-1 text-right">{formatVal(remaining)}</td>
+                                                                                            </tr>
+                                                                                        );
+                                                                                    })}
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </div>
                                                                     </div>
+                                                                );
+                                                            };
+
+                                                            return (
+                                                                <div className="flex items-center">
+                                                                    <Popover>
+                                                                        <PopoverTrigger asChild>
+                                                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-muted bg-muted/50 rounded-full border border-border/50">
+                                                                                <Search className="h-4 w-4 text-primary" />
+                                                                            </Button>
+                                                                        </PopoverTrigger>
+                                                                        <PopoverContent className="w-[500px] p-4" align="start" side="bottom">
+                                                                            <h4 className="font-semibold text-sm mb-2">Level Context: {row['Level']}</h4>
+                                                                            {renderMiniTable(prev, 'Previous 5 Levels')}
+                                                                            {renderMiniTable(next, 'Next 5 Levels')}
+                                                                        </PopoverContent>
+                                                                    </Popover>
                                                                 </div>
                                                             );
-                                                        };
+                                                        })()}
+                                                    </div>
 
-                                                        return (
-                                                            <div className="flex items-center gap-2 mb-2 mr-2">
-                                                                <HoverCard>
-                                                                    <HoverCardTrigger asChild>
-                                                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-muted bg-muted/50 rounded-full">
-                                                                            <Search className="h-4 w-4 text-primary" />
-                                                                        </Button>
-                                                                    </HoverCardTrigger>
-                                                                    <HoverCardContent className="w-[500px] p-4" align="start">
-                                                                        <h4 className="font-semibold text-sm mb-2">Level Context: {row['Level']}</h4>
-                                                                        {renderMiniTable(prev, 'Previous 5 Levels')}
-                                                                        {renderMiniTable(next, 'Next 5 Levels')}
-                                                                    </HoverCardContent>
-                                                                </HoverCard>
-                                                            </div>
-                                                        );
-                                                    })()}
-                                                    {levelActions.map((action, actionIndex) => (
-                                                        <div key={actionIndex} className="flex gap-1 items-center">
-                                                            <Select
-                                                                value={action.type || '_clear'}
-                                                                onValueChange={(val) => handleActionTypeChange(section.id, level, val === '_clear' ? '' : val as any, actionIndex)}
-                                                            >
-                                                                <SelectTrigger className="w-16 h-8">
-                                                                    <SelectValue placeholder="-" />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    <SelectItem value="_clear">-</SelectItem>
-                                                                    {tabType === 'successful' ? (
-                                                                        <>
-                                                                            <SelectItem value="S">S</SelectItem>
-                                                                            <SelectItem value="SS">SS</SelectItem>
-                                                                        </>
-                                                                    ) : (
-                                                                        <>
-                                                                            <SelectItem value="M">M</SelectItem>
-                                                                            <SelectItem value="R">R</SelectItem>
-                                                                            <SelectItem value="BR">BR</SelectItem>
-                                                                            <SelectItem value="TR">TR</SelectItem>
-                                                                        </>
-                                                                    )}
-                                                                </SelectContent>
-                                                            </Select>
-                                                            {action.type === 'M' && (
+                                                    <div className="flex flex-col gap-1 w-full">
+                                                        {levelActions.map((action, actionIndex) => (
+                                                            <div key={actionIndex} className="flex gap-1 items-center">
                                                                 <Select
-                                                                    value={action.moveValue !== undefined ? String(action.moveValue) : ''}
-                                                                    onValueChange={(val) => handleActionMoveChange(section.id, level, parseInt(val), actionIndex)}
+                                                                    value={action.type || '_clear'}
+                                                                    onValueChange={(val) => handleActionTypeChange(section.id, level, val === '_clear' ? '' : val as any, actionIndex)}
                                                                 >
-                                                                    <SelectTrigger className="w-14 h-8">
-                                                                        <SelectValue placeholder="0" />
+                                                                    <SelectTrigger className="w-16 h-8">
+                                                                        <SelectValue placeholder="-" />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        <SelectItem value="-3">-3</SelectItem>
-                                                                        <SelectItem value="-2">-2</SelectItem>
-                                                                        <SelectItem value="-1">-1</SelectItem>
-                                                                        <SelectItem value="1">+1</SelectItem>
-                                                                        <SelectItem value="2">+2</SelectItem>
-                                                                        <SelectItem value="3">+3</SelectItem>
+                                                                        <SelectItem value="_clear">-</SelectItem>
+                                                                        {tabType === 'successful' ? (
+                                                                            <>
+                                                                                <SelectItem value="S">S</SelectItem>
+                                                                                <SelectItem value="SS">SS</SelectItem>
+                                                                            </>
+                                                                        ) : (
+                                                                            <>
+                                                                                <SelectItem value="M">M</SelectItem>
+                                                                                <SelectItem value="R">R</SelectItem>
+                                                                                <SelectItem value="BR">BR</SelectItem>
+                                                                                <SelectItem value="TR">TR</SelectItem>
+                                                                            </>
+                                                                        )}
                                                                     </SelectContent>
                                                                 </Select>
-                                                            )}
-                                                            {(action.type === 'R' || action.type === 'BR' || action.type === 'TR' || action.type === 'S' || action.type === 'SS') && (
-                                                                <Input
-                                                                    type="text"
-                                                                    className="w-28 h-8 text-xs"
-                                                                    value={action.description || ''}
-                                                                    onChange={(e) => handleActionDescriptionChange(section.id, level, e.target.value, actionIndex)}
-                                                                    placeholder="Desc..."
-                                                                />
-                                                            )}
-                                                            {actionIndex === levelActions.length - 1 && action.type && (
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    className="h-8 w-8 p-0"
-                                                                    onClick={() => addAction(section.id, level)}
-                                                                    title="Add another action"
-                                                                >
-                                                                    +
-                                                                </Button>
-                                                            )}
-                                                        </div>
-                                                    ))}
+                                                                {action.type === 'M' && (
+                                                                    <Select
+                                                                        value={action.moveValue !== undefined ? String(action.moveValue) : ''}
+                                                                        onValueChange={(val) => handleActionMoveChange(section.id, level, parseInt(val), actionIndex)}
+                                                                    >
+                                                                        <SelectTrigger className="w-14 h-8">
+                                                                            <SelectValue placeholder="0" />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            <SelectItem value="-3">-3</SelectItem>
+                                                                            <SelectItem value="-2">-2</SelectItem>
+                                                                            <SelectItem value="-1">-1</SelectItem>
+                                                                            <SelectItem value="1">+1</SelectItem>
+                                                                            <SelectItem value="2">+2</SelectItem>
+                                                                            <SelectItem value="3">+3</SelectItem>
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                )}
+                                                                {(action.type === 'R' || action.type === 'BR' || action.type === 'TR' || action.type === 'S' || action.type === 'SS') && (
+                                                                    <Input
+                                                                        type="text"
+                                                                        className="w-28 h-8 text-xs"
+                                                                        value={action.description || ''}
+                                                                        onChange={(e) => handleActionDescriptionChange(section.id, level, e.target.value, actionIndex)}
+                                                                        placeholder="Desc..."
+                                                                    />
+                                                                )}
+                                                                {actionIndex === levelActions.length - 1 && action.type && (
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        className="h-8 w-8 p-0"
+                                                                        onClick={() => addAction(section.id, level)}
+                                                                        title="Add another action"
+                                                                    >
+                                                                        +
+                                                                    </Button>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </TableCell>
                                             {section.headers.slice(0, 50).map((header) => {
