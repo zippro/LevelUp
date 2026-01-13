@@ -84,6 +84,8 @@ export default function LevelScorePage() {
     const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
     const [data, setData] = useState<LevelData[]>([]);
     const [savedScores, setSavedScores] = useState<Record<number, SavedScore>>({});
+    const [debugHeaders, setDebugHeaders] = useState<string[]>([]);
+
     // Debug keys removed
     const [tableSettings, setTableSettings] = useState<LevelScoreTableSettings>(DEFAULT_TABLE_SETTINGS);
 
@@ -190,6 +192,19 @@ export default function LevelScorePage() {
             // Group by Concept
             const updates: { level: number, cluster: string }[] = [];
             const groupedByConcept = new Map<number, LevelData[]>();
+
+            // Debug first item features
+            if (relevantData.length > 0) {
+                const d = relevantData[0];
+                const repeat = d.avgRepeatRatio;
+                const totalMoves = d.avgTotalMoves;
+                const rmFixed = d.rmFixed;
+                const playTime = d.levelPlayTime;
+                // alert(`Debug Level ${d.level}:\nRepeat: ${repeat}\nTotal Moves: ${totalMoves}\nRM Fixed: ${rmFixed}\nPlayTime: ${playTime}`);
+                if (repeat === 0 && totalMoves === 0 && rmFixed === 0 && playTime === 0) {
+                    alert(`Warning: All clustering features are 0 for Level ${d.level}. Please check "Debug Headers" to ensure column names match.`);
+                }
+            }
 
             relevantData.forEach(d => {
                 const concept = calculateConcept(d.level);
@@ -332,7 +347,13 @@ export default function LevelScorePage() {
 
             const jsonResponse = await res.json();
             const csvText = jsonResponse.data;
+
             const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+
+            if (parsed.data.length > 0) {
+                setDebugHeaders(Object.keys(parsed.data[0] as object));
+            }
+
 
             // Load saved scores from database
             const savedRes = await fetch(`/api/level-scores?gameId=${selectedGameId}&t=${Date.now()}`, {
@@ -533,8 +554,12 @@ export default function LevelScorePage() {
                         <Button variant="outline" onClick={exportToExcel} className="shadow-sm w-full sm:w-auto">
                             <Download className="mr-2 h-4 w-4" /> Export XLS
                         </Button>
+                        <Button variant="ghost" onClick={() => alert("CSV Headers:\n" + debugHeaders.join("\n"))} className="shadow-sm w-full sm:w-auto text-xs">
+                            🔍 Debug Headers
+                        </Button>
                     </>
                 )}
+
 
                 {/* Go to Level */}
                 {data.length > 0 && (
