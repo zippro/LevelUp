@@ -291,10 +291,19 @@ export default function TablesPage() {
     }, [selectedReport, processedData, config?.reportSettings]);
 
     const displayHeaders = useMemo(() => {
+        let headers: string[] = [];
         if (displayData.length > 0) {
-            return Object.keys(displayData[0]);
+            headers = Object.keys(displayData[0]);
+        } else {
+            headers = tableHeaders;
         }
-        return tableHeaders;
+        // Move Level column to first position
+        const levelIndex = headers.findIndex(h => h.toLowerCase() === 'level');
+        if (levelIndex > 0) {
+            const levelHeader = headers.splice(levelIndex, 1)[0];
+            headers.unshift(levelHeader);
+        }
+        return headers;
     }, [displayData, tableHeaders]);
 
 
@@ -531,40 +540,51 @@ export default function TablesPage() {
             {/* Table Display */}
             {tableData.length > 0 && (
                 <div className="space-y-4">
-                    <div className={cn("rounded-lg border shadow-sm bg-card overflow-hidden transition-all", isFullScreen ? "max-h-[85vh] overflow-auto" : "")}>
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="bg-muted/50 hover:bg-muted/50">
-                                    {tableHeaders.map((header) => (
-                                        <TableHead
-                                            key={header}
-                                            className="whitespace-nowrap font-bold cursor-pointer hover:bg-muted/80 transition-colors select-none text-foreground"
-                                            onClick={() => handleSort(header)}
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                {header}
-                                                {sortConfig?.key === header ? (
-                                                    sortConfig.direction === 'asc' ? <ArrowUp className="h-3.5 w-3.5 text-primary" /> : <ArrowDown className="h-3.5 w-3.5 text-primary" />
-                                                ) : (
-                                                    <ArrowUpDown className="h-3.5 w-3.5 opacity-30" />
+                    <div className={cn("rounded-lg border shadow-sm bg-card overflow-hidden transition-all", isFullScreen ? "max-h-[85vh]" : "max-h-[70vh]")}>
+                        <div className="overflow-auto max-h-full">
+                            <Table className="relative">
+                                <TableHeader className="sticky top-0 z-20 bg-card">
+                                    <TableRow className="bg-muted/50 hover:bg-muted/50">
+                                        {displayHeaders.map((header, colIndex) => (
+                                            <TableHead
+                                                key={header}
+                                                className={cn(
+                                                    "whitespace-nowrap font-bold cursor-pointer hover:bg-muted/80 transition-colors select-none text-foreground",
+                                                    colIndex === 0 && "sticky left-0 z-30 bg-muted/50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
                                                 )}
-                                            </div>
-                                        </TableHead>
-                                    ))}
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {displayData.map((row, i) => (
-                                    <TableRow key={i} className="hover:bg-muted/30 transition-colors">
-                                        {displayHeaders.map((header) => (
-                                            <TableCell key={`${i}-${header}`} className="whitespace-nowrap font-medium text-muted-foreground">
-                                                {formatTableValue(row[header], header)}
-                                            </TableCell>
+                                                onClick={() => handleSort(header)}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    {header}
+                                                    {sortConfig?.key === header ? (
+                                                        sortConfig.direction === 'asc' ? <ArrowUp className="h-3.5 w-3.5 text-primary" /> : <ArrowDown className="h-3.5 w-3.5 text-primary" />
+                                                    ) : (
+                                                        <ArrowUpDown className="h-3.5 w-3.5 opacity-30" />
+                                                    )}
+                                                </div>
+                                            </TableHead>
                                         ))}
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {displayData.map((row, i) => (
+                                        <TableRow key={i} className="hover:bg-muted/30 transition-colors">
+                                            {displayHeaders.map((header, colIndex) => (
+                                                <TableCell
+                                                    key={`${i}-${header}`}
+                                                    className={cn(
+                                                        "whitespace-nowrap font-medium text-muted-foreground",
+                                                        colIndex === 0 && "sticky left-0 z-10 bg-card shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
+                                                    )}
+                                                >
+                                                    {formatTableValue(row[header], header)}
+                                                </TableCell>
+                                            ))}
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
                     </div>
 
 
