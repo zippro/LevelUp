@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -54,6 +54,25 @@ export default function TablesPage() {
     // Date range filter (for Level Score AB)
     const [startDate, setStartDate] = useState<string>('');
     const [endDate, setEndDate] = useState<string>('');
+
+    // Go to level
+    const [goToLevel, setGoToLevel] = useState<string>('');
+    const tableContainerRef = useRef<HTMLDivElement>(null);
+
+    const scrollToLevel = (level: string) => {
+        if (!level || !tableContainerRef.current) return;
+        const rows = tableContainerRef.current.querySelectorAll('tr[data-level]');
+        for (const row of rows) {
+            if (row.getAttribute('data-level') === level) {
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                (row as HTMLElement).style.backgroundColor = 'hsl(var(--primary) / 0.2)';
+                setTimeout(() => {
+                    (row as HTMLElement).style.backgroundColor = '';
+                }, 2000);
+                break;
+            }
+        }
+    };
 
 
 
@@ -508,6 +527,25 @@ export default function TablesPage() {
                             </div>
                         </div>
                     )}
+
+                    {/* Go to Level */}
+                    {tableData.length > 0 && (
+                        <div className="space-y-1.5 w-full sm:w-[120px]">
+                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Go to Level</label>
+                            <Input
+                                type="number"
+                                placeholder="Level..."
+                                value={goToLevel}
+                                onChange={(e) => setGoToLevel(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        scrollToLevel(goToLevel);
+                                    }
+                                }}
+                                className="bg-background shadow-sm border-muted-foreground/20"
+                            />
+                        </div>
+                    )}
                 </div>
 
                 {/* Right Side Actions */}
@@ -541,7 +579,7 @@ export default function TablesPage() {
             {tableData.length > 0 && (
                 <div className="space-y-4">
                     <div className={cn("rounded-lg border shadow-sm bg-card transition-all", isFullScreen ? "max-h-[85vh]" : "max-h-[70vh]")}>
-                        <div className="overflow-x-auto overflow-y-auto max-h-[inherit]">
+                        <div ref={tableContainerRef} className="overflow-x-auto overflow-y-auto max-h-[inherit]">
                             <Table className="relative min-w-full">
                                 <TableHeader className="sticky top-0 z-20">
                                     <TableRow className="bg-muted/50 hover:bg-muted/50">
@@ -568,7 +606,7 @@ export default function TablesPage() {
                                 </TableHeader>
                                 <TableBody>
                                     {displayData.map((row, i) => (
-                                        <TableRow key={i} className="hover:bg-muted/30 transition-colors">
+                                        <TableRow key={i} data-level={row['Level'] || row['level'] || ''} className="hover:bg-muted/30 transition-colors">
                                             {displayHeaders.map((header, colIndex) => (
                                                 <TableCell
                                                     key={`${i}-${header}`}

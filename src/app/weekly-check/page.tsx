@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, RefreshCw, ChevronDown, ChevronUp, Download } from "lucide-react";
+import { Loader2, RefreshCw, ChevronDown, ChevronUp, Download, Ban } from "lucide-react";
 import papa from 'papaparse';
 import { cn } from "@/lib/utils";
 import { generateLevelScoreTopUnsuccessful, generateLevelScoreTopSuccessful, generate3DayChurnTopUnsuccessful, generate3DayChurnTopSuccessful, formatTableValue } from "@/lib/table-reports";
@@ -1306,13 +1306,14 @@ export default function WeeklyCheckPage() {
                                             );
                                         }}
                                         className={cn(
-                                            "px-2 h-8 rounded-md text-sm font-medium transition-colors",
+                                            "w-8 h-8 rounded-md text-sm font-medium transition-colors flex items-center justify-center",
                                             finalClusters.includes(c)
                                                 ? "bg-primary text-primary-foreground"
                                                 : "bg-muted text-muted-foreground hover:bg-muted/80"
                                         )}
+                                        title={c === 'None' ? 'No cluster' : `Cluster ${c}`}
                                     >
-                                        {c}
+                                        {c === 'None' ? <Ban className="h-4 w-4" /> : c}
                                     </button>
                                 ))}
                             </div>
@@ -1349,13 +1350,14 @@ export default function WeeklyCheckPage() {
                                             );
                                         }}
                                         className={cn(
-                                            "px-2 h-8 rounded-md text-sm font-medium transition-colors",
+                                            "w-8 h-8 rounded-md text-sm font-medium transition-colors flex items-center justify-center",
                                             successFinalClusters.includes(c)
                                                 ? "bg-primary text-primary-foreground"
                                                 : "bg-muted text-muted-foreground hover:bg-muted/80"
                                         )}
+                                        title={c === 'None' ? 'No cluster' : `Cluster ${c}`}
                                     >
-                                        {c}
+                                        {c === 'None' ? <Ban className="h-4 w-4" /> : c}
                                     </button>
                                 ))}
                             </div>
