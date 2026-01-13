@@ -462,7 +462,7 @@ export default function WeeklyCheckPage() {
 
                         return {
                             ...row,
-                            'New Cluster': effectiveCluster,
+                            'Clu': effectiveCluster,
                             'Score': saved?.score !== undefined ? saved.score : '',
                             '__FinalCluster': finalClusterVal // Internal field for comparison
                         };
@@ -476,7 +476,7 @@ export default function WeeklyCheckPage() {
 
             let processedHeaders = processHeaders(parsed.meta.fields || []);
             // Add new headers
-            if (!processedHeaders.includes('New Cluster')) processedHeaders.push('New Cluster');
+            if (!processedHeaders.includes('Clu')) processedHeaders.push('Clu');
             if (!processedHeaders.includes('Score')) processedHeaders.push('Score');
 
             if (config?.weeklyCheck?.columnOrder?.length) {
@@ -1163,7 +1163,6 @@ export default function WeeklyCheckPage() {
                             <TableHeader>
                                 <TableRow className="bg-muted" style={{ position: 'sticky', top: 0, zIndex: 20 }}>
                                     <TableHead className="whitespace-nowrap font-bold text-foreground bg-muted" style={{ position: 'sticky', left: 0, zIndex: 30 }}>Action</TableHead>
-                                    <TableHead className="whitespace-nowrap font-bold text-foreground bg-muted">Clu</TableHead>
                                     {section.headers.slice(0, 50).map((header) => (
                                         <TableHead key={header} className="whitespace-nowrap font-bold text-foreground bg-muted">
                                             {getDisplayName(header, config?.weeklyCheck?.columnRenames)}
@@ -1361,23 +1360,28 @@ export default function WeeklyCheckPage() {
                                                     </div>
                                                 </div>
                                             </TableCell>
-                                            <TableCell className="whitespace-nowrap bg-card z-10 w-min px-1">
-                                                <Select
-                                                    value={savedScores[Number(row['Level'])] || '-'}
-                                                    onValueChange={(v) => updateCluster(Number(row['Level']), v)}
-                                                >
-                                                    <SelectTrigger className="h-8 w-[60px] border-none shadow-none text-xs font-bold text-blue-600">
-                                                        <SelectValue placeholder="-" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="1">1</SelectItem>
-                                                        <SelectItem value="2">2</SelectItem>
-                                                        <SelectItem value="3">3</SelectItem>
-                                                        <SelectItem value="4">4</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </TableCell>
                                             {section.headers.slice(0, 50).map((header) => {
+                                                if (header === 'Clu' || header === 'Cluster') {
+                                                    return (
+                                                        <TableCell key={`${i}-${header}`} className="whitespace-nowrap bg-card z-10 w-min px-1">
+                                                            <Select
+                                                                value={savedScores[Number(row['Level'])] || '-'}
+                                                                onValueChange={(v) => updateCluster(Number(row['Level']), v)}
+                                                            >
+                                                                <SelectTrigger className="h-8 w-[60px] border-none shadow-none text-xs font-bold text-blue-600">
+                                                                    <SelectValue placeholder="-" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="1">1</SelectItem>
+                                                                    <SelectItem value="2">2</SelectItem>
+                                                                    <SelectItem value="3">3</SelectItem>
+                                                                    <SelectItem value="4">4</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </TableCell>
+                                                    );
+                                                }
+
                                                 const isNewCluster = header === 'New Cluster';
                                                 const isBold = isNewCluster && row['New Cluster'] !== row['__FinalCluster'];
 
