@@ -35,6 +35,33 @@ const HEADER_DEFINITIONS = [
 
 const normalizeHeader = (h: string) => h.toLowerCase().trim();
 
+const DEFAULT_MULTIPLIERS: any = {
+    cluster1: { monetization: 0.20, engagement: 0.20, satisfaction: 0.60 },
+    cluster2: { monetization: 0.25, engagement: 0.25, satisfaction: 0.50 },
+    cluster3: { monetization: 0.30, engagement: 0.35, satisfaction: 0.35 },
+    cluster4: { monetization: 0.35, engagement: 0.35, satisfaction: 0.30 },
+    default: { monetization: 0.30, engagement: 0.30, satisfaction: 0.40 },
+};
+
+const parseNum = (val: any): number => {
+    if (val === undefined || val === null || val === '') return 0;
+    if (typeof val === 'number') return val;
+    // Handle "1,05" vs "1.05"
+    const cleaned = String(val).replace(',', '.').replace(/[^\d.-]/g, '');
+    const n = parseFloat(cleaned);
+    return isNaN(n) ? 0 : n;
+};
+
+const getCol = (row: any, ...names: string[]) => {
+    for (const name of names) {
+        const normalized = normalizeHeader(name);
+        // Try exact match in row keys (after normalizing keys too)
+        const key = Object.keys(row).find(k => normalizeHeader(k) === normalized);
+        if (key && row[key] !== undefined) return row[key];
+    }
+    return '';
+};
+
 function processHeaders(allHeaders: string[]): string[] {
     let headers = [...allHeaders];
     const hasLevelScore = headers.some(h => normalizeHeader(h).includes('level score'));
@@ -96,7 +123,7 @@ function getDisplayName(header: string, renames?: Record<string, string>): strin
 
 interface Config {
     variables: string[];
-    games: { id: string; name: string; viewMappings: Record<string, string> }[];
+    games: { id: string; name: string; viewMappings: Record<string, string>; scoreMultipliers?: any }[];
     weeklyCheck?: {
         minTotalUser?: number;
         minTotalUserLast30?: number;
@@ -181,7 +208,7 @@ export default function WeeklyCheckPage() {
     const [showExportDialog, setShowExportDialog] = useState(false);
     const [exportData, setExportData] = useState<string>('');
     const [exportHeaders, setExportHeaders] = useState<string[]>([]);
-    const [savedScores, setSavedScores] = useState<Record<number, string>>({}); // New Cluster state
+    const [savedScores, setSavedScores] = useState<Record<number, { cluster: string | null, score: number | null }>>({}); // Combined state
     const [exportSummary, setExportSummary] = useState<string>('');
 
     const [exportDetails, setExportDetails] = useState<any[]>([]);
@@ -380,10 +407,10 @@ export default function WeeklyCheckPage() {
             const savedRes = await fetch(`/api/level-scores?gameId=${selectedGameId}&t=${Date.now()}`);
             if (savedRes.ok) {
                 const savedData = await savedRes.json();
-                const savedMap: Record<number, string> = {};
+                const savedMap: Record<number, { cluster: string | null, score: number | null }> = {};
                 if (Array.isArray(savedData)) {
                     savedData.forEach((s: any) => {
-                        if (s.cluster) savedMap[s.level] = s.cluster;
+                        savedMap[s.level] = { cluster: s.cluster || null, score: s.score !== undefined ? s.score : null };
                     });
                 }
                 setSavedScores(savedMap);
@@ -1124,17 +1151,54 @@ export default function WeeklyCheckPage() {
         }
     };
 
+    const getMultipliers = (cluster: string) => {
+        const game = config?.games.find(g => g.id === selectedGameId);
+        const multipliers = game?.scoreMultipliers || DEFAULT_MULTIPLIERS;
+
+        switch (cluster) {
+            case '1': return multipliers.cluster1 || DEFAULT_MULTIPLIERS.cluster1!;
+            case '2': return multipliers.cluster2 || DEFAULT_MULTIPLIERS.cluster2!;
+            case '3': return multipliers.cluster3 || DEFAULT_MULTIPLIERS.cluster3!;
+            case '4': return multipliers.cluster4 || DEFAULT_MULTIPLIERS.cluster4!;
+            default: return multipliers.default || DEFAULT_MULTIPLIERS.default!;
+        }
+    };
+
     const updateCluster = async (level: number, cluster: string) => {
+        // Find row to get component scores
+        const row = rawData.find(r => {
+            const levelCol = Object.keys(r).find(k => {
+                const n = normalizeHeader(k);
+                return n === 'level' || n === 'level number' || n === 'level_number';
+            }) || 'Level';
+            return parseInt(String(r[levelCol] || 0).replace(/[^\d-]/g, '')) === level;
+        });
+
+        let newScore = null;
+        if (row) {
+            const monetizationScore = parseNum(getCol(row, 'Monetization Score', 'Monetization_Score', 'Monetization'));
+            const engagementScore = parseNum(getCol(row, 'Engagement Score', 'Engagement_Score', 'Engagement'));
+            const satisfactionScore = parseNum(getCol(row, 'Satisfaction Score', 'Satisfaction_Score', 'Satisfaction'));
+
+            const mult = getMultipliers(cluster);
+            newScore = (monetizationScore * mult.monetization) +
+                (engagementScore * mult.engagement) +
+                (satisfactionScore * mult.satisfaction);
+        }
+
         // Optimistic update
-        setSavedScores(prev => ({ ...prev, [level]: cluster }));
+        setSavedScores(prev => ({
+            ...prev,
+            [level]: { cluster, score: newScore }
+        }));
 
         try {
             await fetch("/api/level-scores", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    gameId: selectedGameId || config?.games[0]?.id, // fallback if needed
-                    levels: [{ level, cluster }]
+                    gameId: selectedGameId || config?.games[0]?.id,
+                    levels: [{ level, cluster, score: newScore }]
                 }),
             });
         } catch (e) {
@@ -1259,7 +1323,7 @@ export default function WeeklyCheckPage() {
                                                                                                 <td className="p-1 text-right">{formatVal(playTime)}</td>
                                                                                                 <td className="p-1 text-right">{formatPercent(firstTryWin)}</td>
                                                                                                 <td className="p-1 text-right">{formatVal(remaining)}</td>
-                                                                                                <td className="p-1 text-right font-medium text-blue-600">{savedScores[parseInt(r['Level'])] || '-'}</td>
+                                                                                                <td className="p-1 text-right font-medium text-blue-600">{savedScores[parseInt(r['Level'])]?.cluster || '-'}</td>
                                                                                             </tr>
                                                                                         );
                                                                                     })}
@@ -1365,7 +1429,7 @@ export default function WeeklyCheckPage() {
                                                     return (
                                                         <TableCell key={`${i}-${header}`} className="whitespace-nowrap bg-card z-10 w-min px-1">
                                                             <Select
-                                                                value={savedScores[Number(row['Level'])] || '-'}
+                                                                value={savedScores[Number(row['Level'])]?.cluster || '-'}
                                                                 onValueChange={(v) => updateCluster(Number(row['Level']), v)}
                                                             >
                                                                 <SelectTrigger className="h-8 w-[60px] border-none shadow-none text-xs font-bold text-blue-600">
@@ -1378,6 +1442,23 @@ export default function WeeklyCheckPage() {
                                                                     <SelectItem value="4">4</SelectItem>
                                                                 </SelectContent>
                                                             </Select>
+                                                        </TableCell>
+                                                    );
+                                                }
+
+                                                if (header === 'Score' || header === 'Level Score') {
+                                                    const currentLevel = Number(row['Level']);
+                                                    const overhead = savedScores[currentLevel];
+                                                    const displayScore = (overhead && overhead.score !== null)
+                                                        ? overhead.score
+                                                        : row[header];
+
+                                                    return (
+                                                        <TableCell
+                                                            key={`${i}-${header}`}
+                                                            className="whitespace-nowrap font-medium text-muted-foreground"
+                                                        >
+                                                            {formatTableValue(displayScore, header)}
                                                         </TableCell>
                                                     );
                                                 }
