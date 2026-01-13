@@ -128,13 +128,13 @@ export default function WeeklyCheckPage() {
     const [minTotalUser, setMinUsers] = useState<number>(50);
     const [minLevel, setMinLevel] = useState<number>(0);
     const [minDaysSinceEvent, setMinDaysSinceEvent] = useState<number>(0);
-    const [finalClusters, setFinalClusters] = useState<string[]>(['1', '2', '3', '4']);
+    const [finalClusters, setFinalClusters] = useState<string[]>(['1', '2', '3', '4', 'None']);
 
     // Successful Tab Filters
     const [successMinTotalUser, setSuccessMinUsers] = useState<number>(50);
     const [successMinLevel, setSuccessMinLevel] = useState<number>(0);
     const [successMinDaysSinceEvent, setSuccessMinDaysSinceEvent] = useState<number>(0);
-    const [successFinalClusters, setSuccessFinalClusters] = useState<string[]>(['1', '2', '3', '4']);
+    const [successFinalClusters, setSuccessFinalClusters] = useState<string[]>(['1', '2', '3', '4', 'None']);
 
     // Last 30 Filter
     const [minTotalUserLast30, setMinUsersLast30] = useState<number>(50);
@@ -156,13 +156,13 @@ export default function WeeklyCheckPage() {
         { id: 'last30', title: 'Last 30 Levels', data: [], headers: [], expanded: true }
     );
 
-    // Actions state: key = "sectionId-level", value = { type: 'M'|'R'|'BR'|'TR'|'S'|'SS', moveValue?: number, description?: string }
+    // Actions state: key = "sectionId-level", value = array of actions for multiple actions per level
     interface LevelAction {
         type: 'M' | 'R' | 'BR' | 'TR' | 'S' | 'SS' | '';
         moveValue?: number;
         description?: string;
     }
-    const [actions, setActions] = useState<Record<string, LevelAction>>({});
+    const [actions, setActions] = useState<Record<string, LevelAction[]>>({});
     const [showCacheDialog, setShowCacheDialog] = useState(false);
     const [cachedDataInfo, setCachedDataInfo] = useState<{ fileName: string; createdAt: Date } | null>(null);
     const [showExportDialog, setShowExportDialog] = useState(false);
@@ -247,13 +247,16 @@ export default function WeeklyCheckPage() {
 
             // Multi-select New Cluster filter (uses effective cluster - saved or final)
             // Only filter if the row actually has a cluster value
-            if (clusters.length > 0 && clusters.length < 4) {
+            if (clusters.length > 0 && clusters.length < 5) {
                 const clusterVal = String(row['New Cluster'] || '').trim();
-                // Only apply filter if cluster value exists - allow empty values to pass
-                if (clusterVal && !clusters.includes(clusterVal)) return false;
+                // Check if 'None' is selected and cluster value is empty
+                if (!clusterVal) {
+                    if (!clusters.includes('None')) return false;
+                } else {
+                    if (!clusters.includes(clusterVal)) return false;
+                }
             }
             return true;
-
         };
     };
 
@@ -463,28 +466,47 @@ export default function WeeklyCheckPage() {
         }
     };
 
-    const handleActionTypeChange = (sectionId: string, level: number, type: 'M' | 'R' | 'BR' | 'TR' | 'S' | 'SS' | '') => {
+    const handleActionTypeChange = (sectionId: string, level: number, type: 'M' | 'R' | 'BR' | 'TR' | 'S' | 'SS' | '', actionIndex: number = 0) => {
         const key = `${sectionId}-${level}`;
-        setActions(prev => ({
-            ...prev,
-            [key]: { ...prev[key], type, moveValue: undefined, description: undefined }
-        }));
+        setActions(prev => {
+            const existing = prev[key] || [{ type: '' }];
+            const updated = [...existing];
+            if (type === '') {
+                // Clear this action
+                updated[actionIndex] = { type: '' };
+            } else {
+                updated[actionIndex] = { ...updated[actionIndex], type, moveValue: undefined, description: undefined };
+            }
+            return { ...prev, [key]: updated };
+        });
     };
 
-    const handleActionMoveChange = (sectionId: string, level: number, moveValue: number) => {
+    const handleActionMoveChange = (sectionId: string, level: number, moveValue: number, actionIndex: number = 0) => {
         const key = `${sectionId}-${level}`;
-        setActions(prev => ({
-            ...prev,
-            [key]: { ...prev[key], moveValue }
-        }));
+        setActions(prev => {
+            const existing = prev[key] || [{ type: '' }];
+            const updated = [...existing];
+            updated[actionIndex] = { ...updated[actionIndex], moveValue };
+            return { ...prev, [key]: updated };
+        });
     };
 
-    const handleActionDescriptionChange = (sectionId: string, level: number, description: string) => {
+    const handleActionDescriptionChange = (sectionId: string, level: number, description: string, actionIndex: number = 0) => {
         const key = `${sectionId}-${level}`;
-        setActions(prev => ({
-            ...prev,
-            [key]: { ...prev[key], description }
-        }));
+        setActions(prev => {
+            const existing = prev[key] || [{ type: '' }];
+            const updated = [...existing];
+            updated[actionIndex] = { ...updated[actionIndex], description };
+            return { ...prev, [key]: updated };
+        });
+    };
+
+    const addAction = (sectionId: string, level: number) => {
+        const key = `${sectionId}-${level}`;
+        setActions(prev => {
+            const existing = prev[key] || [{ type: '' }];
+            return { ...prev, [key]: [...existing, { type: '' }] };
+        });
     };
 
     const exportActions = (section: TableSection, isSuccessfulTab: boolean = false) => {
@@ -498,14 +520,16 @@ export default function WeeklyCheckPage() {
                 const level = row['Level'];
                 if (level === undefined) return;
                 const key = `${section.id}-${level}`;
-                const action = actions[key];
-                if (!action?.type) return;
+                const levelActions = actions[key] || [];
 
-                if (action.type === 'S') {
-                    grouped['Select'].push({ level, description: action.description || '-' });
-                } else if (action.type === 'SS') {
-                    grouped['Super Select'].push({ level, description: action.description || '-' });
-                }
+                levelActions.forEach(action => {
+                    if (!action?.type) return;
+                    if (action.type === 'S') {
+                        grouped['Select'].push({ level, description: action.description || '-' });
+                    } else if (action.type === 'SS') {
+                        grouped['Super Select'].push({ level, description: action.description || '-' });
+                    }
+                });
             });
 
             // Build table string for successful tab
@@ -535,22 +559,24 @@ export default function WeeklyCheckPage() {
             const level = row['Level'];
             if (level === undefined) return;
             const key = `${section.id}-${level}`;
-            const action = actions[key];
-            if (!action?.type) return;
+            const levelActions = actions[key] || [];
 
             const currentRevision = parseInt(row['RevisionNumber'] || row['Revision Number'] || '0') || 0;
             const totalMove = Math.round(parseFloat(row['Total Move'] || row['Avg. Total Moves'] || row['TotalMove'] || '0') || 0);
 
-            if (action.type === 'R') {
-                grouped['Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
-            } else if (action.type === 'BR') {
-                grouped['Big Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
-            } else if (action.type === 'TR') {
-                grouped['Time Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
-            } else if (action.type === 'M') {
-                const mv = action.moveValue || 0;
-                grouped['Move Change'].push({ level, revisionNumber: currentRevision + 1, newMove: String(totalMove + mv), description: '-', totalMove });
-            }
+            levelActions.forEach(action => {
+                if (!action?.type) return;
+                if (action.type === 'R') {
+                    grouped['Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
+                } else if (action.type === 'BR') {
+                    grouped['Big Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
+                } else if (action.type === 'TR') {
+                    grouped['Time Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
+                } else if (action.type === 'M') {
+                    const mv = action.moveValue || 0;
+                    grouped['Move Change'].push({ level, revisionNumber: currentRevision + 1, newMove: String(totalMove + mv), description: '-', totalMove });
+                }
+            });
         });
 
         // Build table string
@@ -592,12 +618,14 @@ export default function WeeklyCheckPage() {
             const level = row['Level'];
             if (level === undefined) return;
             const key = `${section.id}-${level}`;
-            const action = actions[key];
-            if (action?.type === 'M' && action.moveValue !== undefined) {
-                const mv = action.moveValue;
-                if (!moveSummaryGroups[mv]) moveSummaryGroups[mv] = [];
-                moveSummaryGroups[mv].push(level);
-            }
+            const levelActions = actions[key] || [];
+            levelActions.forEach(action => {
+                if (action?.type === 'M' && action.moveValue !== undefined) {
+                    const mv = action.moveValue;
+                    if (!moveSummaryGroups[mv]) moveSummaryGroups[mv] = [];
+                    moveSummaryGroups[mv].push(level);
+                }
+            });
         });
 
         let summaryStr = '';
@@ -665,14 +693,16 @@ export default function WeeklyCheckPage() {
                 const level = row['Level'];
                 if (level === undefined) return;
                 const key = `${section.id}-${level}`;
-                const action = actions[key];
-                if (!action?.type) return;
+                const levelActions = actions[key] || [];
 
-                if (action.type === 'S') {
-                    grouped['Select'].push({ level, description: action.description || '-' });
-                } else if (action.type === 'SS') {
-                    grouped['Super Select'].push({ level, description: action.description || '-' });
-                }
+                levelActions.forEach(action => {
+                    if (!action?.type) return;
+                    if (action.type === 'S') {
+                        grouped['Select'].push({ level, description: action.description || '-' });
+                    } else if (action.type === 'SS') {
+                        grouped['Super Select'].push({ level, description: action.description || '-' });
+                    }
+                });
             });
 
             headers = ['Action', 'Level', 'Description'];
@@ -694,22 +724,24 @@ export default function WeeklyCheckPage() {
                 const level = row['Level'];
                 if (level === undefined) return;
                 const key = `${section.id}-${level}`;
-                const action = actions[key];
-                if (!action?.type) return;
+                const levelActions = actions[key] || [];
 
                 const currentRevision = parseInt(row['RevisionNumber'] || row['Revision Number'] || '0') || 0;
                 const totalMove = Math.round(parseFloat(row['Total Move'] || row['Avg. Total Moves'] || row['TotalMove'] || '0') || 0);
 
-                if (action.type === 'R') {
-                    grouped['Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
-                } else if (action.type === 'BR') {
-                    grouped['Big Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
-                } else if (action.type === 'TR') {
-                    grouped['Time Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
-                } else if (action.type === 'M') {
-                    const mv = action.moveValue || 0;
-                    grouped['Move Change'].push({ level, revisionNumber: currentRevision + 1, newMove: String(totalMove + mv), description: '-', totalMove });
-                }
+                levelActions.forEach(action => {
+                    if (!action?.type) return;
+                    if (action.type === 'R') {
+                        grouped['Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
+                    } else if (action.type === 'BR') {
+                        grouped['Big Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
+                    } else if (action.type === 'TR') {
+                        grouped['Time Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
+                    } else if (action.type === 'M') {
+                        const mv = action.moveValue || 0;
+                        grouped['Move Change'].push({ level, revisionNumber: currentRevision + 1, newMove: String(totalMove + mv), description: '-', totalMove });
+                    }
+                });
             });
 
             headers = ['Action', 'Level', 'Revision Number', 'New Move', 'Description'];
@@ -726,12 +758,14 @@ export default function WeeklyCheckPage() {
                 const level = row['Level'];
                 if (level === undefined) return;
                 const key = `${section.id}-${level}`;
-                const action = actions[key];
-                if (action?.type === 'M' && action.moveValue !== undefined) {
-                    const mv = action.moveValue;
-                    if (!moveSummaryGroups[mv]) moveSummaryGroups[mv] = [];
-                    moveSummaryGroups[mv].push(level);
-                }
+                const levelActions = actions[key] || [];
+                levelActions.forEach(action => {
+                    if (action?.type === 'M' && action.moveValue !== undefined) {
+                        const mv = action.moveValue;
+                        if (!moveSummaryGroups[mv]) moveSummaryGroups[mv] = [];
+                        moveSummaryGroups[mv].push(level);
+                    }
+                });
             });
 
             if (Object.keys(moveSummaryGroups).length > 0) {
@@ -932,61 +966,77 @@ export default function WeeklyCheckPage() {
                                 {section.data.map((row, i) => {
                                     const level = row['Level'];
                                     const key = `${section.id}-${level}`;
-                                    const action = actions[key] || { type: '' };
+                                    const levelActions = actions[key] || [{ type: '' }];
                                     return (
                                         <TableRow key={i} className="hover:bg-muted/30">
-                                            <TableCell className="whitespace-nowrap sticky left-0 bg-card z-10" style={{ minWidth: '200px' }}>
-                                                <div className="flex gap-1 items-center">
-                                                    <Select
-                                                        value={action.type || ''}
-                                                        onValueChange={(val) => handleActionTypeChange(section.id, level, val as any)}
-                                                    >
-                                                        <SelectTrigger className="w-16 h-8">
-                                                            <SelectValue placeholder="-" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {tabType === 'successful' ? (
-                                                                <>
-                                                                    <SelectItem value="S">S</SelectItem>
-                                                                    <SelectItem value="SS">SS</SelectItem>
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <SelectItem value="M">M</SelectItem>
-                                                                    <SelectItem value="R">R</SelectItem>
-                                                                    <SelectItem value="BR">BR</SelectItem>
-                                                                    <SelectItem value="TR">TR</SelectItem>
-                                                                </>
+                                            <TableCell className="whitespace-nowrap sticky left-0 bg-card z-10" style={{ minWidth: '280px' }}>
+                                                <div className="flex flex-col gap-1">
+                                                    {levelActions.map((action, actionIndex) => (
+                                                        <div key={actionIndex} className="flex gap-1 items-center">
+                                                            <Select
+                                                                value={action.type || ''}
+                                                                onValueChange={(val) => handleActionTypeChange(section.id, level, val as any, actionIndex)}
+                                                            >
+                                                                <SelectTrigger className="w-16 h-8">
+                                                                    <SelectValue placeholder="-" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="">-</SelectItem>
+                                                                    {tabType === 'successful' ? (
+                                                                        <>
+                                                                            <SelectItem value="S">S</SelectItem>
+                                                                            <SelectItem value="SS">SS</SelectItem>
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <SelectItem value="M">M</SelectItem>
+                                                                            <SelectItem value="R">R</SelectItem>
+                                                                            <SelectItem value="BR">BR</SelectItem>
+                                                                            <SelectItem value="TR">TR</SelectItem>
+                                                                        </>
+                                                                    )}
+                                                                </SelectContent>
+                                                            </Select>
+                                                            {action.type === 'M' && (
+                                                                <Select
+                                                                    value={action.moveValue !== undefined ? String(action.moveValue) : ''}
+                                                                    onValueChange={(val) => handleActionMoveChange(section.id, level, parseInt(val), actionIndex)}
+                                                                >
+                                                                    <SelectTrigger className="w-14 h-8">
+                                                                        <SelectValue placeholder="0" />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        <SelectItem value="-3">-3</SelectItem>
+                                                                        <SelectItem value="-2">-2</SelectItem>
+                                                                        <SelectItem value="-1">-1</SelectItem>
+                                                                        <SelectItem value="1">+1</SelectItem>
+                                                                        <SelectItem value="2">+2</SelectItem>
+                                                                        <SelectItem value="3">+3</SelectItem>
+                                                                    </SelectContent>
+                                                                </Select>
                                                             )}
-                                                        </SelectContent>
-                                                    </Select>
-                                                    {action.type === 'M' && (
-                                                        <Select
-                                                            value={action.moveValue !== undefined ? String(action.moveValue) : ''}
-                                                            onValueChange={(val) => handleActionMoveChange(section.id, level, parseInt(val))}
-                                                        >
-                                                            <SelectTrigger className="w-14 h-8">
-                                                                <SelectValue placeholder="0" />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="-3">-3</SelectItem>
-                                                                <SelectItem value="-2">-2</SelectItem>
-                                                                <SelectItem value="-1">-1</SelectItem>
-                                                                <SelectItem value="1">+1</SelectItem>
-                                                                <SelectItem value="2">+2</SelectItem>
-                                                                <SelectItem value="3">+3</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                    {(action.type === 'R' || action.type === 'BR' || action.type === 'TR' || action.type === 'S' || action.type === 'SS') && (
-                                                        <Input
-                                                            type="text"
-                                                            className="w-32 h-8 text-xs"
-                                                            value={action.description || ''}
-                                                            onChange={(e) => handleActionDescriptionChange(section.id, level, e.target.value)}
-                                                            placeholder="Description..."
-                                                        />
-                                                    )}
+                                                            {(action.type === 'R' || action.type === 'BR' || action.type === 'TR' || action.type === 'S' || action.type === 'SS') && (
+                                                                <Input
+                                                                    type="text"
+                                                                    className="w-28 h-8 text-xs"
+                                                                    value={action.description || ''}
+                                                                    onChange={(e) => handleActionDescriptionChange(section.id, level, e.target.value, actionIndex)}
+                                                                    placeholder="Desc..."
+                                                                />
+                                                            )}
+                                                            {actionIndex === levelActions.length - 1 && action.type && (
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="h-8 w-8 p-0"
+                                                                    onClick={() => addAction(section.id, level)}
+                                                                    title="Add another action"
+                                                                >
+                                                                    +
+                                                                </Button>
+                                                            )}
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             </TableCell>
                                             {section.headers.slice(0, 50).map((header) => {
@@ -1246,7 +1296,7 @@ export default function WeeklyCheckPage() {
                         <div className="space-y-1">
                             <label className="text-xs font-semibold text-muted-foreground">New Cluster</label>
                             <div className="flex gap-1">
-                                {['1', '2', '3', '4'].map(c => (
+                                {['1', '2', '3', '4', 'None'].map(c => (
                                     <button
                                         key={c}
                                         type="button"
@@ -1256,7 +1306,7 @@ export default function WeeklyCheckPage() {
                                             );
                                         }}
                                         className={cn(
-                                            "w-8 h-8 rounded-md text-sm font-medium transition-colors",
+                                            "px-2 h-8 rounded-md text-sm font-medium transition-colors",
                                             finalClusters.includes(c)
                                                 ? "bg-primary text-primary-foreground"
                                                 : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -1289,7 +1339,7 @@ export default function WeeklyCheckPage() {
                         <div className="space-y-1">
                             <label className="text-xs font-semibold text-muted-foreground">New Cluster</label>
                             <div className="flex gap-1">
-                                {['1', '2', '3', '4'].map(c => (
+                                {['1', '2', '3', '4', 'None'].map(c => (
                                     <button
                                         key={c}
                                         type="button"
@@ -1299,7 +1349,7 @@ export default function WeeklyCheckPage() {
                                             );
                                         }}
                                         className={cn(
-                                            "w-8 h-8 rounded-md text-sm font-medium transition-colors",
+                                            "px-2 h-8 rounded-md text-sm font-medium transition-colors",
                                             successFinalClusters.includes(c)
                                                 ? "bg-primary text-primary-foreground"
                                                 : "bg-muted text-muted-foreground hover:bg-muted/80"
