@@ -1138,8 +1138,8 @@ export default function WeeklyCheckPage() {
                                     const levelActions = actions[key] || [{ type: '' }];
                                     return (
                                         <TableRow key={i} className="hover:bg-muted/30">
-                                            <TableCell className="whitespace-nowrap sticky left-0 bg-card z-10">
-                                                <div className="flex flex-row items-start gap-2">
+                                            <TableCell className="whitespace-nowrap sticky left-0 bg-card z-10 w-min">
+                                                <div className="flex flex-row items-start gap-1">
                                                     <div className="mt-1 flex-shrink-0">
                                                         {row['Level'] && (() => {
                                                             const getNeighboringLevels = (currentLevel: number, allData: any[]) => {
@@ -1247,7 +1247,9 @@ export default function WeeklyCheckPage() {
                                                         })()}
                                                     </div>
 
-                                                    <div className="flex flex-col gap-1 w-full">
+
+
+                                                    <div className="flex flex-col gap-1">
                                                         {levelActions.map((action, actionIndex) => (
                                                             <div key={actionIndex} className="flex gap-1 items-center">
                                                                 <Select
@@ -1348,14 +1350,17 @@ export default function WeeklyCheckPage() {
                         </Button>
                     </div>
                 </div>
-            )}
+            )
+            }
 
-            {section.expanded && section.data.length === 0 && (
-                <div className="p-8 text-center text-muted-foreground">
-                    No data loaded. Select a game and click "Load Data".
-                </div>
-            )}
-        </div>
+            {
+                section.expanded && section.data.length === 0 && (
+                    <div className="p-8 text-center text-muted-foreground">
+                        No data loaded. Select a game and click "Load Data".
+                    </div>
+                )
+            }
+        </div >
     );
 
     if (loadingConfig) return <div className="p-8 animate-pulse text-muted-foreground">Loading configuration...</div>;
@@ -1503,197 +1508,250 @@ export default function WeeklyCheckPage() {
                                                 Remove
                                             </Button>
                                         </div>
-                                        {section.content.split('\n').filter(Boolean).map((line, lineIdx) => {
-                                            const parts = line.split('\t');
-                                            return (
-                                                <tr key={lineIdx} className="border-b border-muted-foreground/20">
-                                                    {section.headers.map((_, i) => (
-                                                        <td key={i} className="py-1 pr-4">{parts[i] || ''}</td>
-                                                    ))}
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
+                                        <div className="overflow-auto max-h-[400px]">
+                                            <table className="w-full text-sm">
+                                                <thead className="bg-muted/50 sticky top-0">
+                                                    <tr>
+                                                        {section.headers.map((h, i) => <th key={i} className="px-2 py-1 text-left font-medium">{h}</th>)}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {section.content.split('\n').filter(Boolean).map((line, lineIdx) => {
+                                                        const parts = line.split('\t');
+                                                        return (
+                                                            <tr key={lineIdx} className="border-b border-muted-foreground/20">
+                                                                {section.headers.map((_, i) => (
+                                                                    <td key={i} className="py-1 pr-4">{parts[i] || ''}</td>
+                                                                ))}
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
                                             </table>
-                                            {section.summary && (
-                            <div className="mt-2 text-xs text-muted-foreground">{section.summary}</div>
-                        )}
-                    </div>
-                </div>
-            ))}
-        </div>
-    )
-}
+                                        </div>
 
-{/* Combined Moves Summary */ }
-{
-    getCombinedMovesSummary() && (
-        <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
-            <h4 className="font-semibold text-sm mb-2">📊 Combined Moves Summary</h4>
-            <p className="font-mono text-sm">{getCombinedMovesSummary()}</p>
-        </div>
-    )
-}
+                                        {
+                                            section.details && section.details.length > 0 && (
+                                                <div className="mt-4 px-1">
+                                                    <h4 className="font-semibold text-xs mb-2">Revise Levels Details:</h4>
+                                                    <div className="border rounded-md overflow-hidden">
+                                                        <Table>
+                                                            <TableHeader>
+                                                                <TableRow className="bg-muted hover:bg-muted">
+                                                                    <TableHead className="h-7 py-1 text-xs">Level</TableHead>
+                                                                    <TableHead className="h-7 py-1 text-xs">Action</TableHead>
+                                                                    <TableHead className="h-7 py-1 text-right text-xs">3d Churn</TableHead>
+                                                                    <TableHead className="h-7 py-1 text-right text-xs">Repeat</TableHead>
+                                                                    <TableHead className="h-7 py-1 text-right text-xs">Playon</TableHead>
+                                                                    <TableHead className="h-7 py-1 text-right text-xs">Moves</TableHead>
+                                                                    <TableHead className="h-7 py-1 text-right text-xs">Time</TableHead>
+                                                                    <TableHead className="h-7 py-1 text-right text-xs">1stWin</TableHead>
+                                                                    <TableHead className="h-7 py-1 text-right text-xs">Rem</TableHead>
+                                                                </TableRow>
+                                                            </TableHeader>
+                                                            <TableBody>
+                                                                {section.details.map((row, i) => (
+                                                                    <TableRow key={i} className="hover:bg-muted/50 border-b border-muted/20">
+                                                                        <TableCell className="py-1 font-medium text-xs">{row.level}</TableCell>
+                                                                        <TableCell className="py-1 text-xs">{row.action}</TableCell>
+                                                                        <TableCell className="py-1 text-right text-xs">{row.churn3d}</TableCell>
+                                                                        <TableCell className="py-1 text-right text-xs">{row.repeat}</TableCell>
+                                                                        <TableCell className="py-1 text-right text-xs">{row.playon}</TableCell>
+                                                                        <TableCell className="py-1 text-right text-xs">{row.totalMoves}</TableCell>
+                                                                        <TableCell className="py-1 text-right text-xs">{row.playTime}</TableCell>
+                                                                        <TableCell className="py-1 text-right text-xs">{row.firstTryWin}</TableCell>
+                                                                        <TableCell className="py-1 text-right text-xs">{row.remaining}</TableCell>
+                                                                    </TableRow>
+                                                                ))}
+                                                            </TableBody>
+                                                        </Table>
+                                                    </div>
+                                                </div>
+                                            )
+                                        }
+                                        {
+                                            section.summary && (
+                                                <div className="mt-2 text-xs text-muted-foreground whitespace-pre-wrap">{section.summary}</div>
+                                            )
+                                        }
+                                    </div >
 
-<div className="flex gap-3 mt-6">
-    <Button variant="secondary" onClick={saveWeeklyReport} disabled={combinedReport.length === 0 || savingReport}>
-        {savingReport ? 'Saving...' : '💾 Save Report'}
-    </Button>
-    <Button className="flex-1" onClick={downloadWeeklyReport} disabled={combinedReport.length === 0}>
-        Download Merged XLS
-    </Button>
-    <Button variant="outline" onClick={() => setCombinedReport([])}>
-        Clear All
-    </Button>
-    <Button variant="outline" onClick={() => setShowWeeklyReportDialog(false)}>
-        Close
-    </Button>
-</div>
+                                ))
+                                }
+                            </div >
+                        )
+                        }
+
+                        {/* Combined Moves Summary */}
+                        {
+                            getCombinedMovesSummary() && (
+                                <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
+                                    <h4 className="font-semibold text-sm mb-2">📊 Combined Moves Summary</h4>
+                                    <p className="font-mono text-sm">{getCombinedMovesSummary()}</p>
+                                </div>
+                            )
+                        }
+
+                        <div className="flex gap-3 mt-6">
+                            <Button variant="secondary" onClick={saveWeeklyReport} disabled={combinedReport.length === 0 || savingReport}>
+                                {savingReport ? 'Saving...' : '💾 Save Report'}
+                            </Button>
+                            <Button className="flex-1" onClick={downloadWeeklyReport} disabled={combinedReport.length === 0}>
+                                Download Merged XLS
+                            </Button>
+                            <Button variant="outline" onClick={() => setCombinedReport([])}>
+                                Clear All
+                            </Button>
+                            <Button variant="outline" onClick={() => setShowWeeklyReportDialog(false)}>
+                                Close
+                            </Button>
+                        </div>
                     </div >
                 </div >
-            )}
+            )
+            }
 
-<div className="space-y-4">
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-        <div>
-            <h1 className="text-2xl font-bold">Weekly Check</h1>
-            <p className="text-muted-foreground">Review key metrics from Level Revize data</p>
-        </div>
-    </div>
-</div>
-
-{/* Controls */ }
-<div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 sm:gap-4 p-4 bg-muted/40 rounded-xl border shadow-sm">
-    <div className="space-y-1.5 w-full sm:w-[250px]">
-        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Game</label>
-        <Select value={selectedGameId || ""} onValueChange={setSelectedGameId}>
-            <SelectTrigger className="bg-background shadow-sm">
-                <SelectValue placeholder="Select a Game..." />
-            </SelectTrigger>
-            <SelectContent>
-                {availableGames?.map(g => (<SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>))}
-                {availableGames?.length === 0 && <SelectItem value="none" disabled>No games available</SelectItem>}
-            </SelectContent>
-        </Select>
-    </div>
-    <Button onClick={handleLoad} disabled={loading || !selectedGameId} className="shadow-sm w-full sm:w-auto">
-        {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-        Load Data
-    </Button>
-    {combinedReport.length > 0 && (
-        <Button variant="secondary" onClick={() => setShowWeeklyReportDialog(true)} className="shadow-sm w-full sm:w-auto gap-2">
-            📋 Weekly Report ({combinedReport.length})
-        </Button>
-    )}
-</div>
-
-{
-    error && (
-        <div className="p-4 text-sm text-destructive bg-destructive/10 rounded-md border border-destructive/20">{error}</div>
-    )
-}
-
-{/* Tabs */ }
-<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-    <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="unsuccessful">Unsuccessful</TabsTrigger>
-        <TabsTrigger value="successful">Successful</TabsTrigger>
-        <TabsTrigger value="last30">Last 30 Levels</TabsTrigger>
-    </TabsList>
-
-    {/* Unsuccessful Tab */}
-    <TabsContent value="unsuccessful" className="space-y-4 mt-4">
-        <div className="flex flex-wrap gap-4 items-end p-3 bg-muted/30 rounded-lg border">
-            <div className="space-y-1">
-                <label className="text-xs font-semibold text-muted-foreground">Min Level</label>
-                <Input type="number" value={minLevel} onChange={(e) => setMinLevel(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
-            </div>
-            <div className="space-y-1">
-                <label className="text-xs font-semibold text-muted-foreground">Min Users</label>
-                <Input type="number" value={minTotalUser} onChange={(e) => setMinUsers(Number(e.target.value))} className="w-24 h-8 bg-background" />
-            </div>
-            <div className="space-y-1">
-                <label className="text-xs font-semibold text-muted-foreground">Min Days Old</label>
-                <Input type="number" value={minDaysSinceEvent} onChange={(e) => setMinDaysSinceEvent(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
-            </div>
-            <div className="space-y-1">
-                <label className="text-xs font-semibold text-muted-foreground">New Cluster</label>
-                <div className="flex gap-1">
-                    {['1', '2', '3', '4', 'None'].map(c => (
-                        <button
-                            key={c}
-                            type="button"
-                            onClick={() => {
-                                setFinalClusters(prev =>
-                                    prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
-                                );
-                            }}
-                            className={cn(
-                                "w-8 h-8 rounded-md text-sm font-medium transition-colors flex items-center justify-center",
-                                finalClusters.includes(c)
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-muted text-muted-foreground hover:bg-muted/80"
-                            )}
-                            title={c === 'None' ? 'No cluster' : `Cluster ${c}`}
-                        >
-                            {c === 'None' ? <Ban className="h-4 w-4" /> : c}
-                        </button>
-                    ))}
+            <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+                    <div>
+                        <h1 className="text-2xl font-bold">Weekly Check</h1>
+                        <p className="text-muted-foreground">Review key metrics from Level Revize data</p>
+                    </div>
                 </div>
             </div>
-        </div>
-        {unsuccessfulSections.map(s => renderSection(s, 'unsuccessful'))}
-    </TabsContent>
 
-    {/* Successful Tab */}
-    <TabsContent value="successful" className="space-y-4 mt-4">
-        <div className="flex flex-wrap gap-4 items-end p-3 bg-muted/30 rounded-lg border">
-            <div className="space-y-1">
-                <label className="text-xs font-semibold text-muted-foreground">Min Level</label>
-                <Input type="number" value={successMinLevel} onChange={(e) => setSuccessMinLevel(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
-            </div>
-            <div className="space-y-1">
-                <label className="text-xs font-semibold text-muted-foreground">Min Users</label>
-                <Input type="number" value={successMinTotalUser} onChange={(e) => setSuccessMinUsers(Number(e.target.value))} className="w-24 h-8 bg-background" />
-            </div>
-            <div className="space-y-1">
-                <label className="text-xs font-semibold text-muted-foreground">Min Days Old</label>
-                <Input type="number" value={successMinDaysSinceEvent} onChange={(e) => setSuccessMinDaysSinceEvent(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
-            </div>
-            <div className="space-y-1">
-                <label className="text-xs font-semibold text-muted-foreground">New Cluster</label>
-                <div className="flex gap-1">
-                    {['1', '2', '3', '4', 'None'].map(c => (
-                        <button
-                            key={c}
-                            type="button"
-                            onClick={() => {
-                                setSuccessFinalClusters(prev =>
-                                    prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
-                                );
-                            }}
-                            className={cn(
-                                "w-8 h-8 rounded-md text-sm font-medium transition-colors flex items-center justify-center",
-                                successFinalClusters.includes(c)
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-muted text-muted-foreground hover:bg-muted/80"
-                            )}
-                            title={c === 'None' ? 'No cluster' : `Cluster ${c}`}
-                        >
-                            {c === 'None' ? <Ban className="h-4 w-4" /> : c}
-                        </button>
-                    ))}
+            {/* Controls */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 sm:gap-4 p-4 bg-muted/40 rounded-xl border shadow-sm">
+                <div className="space-y-1.5 w-full sm:w-[250px]">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Game</label>
+                    <Select value={selectedGameId || ""} onValueChange={setSelectedGameId}>
+                        <SelectTrigger className="bg-background shadow-sm">
+                            <SelectValue placeholder="Select a Game..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {availableGames?.map(g => (<SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>))}
+                            {availableGames?.length === 0 && <SelectItem value="none" disabled>No games available</SelectItem>}
+                        </SelectContent>
+                    </Select>
                 </div>
+                <Button onClick={handleLoad} disabled={loading || !selectedGameId} className="shadow-sm w-full sm:w-auto">
+                    {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                    Load Data
+                </Button>
+                {combinedReport.length > 0 && (
+                    <Button variant="secondary" onClick={() => setShowWeeklyReportDialog(true)} className="shadow-sm w-full sm:w-auto gap-2">
+                        📋 Weekly Report ({combinedReport.length})
+                    </Button>
+                )}
             </div>
-        </div>
-        {successfulSections.map(s => renderSection(s, 'successful'))}
-    </TabsContent>
 
-    {/* Last 30 Levels Tab */}
-    <TabsContent value="last30" className="space-y-4 mt-4">
-        {renderSection(last30Section, 'last30')}
-    </TabsContent>
-</Tabs>
+            {
+                error && (
+                    <div className="p-4 text-sm text-destructive bg-destructive/10 rounded-md border border-destructive/20">{error}</div>
+                )
+            }
+
+            {/* Tabs */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="unsuccessful">Unsuccessful</TabsTrigger>
+                    <TabsTrigger value="successful">Successful</TabsTrigger>
+                    <TabsTrigger value="last30">Last 30 Levels</TabsTrigger>
+                </TabsList>
+
+                {/* Unsuccessful Tab */}
+                <TabsContent value="unsuccessful" className="space-y-4 mt-4">
+                    <div className="flex flex-wrap gap-4 items-end p-3 bg-muted/30 rounded-lg border">
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Min Level</label>
+                            <Input type="number" value={minLevel} onChange={(e) => setMinLevel(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Min Users</label>
+                            <Input type="number" value={minTotalUser} onChange={(e) => setMinUsers(Number(e.target.value))} className="w-24 h-8 bg-background" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Min Days Old</label>
+                            <Input type="number" value={minDaysSinceEvent} onChange={(e) => setMinDaysSinceEvent(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">New Cluster</label>
+                            <div className="flex gap-1">
+                                {['1', '2', '3', '4', 'None'].map(c => (
+                                    <button
+                                        key={c}
+                                        type="button"
+                                        onClick={() => {
+                                            setFinalClusters(prev =>
+                                                prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
+                                            );
+                                        }}
+                                        className={cn(
+                                            "w-8 h-8 rounded-md text-sm font-medium transition-colors flex items-center justify-center",
+                                            finalClusters.includes(c)
+                                                ? "bg-primary text-primary-foreground"
+                                                : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                        )}
+                                        title={c === 'None' ? 'No cluster' : `Cluster ${c}`}
+                                    >
+                                        {c === 'None' ? <Ban className="h-4 w-4" /> : c}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    {unsuccessfulSections.map(s => renderSection(s, 'unsuccessful'))}
+                </TabsContent>
+
+                {/* Successful Tab */}
+                <TabsContent value="successful" className="space-y-4 mt-4">
+                    <div className="flex flex-wrap gap-4 items-end p-3 bg-muted/30 rounded-lg border">
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Min Level</label>
+                            <Input type="number" value={successMinLevel} onChange={(e) => setSuccessMinLevel(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Min Users</label>
+                            <Input type="number" value={successMinTotalUser} onChange={(e) => setSuccessMinUsers(Number(e.target.value))} className="w-24 h-8 bg-background" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Min Days Old</label>
+                            <Input type="number" value={successMinDaysSinceEvent} onChange={(e) => setSuccessMinDaysSinceEvent(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">New Cluster</label>
+                            <div className="flex gap-1">
+                                {['1', '2', '3', '4', 'None'].map(c => (
+                                    <button
+                                        key={c}
+                                        type="button"
+                                        onClick={() => {
+                                            setSuccessFinalClusters(prev =>
+                                                prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
+                                            );
+                                        }}
+                                        className={cn(
+                                            "w-8 h-8 rounded-md text-sm font-medium transition-colors flex items-center justify-center",
+                                            successFinalClusters.includes(c)
+                                                ? "bg-primary text-primary-foreground"
+                                                : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                        )}
+                                        title={c === 'None' ? 'No cluster' : `Cluster ${c}`}
+                                    >
+                                        {c === 'None' ? <Ban className="h-4 w-4" /> : c}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    {successfulSections.map(s => renderSection(s, 'successful'))}
+                </TabsContent>
+
+                {/* Last 30 Levels Tab */}
+                <TabsContent value="last30" className="space-y-4 mt-4">
+                    {renderSection(last30Section, 'last30')}
+                </TabsContent>
+            </Tabs>
         </div >
     );
 }
