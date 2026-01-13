@@ -1571,7 +1571,9 @@ export default function WeeklyCheckPage() {
                                         }
                                         {
                                             section.summary && (
-                                                <div className="mt-2 text-xs text-muted-foreground whitespace-pre-wrap">{section.summary}</div>
+                                                <div className="mt-2 text-xs text-muted-foreground whitespace-pre-wrap">
+                                                    {section.summary.split("Revise Levels Details:")[0].trim()}
+                                                </div>
                                             )
                                         }
                                     </div >
