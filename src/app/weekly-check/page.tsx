@@ -316,9 +316,9 @@ export default function WeeklyCheckPage() {
         const levelScoreData = generateLevelScoreTopUnsuccessful(filtered);
         const churnData = generate3DayChurnTopUnsuccessful(filtered);
 
-        setUnsuccessfulSections([
-            { ...unsuccessfulSections[0], data: levelScoreData.slice(0, 50), headers },
-            { ...unsuccessfulSections[1], data: churnData.slice(0, 50), headers },
+        setUnsuccessfulSections(prev => [
+            { ...prev[0], data: levelScoreData.slice(0, 50), headers },
+            { ...prev[1], data: churnData.slice(0, 50), headers },
         ]);
     }, [rawData, headers, minTotalUser, minLevel, minDaysSinceEvent, finalClusters]);
 
@@ -341,9 +341,9 @@ export default function WeeklyCheckPage() {
         const levelScoreData = generateLevelScoreTopSuccessful(filtered);
         const churnData = generate3DayChurnTopSuccessful(filtered);
 
-        setSuccessfulSections([
-            { ...successfulSections[0], data: levelScoreData.slice(0, 50), headers },
-            { ...successfulSections[1], data: churnData.slice(0, 50), headers },
+        setSuccessfulSections(prev => [
+            { ...prev[0], data: levelScoreData.slice(0, 50), headers },
+            { ...prev[1], data: churnData.slice(0, 50), headers },
         ]);
     }, [rawData, headers, successMinTotalUser, successMinLevel, successMinDaysSinceEvent, successFinalClusters]);
 
@@ -369,7 +369,7 @@ export default function WeeklyCheckPage() {
             return levelB - levelA;
         });
 
-        setLast30Section({ ...last30Section, data: sortedByLevel.slice(0, 30), headers });
+        setLast30Section(prev => ({ ...prev, data: sortedByLevel.slice(0, 30), headers }));
     }, [rawData, headers, minTotalUserLast30]);
 
     const availableGames = config?.games.filter(g => g.viewMappings && g.viewMappings["Level Revize"]);
@@ -1200,7 +1200,9 @@ export default function WeeklyCheckPage() {
             }) || 'Level';
             const rowLevel = parseInt(String(r[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
             if (rowLevel === level) {
-                return { ...r, 'Clu': cluster, 'Score': newScore };
+                // Also update matching Level Score field so re-sort logic picks it up
+                const levelScoreCol = Object.keys(r).find(k => normalizeHeader(k).includes('level score')) || 'Level Score';
+                return { ...r, 'Clu': cluster, 'Score': newScore, [levelScoreCol]: newScore };
             }
             return r;
         }));
