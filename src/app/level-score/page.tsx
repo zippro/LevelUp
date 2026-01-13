@@ -113,6 +113,8 @@ export default function LevelScorePage() {
     const [clusterMaxLevel, setClusterMaxLevel] = useState<string>('');
     const [clustering, setClustering] = useState(false);
     const [clusterResult, setClusterResult] = useState<string>('');
+    const [clusterStatsResult, setClusterStatsResult] = useState<any[]>([]);
+
 
     const calculateConcept = (level: number): number => {
         if (level <= 10) return 1;
@@ -262,14 +264,32 @@ export default function LevelScorePage() {
             // Update State
             let updateCount = 0;
             const newData = [...data];
+            const statsMap = new Map<string, { count: number, sumRep: number, sumMoves: number }>();
+            ['1', '2', '3', '4'].forEach(c => statsMap.set(c, { count: 0, sumRep: 0, sumMoves: 0 }));
+
             updates.forEach(u => {
                 const idx = newData.findIndex(d => d.level === u.level);
                 if (idx !== -1) {
                     newData[idx] = { ...newData[idx], editableCluster: u.cluster };
                     newData[idx].calculatedScore = calculateScore(newData[idx], u.cluster);
                     updateCount++;
+
+                    // Stats
+                    const s = statsMap.get(u.cluster)!;
+                    s.count++;
+                    s.sumRep += newData[idx].avgRepeatRatio;
+                    s.sumMoves += newData[idx].avgTotalMoves;
                 }
             });
+
+            const statsArr = Array.from(statsMap.entries()).map(([c, val]) => ({
+                cluster: c,
+                count: val.count,
+                avgRep: val.count ? (val.sumRep / val.count).toFixed(2) : '0.00',
+                avgMoves: val.count ? (val.sumMoves / val.count).toFixed(2) : '0.00'
+            })).sort((a, b) => a.cluster.localeCompare(b.cluster));
+
+            setClusterStatsResult(statsArr);
 
             setData(newData);
             setClusterResult(`Successfully updated ${updateCount} levels in range ${minLvl}-${maxLvl}.`);
@@ -430,9 +450,9 @@ export default function LevelScorePage() {
                 const levelPlayTime = parseNum(getCol(row, 'Avg. Level Play', 'Avg. Level Play Time', 'Level Play Time', 'Avg Level Play'));
 
                 // DEBUG: Alert first row values to verify parsing
+                // DEBUG: Alert first row values to verify parsing
                 if (idx === 0) {
-                    console.log("Debug Parsing First Row:", { level, avgRepeatRatio, avgTotalMoves, rmFixed, levelPlayTime });
-                    alert(`Debug First Row Values:\nLevel: ${level}\nRepeat: ${avgRepeatRatio}\nMoves: ${avgTotalMoves}\nRM: ${rmFixed}\nTime: ${levelPlayTime}`);
+                    // console.log("Debug Parsing First Row:", { level, avgRepeatRatio, avgTotalMoves, rmFixed, levelPlayTime });
                 }
 
 
@@ -653,6 +673,28 @@ export default function LevelScorePage() {
                             {clustering ? <><RefreshCw className="mr-2 h-4 w-4 animate-spin" /> ...</> : "Clusterise"}
                         </Button>
                     </div>
+
+                    {clusterStatsResult.length > 0 && (
+                        <div className="mt-4 border-t pt-3">
+                            <div className="text-xs font-semibold text-muted-foreground mb-2">Clustering Impact / Stats:</div>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                {clusterStatsResult.map(s => (
+                                    <div key={s.cluster} className="flex flex-col p-2 border rounded bg-background/50 text-xs">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="font-bold text-primary">Cluster {s.cluster}</span>
+                                            <span className="font-mono bg-muted px-1 rounded">{s.count}</span>
+                                        </div>
+                                        <div className="text-muted-foreground flex justify-between">
+                                            <span>R:</span> <span>{s.avgRep}</span>
+                                        </div>
+                                        <div className="text-muted-foreground flex justify-between">
+                                            <span>M:</span> <span>{s.avgMoves}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
