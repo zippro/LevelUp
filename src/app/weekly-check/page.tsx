@@ -121,6 +121,14 @@ interface TableSection {
     expanded: boolean;
 }
 
+interface CombinedReportSection {
+    title: string;
+    content: string;
+    headers: string[];
+    summary: string;
+    details?: any[];
+}
+
 export default function WeeklyCheckPage() {
     const [config, setConfig] = useState<Config | null>(null);
     const [loadingConfig, setLoadingConfig] = useState(true);
@@ -177,12 +185,6 @@ export default function WeeklyCheckPage() {
     const [exportDetails, setExportDetails] = useState<any[]>([]);
 
     // Combined Report State
-    interface CombinedReportSection {
-        title: string;
-        content: string;
-        headers: string[];
-        summary: string;
-    }
     const [combinedReport, setCombinedReport] = useState<CombinedReportSection[]>([]);
     const [showWeeklyReportDialog, setShowWeeklyReportDialog] = useState(false);
 
@@ -752,6 +754,7 @@ export default function WeeklyCheckPage() {
         let content = '';
         let headers: string[] = [];
         let summary = '';
+        let actionedLevels: { level: number; actionType: string; row: Record<string, any> }[] = [];
 
         if (isSuccessfulTab) {
             const grouped: Record<string, { level: number; description: string }[]> = {
@@ -782,7 +785,8 @@ export default function WeeklyCheckPage() {
                     content += `${idx === 0 ? actionName : ''}\t${item.level}\t${item.description}\n`;
                 });
             }
-        } else {
+        }
+        else {
             const grouped: Record<string, { level: number; revisionNumber: number; newMove: string; description: string; totalMove: number }[]> = {
                 'Revise': [],
                 'Big Revise': [],
@@ -848,21 +852,22 @@ export default function WeeklyCheckPage() {
             }
 
             // Build Level Details Table for all actioned levels
-            const actionedLevels: { level: number; actionType: string; row: Record<string, any> }[] = [];
-            section.data.forEach(row => {
+            actionedLevels.push(...section.data.map(row => {
                 const level = row['Level'];
-                if (level === undefined) return;
+                if (level === undefined) return null;
                 const key = `${section.id}-${level}`;
                 const levelActions = actions[key] || [];
+                let actionType = '';
                 levelActions.forEach(action => {
                     if (action?.type && action.type !== 'M') {
-                        const actionLabel = action.type === 'R' ? 'R' : action.type === 'BR' ? 'BR' : action.type === 'TR' ? 'TR' : action.type;
-                        actionedLevels.push({ level, actionType: actionLabel, row });
+                        actionType = action.type === 'R' ? 'R' : action.type === 'BR' ? 'BR' : action.type === 'TR' ? 'TR' : action.type;
                     }
                 });
-            });
+                if (!actionType) return null;
+                return { level, actionType, row };
+            }).filter((x): x is { level: number; actionType: string; row: Record<string, any> } => x !== null));
 
-            // Sort by level ascending and build table
+            // Sort by level ascending
             actionedLevels.sort((a, b) => a.level - b.level);
 
             if (actionedLevels.length > 0) {
@@ -894,6 +899,8 @@ export default function WeeklyCheckPage() {
                     summary += `${item.level}\t${item.actionType}\t${formatPercent(churn3d)}\t${formatVal(repeat)}\t${formatVal(playon)}\t${formatVal(totalMoves)}\t${formatVal(playTime)}\t${formatPercent(firstTryWin)}\t${formatVal(remaining)}\n`;
                 });
             }
+
+
         }
 
         if (!content.trim()) {
@@ -904,7 +911,44 @@ export default function WeeklyCheckPage() {
         // Add to combined report (replace if same section title exists)
         setCombinedReport(prev => {
             const filtered = prev.filter(s => s.title !== section.title);
-            return [...filtered, { title: section.title, content, headers, summary }];
+            return [...filtered, {
+                title: section.title, content, headers, summary, details: actionedLevels.length > 0 ? actionedLevels.map(item => {
+                    const r = item.row;
+                    const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
+                    const repeat = r['Avg. Repeat Rate'] || r['Repeat'] || r['Repeat Rate'] || '-';
+                    const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
+                    const totalMoves = r['Avg. Total Moves'] || r['Total Move'] || r['TotalMove'] || '-';
+                    const playTime = r['Avg. Level Play'] || r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || '-';
+                    const firstTryWin = r['Avg. FirstTryWin'] || r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || '-';
+                    const remaining = r['Avg. RM Fixed'] || r['Average remaining move'] || r['avg remaining move'] || r['remaining moves'] || '-';
+
+                    const formatVal = (v: any) => {
+                        if (v === '-' || v === undefined || v === null) return '-';
+                        const num = parseFloat(v);
+                        if (isNaN(num)) return String(v);
+                        return num.toFixed(2);
+                    };
+
+                    const formatPercent = (v: any) => {
+                        if (v === '-' || v === undefined || v === null) return '-';
+                        const num = parseFloat(v);
+                        if (isNaN(num)) return String(v);
+                        return (num * 100).toFixed(2) + '%';
+                    };
+
+                    return {
+                        level: item.level,
+                        action: item.actionType,
+                        churn3d: formatPercent(churn3d),
+                        repeat: formatVal(repeat),
+                        playon: formatVal(playon),
+                        totalMoves: formatVal(totalMoves),
+                        playTime: formatVal(playTime),
+                        firstTryWin: formatPercent(firstTryWin),
+                        remaining: formatVal(remaining)
+                    };
+                }) : []
+            }];
         });
 
         alert(`Added "${section.title}" to Weekly Report! (${combinedReport.length + 1} sections total)`);
@@ -929,6 +973,13 @@ export default function WeeklyCheckPage() {
             xlsContent += section.content;
             if (section.summary) {
                 xlsContent += section.summary + '\n';
+            }
+            if (section.details && section.details.length > 0) {
+                xlsContent += '\nLevel Details Table:\n';
+                xlsContent += 'Level\tAction\t3 Day Churn\tRepeat\tPlayon per User\tTotal Moves\tLevel Play Time\tAvg First Try Win\tRemaining Move\n';
+                section.details.forEach(row => {
+                    xlsContent += `${row.level}\t${row.action}\t${row.churn3d}\t${row.repeat}\t${row.playon}\t${row.totalMoves}\t${row.playTime}\t${row.firstTryWin}\t${row.remaining}\n`;
+                });
             }
             xlsContent += '\n';
         });
@@ -1072,7 +1123,7 @@ export default function WeeklyCheckPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-muted" style={{ position: 'sticky', top: 0, zIndex: 20 }}>
-                                    <TableHead className="whitespace-nowrap font-bold text-foreground bg-muted" style={{ position: 'sticky', left: 0, zIndex: 30, minWidth: '200px' }}>Action</TableHead>
+                                    <TableHead className="whitespace-nowrap font-bold text-foreground bg-muted" style={{ position: 'sticky', left: 0, zIndex: 30 }}>Action</TableHead>
                                     {section.headers.slice(0, 50).map((header) => (
                                         <TableHead key={header} className="whitespace-nowrap font-bold text-foreground bg-muted">
                                             {getDisplayName(header, config?.weeklyCheck?.columnRenames)}
@@ -1087,8 +1138,8 @@ export default function WeeklyCheckPage() {
                                     const levelActions = actions[key] || [{ type: '' }];
                                     return (
                                         <TableRow key={i} className="hover:bg-muted/30">
-                                            <TableCell className="whitespace-nowrap sticky left-0 bg-card z-10" style={{ minWidth: '280px' }}>
-                                                <div className="flex flex-row items-start gap-2 max-w-[450px]">
+                                            <TableCell className="whitespace-nowrap sticky left-0 bg-card z-10">
+                                                <div className="flex flex-row items-start gap-2">
                                                     <div className="mt-1 flex-shrink-0">
                                                         {row['Level'] && (() => {
                                                             const getNeighboringLevels = (currentLevel: number, allData: any[]) => {
@@ -1452,202 +1503,197 @@ export default function WeeklyCheckPage() {
                                                 Remove
                                             </Button>
                                         </div>
-                                        <div className="p-3 overflow-auto max-h-[200px]">
-                                            <table className="w-full text-sm font-mono">
-                                                <thead>
-                                                    <tr className="border-b">
-                                                        {section.headers.map((header) => (
-                                                            <th key={header} className="text-left py-1 pr-4 font-bold">{header}</th>
-                                                        ))}
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {section.content.split('\n').filter(Boolean).map((line, lineIdx) => {
-                                                        const parts = line.split('\t');
-                                                        return (
-                                                            <tr key={lineIdx} className="border-b border-muted-foreground/20">
-                                                                {section.headers.map((_, i) => (
-                                                                    <td key={i} className="py-1 pr-4">{parts[i] || ''}</td>
-                                                                ))}
-                                                            </tr>
-                                                        );
-                                                    })}
-                                                </tbody>
+                                        {section.content.split('\n').filter(Boolean).map((line, lineIdx) => {
+                                            const parts = line.split('\t');
+                                            return (
+                                                <tr key={lineIdx} className="border-b border-muted-foreground/20">
+                                                    {section.headers.map((_, i) => (
+                                                        <td key={i} className="py-1 pr-4">{parts[i] || ''}</td>
+                                                    ))}
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
                                             </table>
                                             {section.summary && (
-                                                <div className="mt-2 text-xs text-muted-foreground">{section.summary}</div>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                            <div className="mt-2 text-xs text-muted-foreground">{section.summary}</div>
                         )}
-
-                        {/* Combined Moves Summary */}
-                        {getCombinedMovesSummary() && (
-                            <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
-                                <h4 className="font-semibold text-sm mb-2">📊 Combined Moves Summary</h4>
-                                <p className="font-mono text-sm">{getCombinedMovesSummary()}</p>
-                            </div>
-                        )}
-
-                        <div className="flex gap-3 mt-6">
-                            <Button variant="secondary" onClick={saveWeeklyReport} disabled={combinedReport.length === 0 || savingReport}>
-                                {savingReport ? 'Saving...' : '💾 Save Report'}
-                            </Button>
-                            <Button className="flex-1" onClick={downloadWeeklyReport} disabled={combinedReport.length === 0}>
-                                Download Merged XLS
-                            </Button>
-                            <Button variant="outline" onClick={() => setCombinedReport([])}>
-                                Clear All
-                            </Button>
-                            <Button variant="outline" onClick={() => setShowWeeklyReportDialog(false)}>
-                                Close
-                            </Button>
-                        </div>
                     </div>
                 </div>
-            )}
-
-            <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold">Weekly Check</h1>
-                        <p className="text-muted-foreground">Review key metrics from Level Revize data</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Controls */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 sm:gap-4 p-4 bg-muted/40 rounded-xl border shadow-sm">
-                <div className="space-y-1.5 w-full sm:w-[250px]">
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Game</label>
-                    <Select value={selectedGameId || ""} onValueChange={setSelectedGameId}>
-                        <SelectTrigger className="bg-background shadow-sm">
-                            <SelectValue placeholder="Select a Game..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {availableGames?.map(g => (<SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>))}
-                            {availableGames?.length === 0 && <SelectItem value="none" disabled>No games available</SelectItem>}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <Button onClick={handleLoad} disabled={loading || !selectedGameId} className="shadow-sm w-full sm:w-auto">
-                    {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-                    Load Data
-                </Button>
-                {combinedReport.length > 0 && (
-                    <Button variant="secondary" onClick={() => setShowWeeklyReportDialog(true)} className="shadow-sm w-full sm:w-auto gap-2">
-                        📋 Weekly Report ({combinedReport.length})
-                    </Button>
-                )}
-            </div>
-
-            {error && (
-                <div className="p-4 text-sm text-destructive bg-destructive/10 rounded-md border border-destructive/20">{error}</div>
-            )}
-
-            {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="unsuccessful">Unsuccessful</TabsTrigger>
-                    <TabsTrigger value="successful">Successful</TabsTrigger>
-                    <TabsTrigger value="last30">Last 30 Levels</TabsTrigger>
-                </TabsList>
-
-                {/* Unsuccessful Tab */}
-                <TabsContent value="unsuccessful" className="space-y-4 mt-4">
-                    <div className="flex flex-wrap gap-4 items-end p-3 bg-muted/30 rounded-lg border">
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold text-muted-foreground">Min Level</label>
-                            <Input type="number" value={minLevel} onChange={(e) => setMinLevel(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold text-muted-foreground">Min Users</label>
-                            <Input type="number" value={minTotalUser} onChange={(e) => setMinUsers(Number(e.target.value))} className="w-24 h-8 bg-background" />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold text-muted-foreground">Min Days Old</label>
-                            <Input type="number" value={minDaysSinceEvent} onChange={(e) => setMinDaysSinceEvent(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold text-muted-foreground">New Cluster</label>
-                            <div className="flex gap-1">
-                                {['1', '2', '3', '4', 'None'].map(c => (
-                                    <button
-                                        key={c}
-                                        type="button"
-                                        onClick={() => {
-                                            setFinalClusters(prev =>
-                                                prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
-                                            );
-                                        }}
-                                        className={cn(
-                                            "w-8 h-8 rounded-md text-sm font-medium transition-colors flex items-center justify-center",
-                                            finalClusters.includes(c)
-                                                ? "bg-primary text-primary-foreground"
-                                                : "bg-muted text-muted-foreground hover:bg-muted/80"
-                                        )}
-                                        title={c === 'None' ? 'No cluster' : `Cluster ${c}`}
-                                    >
-                                        {c === 'None' ? <Ban className="h-4 w-4" /> : c}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                    {unsuccessfulSections.map(s => renderSection(s, 'unsuccessful'))}
-                </TabsContent>
-
-                {/* Successful Tab */}
-                <TabsContent value="successful" className="space-y-4 mt-4">
-                    <div className="flex flex-wrap gap-4 items-end p-3 bg-muted/30 rounded-lg border">
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold text-muted-foreground">Min Level</label>
-                            <Input type="number" value={successMinLevel} onChange={(e) => setSuccessMinLevel(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold text-muted-foreground">Min Users</label>
-                            <Input type="number" value={successMinTotalUser} onChange={(e) => setSuccessMinUsers(Number(e.target.value))} className="w-24 h-8 bg-background" />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold text-muted-foreground">Min Days Old</label>
-                            <Input type="number" value={successMinDaysSinceEvent} onChange={(e) => setSuccessMinDaysSinceEvent(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold text-muted-foreground">New Cluster</label>
-                            <div className="flex gap-1">
-                                {['1', '2', '3', '4', 'None'].map(c => (
-                                    <button
-                                        key={c}
-                                        type="button"
-                                        onClick={() => {
-                                            setSuccessFinalClusters(prev =>
-                                                prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
-                                            );
-                                        }}
-                                        className={cn(
-                                            "w-8 h-8 rounded-md text-sm font-medium transition-colors flex items-center justify-center",
-                                            successFinalClusters.includes(c)
-                                                ? "bg-primary text-primary-foreground"
-                                                : "bg-muted text-muted-foreground hover:bg-muted/80"
-                                        )}
-                                        title={c === 'None' ? 'No cluster' : `Cluster ${c}`}
-                                    >
-                                        {c === 'None' ? <Ban className="h-4 w-4" /> : c}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                    {successfulSections.map(s => renderSection(s, 'successful'))}
-                </TabsContent>
-
-                {/* Last 30 Levels Tab */}
-                <TabsContent value="last30" className="space-y-4 mt-4">
-                    {renderSection(last30Section, 'last30')}
-                </TabsContent>
-            </Tabs>
+            ))}
         </div>
+    )
+}
+
+{/* Combined Moves Summary */ }
+{
+    getCombinedMovesSummary() && (
+        <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
+            <h4 className="font-semibold text-sm mb-2">📊 Combined Moves Summary</h4>
+            <p className="font-mono text-sm">{getCombinedMovesSummary()}</p>
+        </div>
+    )
+}
+
+<div className="flex gap-3 mt-6">
+    <Button variant="secondary" onClick={saveWeeklyReport} disabled={combinedReport.length === 0 || savingReport}>
+        {savingReport ? 'Saving...' : '💾 Save Report'}
+    </Button>
+    <Button className="flex-1" onClick={downloadWeeklyReport} disabled={combinedReport.length === 0}>
+        Download Merged XLS
+    </Button>
+    <Button variant="outline" onClick={() => setCombinedReport([])}>
+        Clear All
+    </Button>
+    <Button variant="outline" onClick={() => setShowWeeklyReportDialog(false)}>
+        Close
+    </Button>
+</div>
+                    </div >
+                </div >
+            )}
+
+<div className="space-y-4">
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+        <div>
+            <h1 className="text-2xl font-bold">Weekly Check</h1>
+            <p className="text-muted-foreground">Review key metrics from Level Revize data</p>
+        </div>
+    </div>
+</div>
+
+{/* Controls */ }
+<div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 sm:gap-4 p-4 bg-muted/40 rounded-xl border shadow-sm">
+    <div className="space-y-1.5 w-full sm:w-[250px]">
+        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Game</label>
+        <Select value={selectedGameId || ""} onValueChange={setSelectedGameId}>
+            <SelectTrigger className="bg-background shadow-sm">
+                <SelectValue placeholder="Select a Game..." />
+            </SelectTrigger>
+            <SelectContent>
+                {availableGames?.map(g => (<SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>))}
+                {availableGames?.length === 0 && <SelectItem value="none" disabled>No games available</SelectItem>}
+            </SelectContent>
+        </Select>
+    </div>
+    <Button onClick={handleLoad} disabled={loading || !selectedGameId} className="shadow-sm w-full sm:w-auto">
+        {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+        Load Data
+    </Button>
+    {combinedReport.length > 0 && (
+        <Button variant="secondary" onClick={() => setShowWeeklyReportDialog(true)} className="shadow-sm w-full sm:w-auto gap-2">
+            📋 Weekly Report ({combinedReport.length})
+        </Button>
+    )}
+</div>
+
+{
+    error && (
+        <div className="p-4 text-sm text-destructive bg-destructive/10 rounded-md border border-destructive/20">{error}</div>
+    )
+}
+
+{/* Tabs */ }
+<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+    <TabsList className="grid w-full grid-cols-3">
+        <TabsTrigger value="unsuccessful">Unsuccessful</TabsTrigger>
+        <TabsTrigger value="successful">Successful</TabsTrigger>
+        <TabsTrigger value="last30">Last 30 Levels</TabsTrigger>
+    </TabsList>
+
+    {/* Unsuccessful Tab */}
+    <TabsContent value="unsuccessful" className="space-y-4 mt-4">
+        <div className="flex flex-wrap gap-4 items-end p-3 bg-muted/30 rounded-lg border">
+            <div className="space-y-1">
+                <label className="text-xs font-semibold text-muted-foreground">Min Level</label>
+                <Input type="number" value={minLevel} onChange={(e) => setMinLevel(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
+            </div>
+            <div className="space-y-1">
+                <label className="text-xs font-semibold text-muted-foreground">Min Users</label>
+                <Input type="number" value={minTotalUser} onChange={(e) => setMinUsers(Number(e.target.value))} className="w-24 h-8 bg-background" />
+            </div>
+            <div className="space-y-1">
+                <label className="text-xs font-semibold text-muted-foreground">Min Days Old</label>
+                <Input type="number" value={minDaysSinceEvent} onChange={(e) => setMinDaysSinceEvent(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
+            </div>
+            <div className="space-y-1">
+                <label className="text-xs font-semibold text-muted-foreground">New Cluster</label>
+                <div className="flex gap-1">
+                    {['1', '2', '3', '4', 'None'].map(c => (
+                        <button
+                            key={c}
+                            type="button"
+                            onClick={() => {
+                                setFinalClusters(prev =>
+                                    prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
+                                );
+                            }}
+                            className={cn(
+                                "w-8 h-8 rounded-md text-sm font-medium transition-colors flex items-center justify-center",
+                                finalClusters.includes(c)
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                            )}
+                            title={c === 'None' ? 'No cluster' : `Cluster ${c}`}
+                        >
+                            {c === 'None' ? <Ban className="h-4 w-4" /> : c}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        </div>
+        {unsuccessfulSections.map(s => renderSection(s, 'unsuccessful'))}
+    </TabsContent>
+
+    {/* Successful Tab */}
+    <TabsContent value="successful" className="space-y-4 mt-4">
+        <div className="flex flex-wrap gap-4 items-end p-3 bg-muted/30 rounded-lg border">
+            <div className="space-y-1">
+                <label className="text-xs font-semibold text-muted-foreground">Min Level</label>
+                <Input type="number" value={successMinLevel} onChange={(e) => setSuccessMinLevel(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
+            </div>
+            <div className="space-y-1">
+                <label className="text-xs font-semibold text-muted-foreground">Min Users</label>
+                <Input type="number" value={successMinTotalUser} onChange={(e) => setSuccessMinUsers(Number(e.target.value))} className="w-24 h-8 bg-background" />
+            </div>
+            <div className="space-y-1">
+                <label className="text-xs font-semibold text-muted-foreground">Min Days Old</label>
+                <Input type="number" value={successMinDaysSinceEvent} onChange={(e) => setSuccessMinDaysSinceEvent(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
+            </div>
+            <div className="space-y-1">
+                <label className="text-xs font-semibold text-muted-foreground">New Cluster</label>
+                <div className="flex gap-1">
+                    {['1', '2', '3', '4', 'None'].map(c => (
+                        <button
+                            key={c}
+                            type="button"
+                            onClick={() => {
+                                setSuccessFinalClusters(prev =>
+                                    prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
+                                );
+                            }}
+                            className={cn(
+                                "w-8 h-8 rounded-md text-sm font-medium transition-colors flex items-center justify-center",
+                                successFinalClusters.includes(c)
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                            )}
+                            title={c === 'None' ? 'No cluster' : `Cluster ${c}`}
+                        >
+                            {c === 'None' ? <Ban className="h-4 w-4" /> : c}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        </div>
+        {successfulSections.map(s => renderSection(s, 'successful'))}
+    </TabsContent>
+
+    {/* Last 30 Levels Tab */}
+    <TabsContent value="last30" className="space-y-4 mt-4">
+        {renderSection(last30Section, 'last30')}
+    </TabsContent>
+</Tabs>
+        </div >
     );
 }
