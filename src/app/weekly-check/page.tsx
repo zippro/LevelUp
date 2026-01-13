@@ -6,7 +6,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, RefreshCw, ChevronDown, ChevronUp, Download, Ban } from "lucide-react";
+import { Loader2, RefreshCw, ChevronDown, ChevronUp, Download, Ban, Search } from "lucide-react";
+import {
+    HoverCard,
+    HoverCardContent,
+    HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import papa from 'papaparse';
 import { cn } from "@/lib/utils";
 import { generateLevelScoreTopUnsuccessful, generateLevelScoreTopSuccessful, generate3DayChurnTopUnsuccessful, generate3DayChurnTopSuccessful, formatTableValue } from "@/lib/table-reports";
@@ -649,7 +654,7 @@ export default function WeeklyCheckPage() {
             const key = `${section.id}-${level}`;
             const levelActions = actions[key] || [];
             levelActions.forEach(action => {
-                if (action?.type) {
+                if (action?.type && action.type !== 'M') {
                     const actionLabel = action.type === 'R' ? 'R' : action.type === 'BR' ? 'BR' : action.type === 'TR' ? 'TR' : action.type === 'M' ? 'M' : action.type;
                     actionedLevels.push({ level, actionType: actionLabel, row });
                 }
@@ -661,15 +666,16 @@ export default function WeeklyCheckPage() {
 
         if (actionedLevels.length > 0) {
             summaryStr += '\n\nRevise Levels Details:\n';
-            summaryStr += 'Level\tAction\t3 Day Churn\tRepeat\tPlayon per User\tTotal Moves\tLevel Play Time\tAvg First Try Win\n';
+            summaryStr += 'Level\tAction\t3 Day Churn\tRepeat\tPlayon per User\tTotal Moves\tLevel Play Time\tAvg First Try Win\tRemaining Move\n';
             actionedLevels.forEach(item => {
                 const r = item.row;
                 const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
                 const repeat = r['Repeat'] || r['Repeat Rate'] || '-';
                 const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
                 const totalMoves = r['Total Move'] || r['Avg. Total Moves'] || r['TotalMove'] || '-';
-                const playTime = r['Level Play Time'] || r['LevelPlayTime'] || r['Play Time'] || '-';
-                const firstTryWin = r['Avg First Try Win'] || r['First Try Win'] || r['FirstTryWin'] || '-';
+                const playTime = r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || r['Play Time'] || '-';
+                const firstTryWin = r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || r['FirstTryWin'] || '-';
+                const remaining = r['Average remaining move'] || r['avg remaining move'] || r['remaining moves'] || '-';
 
                 const formatVal = (v: any) => {
                     if (v === '-' || v === undefined || v === null) return '-';
@@ -678,7 +684,7 @@ export default function WeeklyCheckPage() {
                     return num.toFixed(2);
                 };
 
-                summaryStr += `${item.level}\t${item.actionType}\t${formatVal(churn3d)}\t${formatVal(repeat)}\t${formatVal(playon)}\t${formatVal(totalMoves)}\t${formatVal(playTime)}\t${formatVal(firstTryWin)}\n`;
+                summaryStr += `${item.level}\t${item.actionType}\t${formatVal(churn3d)}\t${formatVal(repeat)}\t${formatVal(playon)}\t${formatVal(totalMoves)}\t${formatVal(playTime)}\t${formatVal(firstTryWin)}\t${formatVal(remaining)}\n`;
             });
         }
 
@@ -826,7 +832,7 @@ export default function WeeklyCheckPage() {
                 const key = `${section.id}-${level}`;
                 const levelActions = actions[key] || [];
                 levelActions.forEach(action => {
-                    if (action?.type) {
+                    if (action?.type && action.type !== 'M') {
                         const actionLabel = action.type === 'R' ? 'R' : action.type === 'BR' ? 'BR' : action.type === 'TR' ? 'TR' : action.type === 'M' ? 'M' : action.type;
                         actionedLevels.push({ level, actionType: actionLabel, row });
                     }
@@ -837,15 +843,16 @@ export default function WeeklyCheckPage() {
             actionedLevels.sort((a, b) => a.level - b.level);
 
             if (actionedLevels.length > 0) {
-                summary += '\n\nRevise Levels Details:\nLevel\tAction\t3 Day Churn\tRepeat\tPlayon per User\tTotal Moves\tLevel Play Time\tAvg First Try Win\n';
+                summary += '\n\nRevise Levels Details:\nLevel\tAction\t3 Day Churn\tRepeat\tPlayon per User\tTotal Moves\tLevel Play Time\tAvg First Try Win\tRemaining Move\n';
                 actionedLevels.forEach(item => {
                     const r = item.row;
                     const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
                     const repeat = r['Repeat'] || r['Repeat Rate'] || '-';
                     const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
                     const totalMoves = r['Total Move'] || r['Avg. Total Moves'] || r['TotalMove'] || '-';
-                    const playTime = r['Level Play Time'] || r['LevelPlayTime'] || r['Play Time'] || '-';
-                    const firstTryWin = r['Avg First Try Win'] || r['First Try Win'] || r['FirstTryWin'] || '-';
+                    const playTime = r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || r['Play Time'] || '-';
+                    const firstTryWin = r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || r['FirstTryWin'] || '-';
+                    const remaining = r['Average remaining move'] || r['avg remaining move'] || r['remaining moves'] || '-';
 
                     const formatVal = (v: any) => {
                         if (v === '-' || v === undefined || v === null) return '-';
@@ -854,7 +861,7 @@ export default function WeeklyCheckPage() {
                         return num.toFixed(2);
                     };
 
-                    summary += `${item.level}\t${item.actionType}\t${formatVal(churn3d)}\t${formatVal(repeat)}\t${formatVal(playon)}\t${formatVal(totalMoves)}\t${formatVal(playTime)}\t${formatVal(firstTryWin)}\n`;
+                    summary += `${item.level}\t${item.actionType}\t${formatVal(churn3d)}\t${formatVal(repeat)}\t${formatVal(playon)}\t${formatVal(totalMoves)}\t${formatVal(playTime)}\t${formatVal(firstTryWin)}\t${formatVal(remaining)}\n`;
                 });
             }
         }
@@ -1052,6 +1059,92 @@ export default function WeeklyCheckPage() {
                                         <TableRow key={i} className="hover:bg-muted/30">
                                             <TableCell className="whitespace-nowrap sticky left-0 bg-card z-10" style={{ minWidth: '280px' }}>
                                                 <div className="flex flex-col gap-1">
+                                                    {row['Level'] && (() => {
+                                                        const getNeighboringLevels = (currentLevel: number, allData: any[]) => {
+                                                            const currentIndex = allData.findIndex(r => Number(r['Level']) === currentLevel);
+                                                            if (currentIndex === -1) return { prev: [], next: [] };
+
+                                                            const prev = allData.slice(Math.max(0, currentIndex - 5), currentIndex);
+                                                            const next = allData.slice(currentIndex + 1, currentIndex + 6);
+                                                            return { prev, next };
+                                                        };
+
+                                                        const { prev, next } = getNeighboringLevels(Number(row['Level']), section.data);
+
+                                                        const renderMiniTable = (data: any[], title: string) => {
+                                                            if (data.length === 0) return null;
+                                                            return (
+                                                                <div className="mb-2">
+                                                                    <div className="font-semibold text-xs mb-1 text-muted-foreground">{title}</div>
+                                                                    <div className="border rounded-md overflow-hidden">
+                                                                        <table className="w-full text-[10px]">
+                                                                            <thead className="bg-muted">
+                                                                                <tr>
+                                                                                    <th className="p-1 font-medium text-left">Lvl</th>
+                                                                                    <th className="p-1 font-medium text-right">Churn</th>
+                                                                                    <th className="p-1 font-medium text-right">Rep</th>
+                                                                                    <th className="p-1 font-medium text-right">Playon</th>
+                                                                                    <th className="p-1 font-medium text-right">Moves</th>
+                                                                                    <th className="p-1 font-medium text-right">Time</th>
+                                                                                    <th className="p-1 font-medium text-right">1stWin</th>
+                                                                                    <th className="p-1 font-medium text-right">Rem</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {data.map((r, ri) => {
+                                                                                    const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
+                                                                                    const repeat = r['Repeat'] || r['Repeat Rate'] || r['Avg. Repeat Rate'] || '-';
+                                                                                    const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
+                                                                                    const totalMoves = r['Total Move'] || r['Avg. Total Moves'] || r['TotalMove'] || '-';
+                                                                                    const playTime = r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || '-';
+                                                                                    const firstTryWin = r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || '-';
+                                                                                    const remaining = r['Average remaining move'] || r['avg remaining move'] || r['remaining moves'] || '-';
+
+                                                                                    const formatVal = (v: any) => {
+                                                                                        if (v === '-' || v === undefined) return '-';
+                                                                                        const num = parseFloat(v);
+                                                                                        if (isNaN(num)) return String(v).substring(0, 4);
+                                                                                        return num.toFixed(2);
+                                                                                    };
+
+                                                                                    return (
+                                                                                        <tr key={ri} className="border-t hover:bg-muted/50">
+                                                                                            <td className="p-1 font-medium">{r['Level']}</td>
+                                                                                            <td className="p-1 text-right">{formatVal(churn3d)}</td>
+                                                                                            <td className="p-1 text-right">{formatVal(repeat)}</td>
+                                                                                            <td className="p-1 text-right">{formatVal(playon)}</td>
+                                                                                            <td className="p-1 text-right">{formatVal(totalMoves)}</td>
+                                                                                            <td className="p-1 text-right">{formatVal(playTime)}</td>
+                                                                                            <td className="p-1 text-right">{formatVal(firstTryWin)}</td>
+                                                                                            <td className="p-1 text-right">{formatVal(remaining)}</td>
+                                                                                        </tr>
+                                                                                    );
+                                                                                })}
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        };
+
+                                                        return (
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <span className="font-medium text-sm text-muted-foreground mr-1">Lvl {row['Level']}</span>
+                                                                <HoverCard>
+                                                                    <HoverCardTrigger asChild>
+                                                                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-muted">
+                                                                            <Search className="h-3.5 w-3.5 text-muted-foreground" />
+                                                                        </Button>
+                                                                    </HoverCardTrigger>
+                                                                    <HoverCardContent className="w-[500px] p-4" align="start">
+                                                                        <h4 className="font-semibold text-sm mb-2">Level Context: {row['Level']}</h4>
+                                                                        {renderMiniTable(prev, 'Previous 5 Levels')}
+                                                                        {renderMiniTable(next, 'Next 5 Levels')}
+                                                                    </HoverCardContent>
+                                                                </HoverCard>
+                                                            </div>
+                                                        );
+                                                    })()}
                                                     {levelActions.map((action, actionIndex) => (
                                                         <div key={actionIndex} className="flex gap-1 items-center">
                                                             <Select
