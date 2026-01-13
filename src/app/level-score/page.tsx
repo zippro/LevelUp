@@ -168,8 +168,28 @@ export default function LevelScorePage() {
         if (level <= 2800) return 46;
         if (level <= 2900) return 47;
         if (level <= 3000) return 48;
+        if (level <= 3100) return 49;
+        if (level <= 3200) return 50;
+        if (level <= 3300) return 51;
+        if (level <= 3400) return 52;
+        if (level <= 3500) return 53;
+        if (level <= 3600) return 54;
+        if (level <= 3700) return 55;
+        if (level <= 3800) return 56;
+        if (level <= 3900) return 57;
+        if (level <= 4000) return 58;
+        if (level <= 4100) return 59;
+        if (level <= 4200) return 60;
+        if (level <= 4300) return 61;
+        if (level <= 4400) return 62;
+        if (level <= 4500) return 63;
+        if (level <= 4600) return 64;
+        if (level <= 4700) return 65;
+        if (level <= 4800) return 66;
+        if (level <= 4900) return 67;
+        if (level <= 5000) return 68;
 
-        return 49;
+        return Math.floor((level - 5000) / 100) + 69;
     };
 
     const performClustering = () => {
