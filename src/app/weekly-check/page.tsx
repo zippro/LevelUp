@@ -655,7 +655,7 @@ export default function WeeklyCheckPage() {
             const levelActions = actions[key] || [];
             levelActions.forEach(action => {
                 if (action?.type && action.type !== 'M') {
-                    const actionLabel = action.type === 'R' ? 'R' : action.type === 'BR' ? 'BR' : action.type === 'TR' ? 'TR' : action.type === 'M' ? 'M' : action.type;
+                    const actionLabel = action.type === 'R' ? 'R' : action.type === 'BR' ? 'BR' : action.type === 'TR' ? 'TR' : action.type;
                     actionedLevels.push({ level, actionType: actionLabel, row });
                 }
             });
@@ -833,7 +833,7 @@ export default function WeeklyCheckPage() {
                 const levelActions = actions[key] || [];
                 levelActions.forEach(action => {
                     if (action?.type && action.type !== 'M') {
-                        const actionLabel = action.type === 'R' ? 'R' : action.type === 'BR' ? 'BR' : action.type === 'TR' ? 'TR' : action.type === 'M' ? 'M' : action.type;
+                        const actionLabel = action.type === 'R' ? 'R' : action.type === 'BR' ? 'BR' : action.type === 'TR' ? 'TR' : action.type;
                         actionedLevels.push({ level, actionType: actionLabel, row });
                     }
                 });
