@@ -670,17 +670,12 @@ export default function WeeklyCheckPage() {
             actionedLevels.forEach(item => {
                 const r = item.row;
                 const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
-                const repeat = r['Repeat'] || r['Repeat Rate'] || '-';
+                const repeat = r['Avg. Repeat Rate'] || r['Repeat'] || r['Repeat Rate'] || '-';
                 const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
-                const totalMoves = r['Total Move'] || r['Avg. Total Moves'] || r['TotalMove'] || '-';
-                const playTime = r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || r['Play Time'] || '-';
-                const firstTryWin = r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || r['FirstTryWin'] || '-';
-                const remaining = r['Average remaining move'] || r['avg remaining move'] || r['remaining moves'] || '-';
-
-                // DEBUG: Print keys for the first row to identify missing columns
-                if (summaryStr.indexOf('DEBUG KEYS') === -1) {
-                    summaryStr += `\nDEBUG KEYS: ${Object.keys(r).join(', ')}\n\n`;
-                }
+                const totalMoves = r['Avg. Total Moves'] || r['Total Move'] || r['TotalMove'] || '-';
+                const playTime = r['Avg. Level Play'] || r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || '-';
+                const firstTryWin = r['Avg. FirstTryWin'] || r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || '-';
+                const remaining = r['Avg. RM Fixed'] || r['Average remaining move'] || r['avg remaining move'] || r['remaining moves'] || '-';
 
                 const formatVal = (v: any) => {
                     if (v === '-' || v === undefined || v === null) return '-';
@@ -852,12 +847,12 @@ export default function WeeklyCheckPage() {
                 actionedLevels.forEach(item => {
                     const r = item.row;
                     const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
-                    const repeat = r['Repeat'] || r['Repeat Rate'] || '-';
+                    const repeat = r['Avg. Repeat Rate'] || r['Repeat'] || r['Repeat Rate'] || '-';
                     const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
-                    const totalMoves = r['Total Move'] || r['Avg. Total Moves'] || r['TotalMove'] || '-';
-                    const playTime = r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || r['Play Time'] || '-';
-                    const firstTryWin = r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || r['FirstTryWin'] || '-';
-                    const remaining = r['Average remaining move'] || r['avg remaining move'] || r['remaining moves'] || '-';
+                    const totalMoves = r['Avg. Total Moves'] || r['Total Move'] || r['TotalMove'] || '-';
+                    const playTime = r['Avg. Level Play'] || r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || '-';
+                    const firstTryWin = r['Avg. FirstTryWin'] || r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || '-';
+                    const remaining = r['Avg. RM Fixed'] || r['Average remaining move'] || r['avg remaining move'] || r['remaining moves'] || '-';
 
                     const formatVal = (v: any) => {
                         if (v === '-' || v === undefined || v === null) return '-';
@@ -1102,11 +1097,11 @@ export default function WeeklyCheckPage() {
                                                                                 <tbody>
                                                                                     {data.map((r, ri) => {
                                                                                         const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
-                                                                                        const repeat = r['Repeat'] || r['Repeat Rate'] || r['Avg. Repeat Rate'] || '-';
+                                                                                        const repeat = r['Avg. Repeat Rate'] || r['Repeat'] || r['Repeat Rate'] || '-';
                                                                                         const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
-                                                                                        const totalMoves = r['Total Move'] || r['Avg. Total Moves'] || r['TotalMove'] || '-';
-                                                                                        const playTime = r['Level Play Time'] || r['Avg. Level Play Time'] || r['LevelPlayTime'] || '-';
-                                                                                        const firstTryWin = r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || '-';
+                                                                                        const totalMoves = r['Avg. Total Moves'] || r['Total Move'] || r['TotalMove'] || '-';
+                                                                                        const playTime = r['Avg. Level Play'] || r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || '-';
+                                                                                        const firstTryWin = r['Avg. FirstTryWin'] || r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || '-';
                                                                                         const remaining = r['Avg. RM Fixed'] || r['Average remaining move'] || r['avg remaining move'] || r['remaining moves'] || '-';
 
                                                                                         const formatVal = (v: any) => {
