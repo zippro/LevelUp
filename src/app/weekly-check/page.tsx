@@ -1246,6 +1246,42 @@ export default function WeeklyCheckPage() {
         }
     };
 
+    const saveAllPendingClusters = async () => {
+        const levelsToSave = Object.keys(pendingClusterChanges).map(Number);
+        if (levelsToSave.length === 0) return;
+
+        const payload = levelsToSave.map(level => {
+            const saved = savedScores[level];
+            if (!saved) return null;
+            return { level, cluster: saved.cluster, score: saved.score };
+        }).filter(Boolean);
+
+        if (payload.length === 0) return;
+
+        try {
+            setLoading(true);
+            const res = await fetch("/api/level-scores", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    gameId: selectedGameId || config?.games[0]?.id,
+                    levels: payload
+                }),
+            });
+
+            if (res.ok) {
+                setPendingClusterChanges({});
+            } else {
+                alert("Failed to save changes");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Failed to save changes");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const renderSection = (section: TableSection, tabType: 'unsuccessful' | 'successful' | 'last30') => (
         <div key={section.id} className="rounded-xl border shadow-sm bg-card overflow-hidden">
             <button
@@ -1538,6 +1574,17 @@ export default function WeeklyCheckPage() {
                         <Button variant="outline" size="sm" onClick={() => combineActions(section, tabType === 'successful')} className="gap-2">
                             + Combine
                         </Button>
+                        {Object.keys(pendingClusterChanges).length > 0 && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={saveAllPendingClusters}
+                                className="gap-2 border-2 border-primary font-bold animate-pulse hover:bg-primary/10"
+                            >
+                                <Save className="h-4 w-4" />
+                                Save {Object.keys(pendingClusterChanges).length} Clusters
+                            </Button>
+                        )}
                         <Button variant="outline" size="sm" onClick={() => exportActions(section, tabType === 'successful')} className="gap-2">
                             <Download className="h-4 w-4" /> Export Actions
                         </Button>
