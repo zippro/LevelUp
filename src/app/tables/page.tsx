@@ -540,17 +540,17 @@ export default function TablesPage() {
             {/* Table Display */}
             {tableData.length > 0 && (
                 <div className="space-y-4">
-                    <div className={cn("rounded-lg border shadow-sm bg-card overflow-hidden transition-all", isFullScreen ? "max-h-[85vh]" : "max-h-[70vh]")}>
-                        <div className="overflow-auto max-h-full">
-                            <Table className="relative">
-                                <TableHeader className="sticky top-0 z-20 bg-card">
+                    <div className={cn("rounded-lg border shadow-sm bg-card transition-all", isFullScreen ? "max-h-[85vh]" : "max-h-[70vh]")}>
+                        <div className="overflow-x-auto overflow-y-auto max-h-[inherit]">
+                            <Table className="relative min-w-full">
+                                <TableHeader className="sticky top-0 z-20">
                                     <TableRow className="bg-muted/50 hover:bg-muted/50">
                                         {displayHeaders.map((header, colIndex) => (
                                             <TableHead
                                                 key={header}
                                                 className={cn(
-                                                    "whitespace-nowrap font-bold cursor-pointer hover:bg-muted/80 transition-colors select-none text-foreground",
-                                                    colIndex === 0 && "sticky left-0 z-30 bg-muted/50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
+                                                    "whitespace-nowrap font-bold cursor-pointer hover:bg-muted/80 transition-colors select-none text-foreground bg-muted/50",
+                                                    colIndex === 0 && "sticky left-0 z-30 bg-muted shadow-[2px_0_5px_-2px_rgba(0,0,0,0.15)]"
                                                 )}
                                                 onClick={() => handleSort(header)}
                                             >
@@ -574,7 +574,7 @@ export default function TablesPage() {
                                                     key={`${i}-${header}`}
                                                     className={cn(
                                                         "whitespace-nowrap font-medium text-muted-foreground",
-                                                        colIndex === 0 && "sticky left-0 z-10 bg-card shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
+                                                        colIndex === 0 && "sticky left-0 z-10 bg-card shadow-[2px_0_5px_-2px_rgba(0,0,0,0.15)]"
                                                     )}
                                                 >
                                                     {formatTableValue(row[header], header)}
