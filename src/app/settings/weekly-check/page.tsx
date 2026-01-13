@@ -29,7 +29,7 @@ const DEFAULT_COLUMNS = [
     "Playon per User",
     "RM Total",
     "Avg. Total Moves",
-    "New Cluster",
+    "Clu",
     "Score",
     "Min. Time Event"
 ];
@@ -202,7 +202,7 @@ export default function WeeklyCheckSettingsPage() {
                     const parsed = papa.parse(csvText, { header: true, preview: 1 });
                     const rawHeaders = parsed.meta.fields || [];
                     // Add virtual columns that are added dynamically in UI
-                    if (!rawHeaders.includes('New Cluster')) rawHeaders.push('New Cluster');
+                    if (!rawHeaders.includes('Clu')) rawHeaders.push('Clu');
                     if (!rawHeaders.includes('Score')) rawHeaders.push('Score');
                     setActualHeaders(rawHeaders);
                 }

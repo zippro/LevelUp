@@ -221,43 +221,70 @@ export default function LevelScorePage() {
                     return;
                 }
 
-                const features = groupLevels.map(d => {
-                    const repeat = d.avgRepeatRatio;
+                // Extract raw features
+                const rawFeatures = groupLevels.map(d => {
+                    const repeat = d.avgRepeatRatio || 0;
                     const rmRatio = d.avgTotalMoves > 0 ? (d.rmFixed / d.avgTotalMoves) : 0;
-                    const playTime = d.levelPlayTime;
-
-                    return [
-                        Math.log1p(repeat),
-                        Math.log1p(rmRatio),
-                        Math.log1p(playTime)
-                    ];
+                    const playTime = d.levelPlayTime || 0;
+                    return [repeat, rmRatio, playTime];
                 });
 
-                // KMeans
-                const k = Math.min(4, features.length);
-                const result = kmeans(features, k, { initialization: 'kmeans++' });
+                // Min-Max Scaling [0, 1] for all features to give them equal weight
+                const numFeatures = rawFeatures[0].length;
+                const scaledFeatures = rawFeatures.map(row => [...row]);
+                for (let j = 0; j < numFeatures; j++) {
+                    const vals = rawFeatures.map(row => row[j]);
+                    const max = Math.max(...vals);
+                    const min = Math.min(...vals);
+                    const range = max - min || 1;
+                    for (let i = 0; i < groupLevels.length; i++) {
+                        scaledFeatures[i][j] = (rawFeatures[i][j] - min) / range;
+                    }
+                }
 
-                // Rank clusters based on Mean Repeat Ratio (index 0 of features is log1p(repeat))
+                // KMeans on Scaled Features
+                const k = Math.min(4, scaledFeatures.length);
+                const result = kmeans(scaledFeatures, k, { initialization: 'kmeans++' });
+
+                // Rank clusters based on a composite "Difficulty Index"
+                // Cluster 1 (Easiest) -> Cluster 4 (Hardest)
                 const clusterIndices = Array.from({ length: k }, (_, i) => i);
                 const clusterMeans = clusterIndices.map(cIdx => {
-                    const pointsInCluster = result.clusters.map((c, i) => c === cIdx ? features[i][0] : -1).filter(v => v !== -1);
-                    const meanLogRepeat = pointsInCluster.reduce((a, b) => a + b, 0) / (pointsInCluster.length || 1);
-                    return { cIdx, mean: meanLogRepeat };
+                    const pointsInCluster = scaledFeatures.filter((_, i) => result.clusters[i] === cIdx);
+                    if (pointsInCluster.length === 0) return { cIdx, score: 999 };
+
+                    // Calculate mean for each feature in this cluster
+                    const means = [0, 0, 0];
+                    pointsInCluster.forEach(p => {
+                        means[0] += p[0]; // Repeat
+                        means[1] += p[1]; // RM Ratio
+                        means[2] += p[2]; // Play Time
+                    });
+                    means[0] /= pointsInCluster.length;
+                    means[1] /= pointsInCluster.length;
+                    means[2] /= pointsInCluster.length;
+
+                    // Composite Difficulty Score
+                    // High score = Harder.
+                    // Repeat + PlayTime (Positive Correlation)
+                    // RM Ratio (Negative Correlation) -> Use (1 - RM Ratio)
+                    const difficultyScore = (means[0] * 0.6) + ((1 - means[1]) * 0.2) + (means[2] * 0.2);
+                    return { cIdx, score: difficultyScore };
                 });
 
-                // Sort by mean (ascending) -> Rank 1 is lowest repeat
-                clusterMeans.sort((a, b) => a.mean - b.mean);
+                // Sort by Difficulty Index (ascending)
+                clusterMeans.sort((a, b) => a.score - b.score);
 
-                // Map old cluster ID to Rank (1-based)
+                // Map cluster ID to Rank (1-based string)
                 const clusterMapping = new Map<number, string>();
-                clusterMeans.forEach((item, rankZeroIndexed) => {
-                    clusterMapping.set(item.cIdx, String(rankZeroIndexed + 1));
+                clusterMeans.forEach((item, index) => {
+                    clusterMapping.set(item.cIdx, String(index + 1));
                 });
 
-                // Apply updates
+                // Assign cluster to each level in the group
                 groupLevels.forEach((d, i) => {
-                    const oldC = result.clusters[i];
-                    updates.push({ level: d.level, cluster: clusterMapping.get(oldC)! });
+                    const clusterId = result.clusters[i];
+                    updates.push({ level: d.level, cluster: clusterMapping.get(clusterId)! });
                 });
             });
 

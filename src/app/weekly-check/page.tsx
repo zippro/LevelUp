@@ -285,7 +285,7 @@ export default function WeeklyCheckPage() {
             // Multi-select New Cluster filter (uses effective cluster - saved or final)
             // Only filter if the row actually has a cluster value
             if (clusters.length > 0 && clusters.length < 5) {
-                const clusterVal = String(row['New Cluster'] || '').trim();
+                const clusterVal = String(row['Clu'] || '').trim();
                 // Check if 'None' is selected and cluster value is empty
                 if (!clusterVal) {
                     if (!clusters.includes('None')) return false;
@@ -1192,6 +1192,19 @@ export default function WeeklyCheckPage() {
             [level]: { cluster, score: newScore }
         }));
 
+        // Update rawData to trigger re-sort in effects
+        setRawData(prev => prev.map(r => {
+            const levelCol = Object.keys(r).find(k => {
+                const n = normalizeHeader(k);
+                return n === 'level' || n === 'level number' || n === 'level_number';
+            }) || 'Level';
+            const rowLevel = parseInt(String(r[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
+            if (rowLevel === level) {
+                return { ...r, 'Clu': cluster, 'Score': newScore };
+            }
+            return r;
+        }));
+
         try {
             await fetch("/api/level-scores", {
                 method: "POST",
@@ -1463,8 +1476,8 @@ export default function WeeklyCheckPage() {
                                                     );
                                                 }
 
-                                                const isNewCluster = header === 'New Cluster';
-                                                const isBold = isNewCluster && row['New Cluster'] !== row['__FinalCluster'];
+                                                const isClu = header === 'Clu';
+                                                const isBold = isClu && row['Clu'] !== row['__FinalCluster'];
 
                                                 return (
                                                     <TableCell
@@ -1820,7 +1833,7 @@ export default function WeeklyCheckPage() {
                             <Input type="number" value={minDaysSinceEvent} onChange={(e) => setMinDaysSinceEvent(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-semibold text-muted-foreground">New Cluster</label>
+                            <label className="text-xs font-semibold text-muted-foreground">Clu</label>
                             <div className="flex gap-1">
                                 {['1', '2', '3', '4', 'None'].map(c => (
                                     <button
@@ -1864,7 +1877,7 @@ export default function WeeklyCheckPage() {
                             <Input type="number" value={successMinDaysSinceEvent} onChange={(e) => setSuccessMinDaysSinceEvent(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-semibold text-muted-foreground">New Cluster</label>
+                            <label className="text-xs font-semibold text-muted-foreground">Clu</label>
                             <div className="flex gap-1">
                                 {['1', '2', '3', '4', 'None'].map(c => (
                                     <button
