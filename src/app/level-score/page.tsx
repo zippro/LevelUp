@@ -8,6 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { RefreshCw, Save, Download } from "lucide-react";
 import Papa from "papaparse";
 import { DEFAULT_REPORT_SETTINGS, LevelScoreTableSettings, ColumnConfig } from "@/lib/report-settings";
+import { kmeans } from 'ml-kmeans';
+
 
 interface Config {
     variables: string[];
@@ -39,7 +41,13 @@ interface LevelData {
     finalCluster: string;
     calculatedScore: number;
     editableCluster: string;
+    // Clustering fields
+    avgRepeatRatio: number;
+    avgTotalMoves: number;
+    rmFixed: number;
+    levelPlayTime: number;
 }
+
 
 interface SavedScore {
     level: number;
@@ -97,6 +105,168 @@ export default function LevelScorePage() {
             }
         }
     };
+
+    // Cluster Renewer State
+    const [clusterMinLevel, setClusterMinLevel] = useState<string>('');
+    const [clusterMaxLevel, setClusterMaxLevel] = useState<string>('');
+    const [clustering, setClustering] = useState(false);
+    const [clusterResult, setClusterResult] = useState<string>('');
+
+    const calculateConcept = (level: number): number => {
+        if (level <= 10) return 1;
+        if (level > 3000) return 49;
+
+        if (level <= 20) return 2;
+        if (level <= 40) return 3;
+        if (level <= 60) return 4;
+        if (level <= 80) return 5;
+        if (level <= 100) return 6;
+        if (level <= 120) return 7;
+        if (level <= 140) return 8;
+        if (level <= 160) return 9;
+        if (level <= 180) return 10;
+        if (level <= 200) return 11;
+
+        if (level <= 230) return 12;
+        if (level <= 260) return 13;
+        if (level <= 300) return 14;
+        if (level <= 350) return 15;
+        if (level <= 400) return 16;
+        if (level <= 450) return 17;
+        if (level <= 500) return 18;
+        if (level <= 550) return 19;
+        if (level <= 600) return 20;
+        if (level <= 650) return 21;
+        if (level <= 700) return 22;
+        if (level <= 750) return 23;
+        if (level <= 800) return 24;
+        if (level <= 850) return 25;
+        if (level <= 900) return 26;
+        if (level <= 950) return 27;
+        if (level <= 1000) return 28;
+        if (level <= 1100) return 29;
+        if (level <= 1200) return 30;
+        if (level <= 1300) return 31;
+        if (level <= 1400) return 32;
+        if (level <= 1500) return 33;
+        if (level <= 1600) return 34;
+        if (level <= 1700) return 35;
+        if (level <= 1800) return 36;
+        if (level <= 1900) return 37;
+        if (level <= 2000) return 38;
+        if (level <= 2100) return 39;
+        if (level <= 2200) return 40;
+        if (level <= 2300) return 41;
+        if (level <= 2400) return 42;
+        if (level <= 2500) return 43;
+        if (level <= 2600) return 44;
+        if (level <= 2700) return 45;
+        if (level <= 2800) return 46;
+        if (level <= 2900) return 47;
+        if (level <= 3000) return 48;
+
+        return 49;
+    };
+
+    const performClustering = () => {
+        const minLvl = parseInt(clusterMinLevel) || 0;
+        const maxLvl = parseInt(clusterMaxLevel) || 10000;
+
+        if (minLvl <= 0) {
+            alert("Please specify a valid minimum level > 0");
+            return;
+        }
+
+        setClustering(true);
+        setClusterResult("");
+
+        try {
+            // Filter data by range
+            const relevantData = data.filter(d => d.level >= minLvl && d.level <= maxLvl);
+            if (relevantData.length < 4) {
+                throw new Error("Not enough levels in range to cluster (need at least 4)");
+            }
+
+            // Group by Concept
+            const updates: { level: number, cluster: string }[] = [];
+            const groupedByConcept = new Map<number, LevelData[]>();
+
+            relevantData.forEach(d => {
+                const concept = calculateConcept(d.level);
+                if (!groupedByConcept.has(concept)) groupedByConcept.set(concept, []);
+                groupedByConcept.get(concept)!.push(d);
+            });
+
+            // Process each concept group
+            groupedByConcept.forEach((groupLevels, concept) => {
+                if (groupLevels.length < 4) {
+                    console.warn(`Concept ${concept} has too few levels (${groupLevels.length}), skipping clustering for this group.`);
+                    return;
+                }
+
+                const features = groupLevels.map(d => {
+                    const repeat = d.avgRepeatRatio;
+                    const rmRatio = d.avgTotalMoves > 0 ? (d.rmFixed / d.avgTotalMoves) : 0;
+                    const playTime = d.levelPlayTime;
+
+                    return [
+                        Math.log1p(repeat),
+                        Math.log1p(rmRatio),
+                        Math.log1p(playTime)
+                    ];
+                });
+
+                // KMeans
+                const k = Math.min(4, features.length);
+                const result = kmeans(features, k, { initialization: 'kmeans++' });
+
+                // Rank clusters based on Mean Repeat Ratio (index 0 of features is log1p(repeat))
+                const clusterIndices = Array.from({ length: k }, (_, i) => i);
+                const clusterMeans = clusterIndices.map(cIdx => {
+                    const pointsInCluster = result.clusters.map((c, i) => c === cIdx ? features[i][0] : -1).filter(v => v !== -1);
+                    const meanLogRepeat = pointsInCluster.reduce((a, b) => a + b, 0) / (pointsInCluster.length || 1);
+                    return { cIdx, mean: meanLogRepeat };
+                });
+
+                // Sort by mean (ascending) -> Rank 1 is lowest repeat
+                clusterMeans.sort((a, b) => a.mean - b.mean);
+
+                // Map old cluster ID to Rank (1-based)
+                const clusterMapping = new Map<number, string>();
+                clusterMeans.forEach((item, rankZeroIndexed) => {
+                    clusterMapping.set(item.cIdx, String(rankZeroIndexed + 1));
+                });
+
+                // Apply updates
+                groupLevels.forEach((d, i) => {
+                    const oldC = result.clusters[i];
+                    updates.push({ level: d.level, cluster: clusterMapping.get(oldC)! });
+                });
+            });
+
+            // Update State
+            let updateCount = 0;
+            const newData = [...data];
+            updates.forEach(u => {
+                const idx = newData.findIndex(d => d.level === u.level);
+                if (idx !== -1) {
+                    newData[idx] = { ...newData[idx], editableCluster: u.cluster };
+                    newData[idx].calculatedScore = calculateScore(newData[idx], u.cluster);
+                    updateCount++;
+                }
+            });
+
+            setData(newData);
+            setClusterResult(`Successfully updated ${updateCount} levels in range ${minLvl}-${maxLvl}.`);
+
+        } catch (e: any) {
+            console.error(e);
+            alert("Error during clustering: " + e.message);
+        } finally {
+            setClustering(false);
+        }
+    };
+
 
 
     useEffect(() => {
@@ -199,7 +369,15 @@ export default function LevelScorePage() {
                 const monetizationScore = parseFloat(row['Monetization Score'] || row['MonetizationScore'] || '0');
                 const engagementScore = parseFloat(row['Engagement Score'] || row['EngagementScore'] || '0');
                 const satisfactionScore = parseFloat(row['Satisfaction Score'] || row['SatisfactionScore'] || '0');
+
                 const finalCluster = row['Final Cluster'] || row['FinalCluster'] || '';
+
+                // Clustering fields parsing
+                const avgRepeatRatio = parseFloat(row['Avg. Repeat Ratio (birleşik)'] || row['Avg. Repeat Ratio'] || row['Repeat'] || '0');
+                const avgTotalMoves = parseFloat(row['Avg. Total Moves'] || row['Total Moves'] || '0');
+                const rmFixed = parseFloat(row['RM Fixed'] || row['RM'] || '0');
+                const levelPlayTime = parseFloat(row['Avg. Level Play Time (birleşik)'] || row['Level Play Time fixed'] || row['Level Play Time'] || '0');
+
 
                 const saved = savedMap[level];
                 const editableCluster = saved?.cluster || finalCluster;
@@ -207,13 +385,19 @@ export default function LevelScorePage() {
                 const item: LevelData = {
                     level,
                     levelScore,
+
                     monetizationScore,
                     engagementScore,
                     satisfactionScore,
                     finalCluster,
                     calculatedScore: 0,
                     editableCluster,
+                    avgRepeatRatio,
+                    avgTotalMoves,
+                    rmFixed,
+                    levelPlayTime,
                 };
+
 
                 item.calculatedScore = calculateScore(item);
                 return item;
@@ -371,6 +555,44 @@ export default function LevelScorePage() {
                     </div>
                 )}
             </div>
+
+            {/* Cluster Renewer */}
+            {data.length > 0 && (
+                <div className="p-4 bg-muted/20 border rounded-xl space-y-3">
+                    <h3 className="font-semibold text-sm flex items-center gap-2">
+                        ✨ Cluster Renewer
+                        {clusterResult && <span className="text-muted-foreground font-normal text-xs ml-auto">{clusterResult}</span>}
+                    </h3>
+                    <div className="flex items-end gap-3 flex-wrap">
+                        <div className="space-y-1.5 w-[140px]">
+                            <label className="text-xs text-muted-foreground">Min Level</label>
+                            <Input
+                                type="number"
+                                placeholder="Start Level"
+                                value={clusterMinLevel}
+                                onChange={(e) => setClusterMinLevel(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-1.5 w-[140px]">
+                            <label className="text-xs text-muted-foreground">Max Level</label>
+                            <Input
+                                type="number"
+                                placeholder="End Level (Opt)"
+                                value={clusterMaxLevel}
+                                onChange={(e) => setClusterMaxLevel(e.target.value)}
+                            />
+                        </div>
+                        <Button
+                            onClick={performClustering}
+                            disabled={clustering}
+                            variant="secondary"
+                            className="w-[120px]"
+                        >
+                            {clustering ? <><RefreshCw className="mr-2 h-4 w-4 animate-spin" /> ...</> : "Clusterise"}
+                        </Button>
+                    </div>
+                </div>
+            )}
 
             {/* Table */}
             {data.length > 0 && (
