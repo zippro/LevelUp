@@ -1193,13 +1193,13 @@ export default function WeeklyCheckPage() {
                                                                                     <tr>
                                                                                         <th className="p-1 font-medium text-left">Lvl</th>
                                                                                         <th className="p-1 font-medium text-right">Churn</th>
-                                                                                        <th className="p-1 font-medium text-right">Rep</th>
+                                                                                        <th className="p-1 font-medium text-right text-red-600">Rep</th>
                                                                                         <th className="p-1 font-medium text-right">Playon</th>
                                                                                         <th className="p-1 font-medium text-right">Moves</th>
                                                                                         <th className="p-1 font-medium text-right">Time</th>
                                                                                         <th className="p-1 font-medium text-right">1stWin</th>
                                                                                         <th className="p-1 font-medium text-right">Rem</th>
-                                                                                        <th className="p-1 font-medium text-right text-blue-600">New</th>
+                                                                                        <th className="p-1 font-medium text-right text-blue-600">Clu</th>
                                                                                     </tr>
                                                                                 </thead>
                                                                                 <tbody>
@@ -1234,7 +1234,7 @@ export default function WeeklyCheckPage() {
                                                                                             )}>
                                                                                                 <td className="p-1 font-medium">{r['Level']}</td>
                                                                                                 <td className="p-1 text-right">{formatPercent(churn3d)}</td>
-                                                                                                <td className="p-1 text-right">{formatVal(repeat)}</td>
+                                                                                                <td className="p-1 text-right text-red-600">{formatVal(repeat)}</td>
                                                                                                 <td className="p-1 text-right">{formatVal(playon)}</td>
                                                                                                 <td className="p-1 text-right">{formatVal(totalMoves)}</td>
                                                                                                 <td className="p-1 text-right">{formatVal(playTime)}</td>

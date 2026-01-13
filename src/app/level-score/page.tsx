@@ -354,6 +354,35 @@ export default function LevelScorePage() {
                 setDebugHeaders(Object.keys(parsed.data[0] as object));
             }
 
+            // Normalization Helper
+            const normalize = (key: string) => key.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+            const headers = parsed.meta.fields || [];
+            const headerMap: Record<string, string> = {};
+
+            // map normalized keys to actual headers
+            headers.forEach(h => {
+                headerMap[normalize(h)] = h;
+            });
+
+            const getCol = (row: any, ...candidates: string[]) => {
+                for (const c of candidates) {
+                    const norm = normalize(c);
+                    const actualKey = headerMap[norm];
+                    if (actualKey && row[actualKey] !== undefined) return row[actualKey];
+                }
+                return undefined;
+            };
+
+            const parseNum = (val: any) => {
+                if (!val) return 0;
+                if (typeof val === 'number') return val;
+                const s = String(val).trim();
+                // Replace comma with dot if present 
+                const clean = s.replace(',', '.');
+                const f = parseFloat(clean);
+                return isNaN(f) ? 0 : f;
+            };
+
 
             // Load saved scores from database
             const savedRes = await fetch(`/api/level-scores?gameId=${selectedGameId}&t=${Date.now()}`, {
@@ -384,20 +413,28 @@ export default function LevelScorePage() {
             setSavedScores(savedMap);
 
             // Process data
-            const processedData: LevelData[] = parsed.data.map((row: any) => {
-                const level = parseInt(String(row['Level'] || 0).replace(/[^\d-]/g, '')) || 0;
-                const levelScore = parseFloat(row['Level Score'] || row['LevelScore'] || '0');
-                const monetizationScore = parseFloat(row['Monetization Score'] || row['MonetizationScore'] || '0');
-                const engagementScore = parseFloat(row['Engagement Score'] || row['EngagementScore'] || '0');
-                const satisfactionScore = parseFloat(row['Satisfaction Score'] || row['SatisfactionScore'] || '0');
+            const processedData: LevelData[] = parsed.data.map((row: any, idx: number) => {
+                const level = parseInt(String(getCol(row, 'Level', 'level_number') || 0).replace(/[^\d-]/g, '')) || 0;
 
-                const finalCluster = row['Final Cluster'] || row['FinalCluster'] || '';
+                const levelScore = parseNum(getCol(row, 'Level Score', 'LevelScore'));
+                const monetizationScore = parseNum(getCol(row, 'Monetization Score', 'MonetizationScore'));
+                const engagementScore = parseNum(getCol(row, 'Engagement Score', 'EngagementScore'));
+                const satisfactionScore = parseNum(getCol(row, 'Satisfaction Score', 'SatisfactionScore'));
 
-                // Clustering fields parsing
-                const avgRepeatRatio = parseFloat(row['Avg. Repeat Rate'] || row['Avg. Repeat Ratio'] || row['Repeat'] || '0');
-                const avgTotalMoves = parseFloat(row['Avg. Total Moves'] || row['Total Moves'] || '0');
-                const rmFixed = parseFloat(row['Avg. RM Fixed'] || row['RM Fixed'] || row['RM'] || '0');
-                const levelPlayTime = parseFloat(row['Avg. Level Play'] || row['Avg. Level Play Time'] || row['Level Play Time'] || '0');
+                const finalCluster = getCol(row, 'FinalCluster', 'Final Cluster') || '';
+
+                // Clustering fields parsing with robust search
+                const avgRepeatRatio = parseNum(getCol(row, 'Avg. Repeat Rate', 'Avg. Repeat Ratio', 'Repeat', 'Repeat Rate'));
+                const avgTotalMoves = parseNum(getCol(row, 'Avg. Total Moves', 'Total Moves'));
+                const rmFixed = parseNum(getCol(row, 'Avg. RM Fixed', 'RM Fixed', 'RM'));
+                const levelPlayTime = parseNum(getCol(row, 'Avg. Level Play', 'Avg. Level Play Time', 'Level Play Time', 'Avg Level Play'));
+
+                // DEBUG: Alert first row values to verify parsing
+                if (idx === 0) {
+                    console.log("Debug Parsing First Row:", { level, avgRepeatRatio, avgTotalMoves, rmFixed, levelPlayTime });
+                    alert(`Debug First Row Values:\nLevel: ${level}\nRepeat: ${avgRepeatRatio}\nMoves: ${avgTotalMoves}\nRM: ${rmFixed}\nTime: ${levelPlayTime}`);
+                }
+
 
 
                 const saved = savedMap[level];
