@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, RefreshCw, ChevronDown, ChevronUp, Download, Ban, Search } from "lucide-react";
+import { Loader2, RefreshCw, ChevronDown, ChevronUp, Download, Ban, Search, Save } from "lucide-react";
 import {
     Popover,
     PopoverContent,
@@ -213,6 +213,7 @@ export default function WeeklyCheckPage() {
     const [exportHeaders, setExportHeaders] = useState<string[]>([]);
     const [savedScores, setSavedScores] = useState<Record<number, { cluster: string | null, score: number | null }>>({}); // Combined state
     const [exportSummary, setExportSummary] = useState<string>('');
+    const [pendingClusterChanges, setPendingClusterChanges] = useState<Record<number, boolean>>({});
 
     const [exportDetails, setExportDetails] = useState<any[]>([]);
 
@@ -1167,7 +1168,7 @@ export default function WeeklyCheckPage() {
         }
     };
 
-    const updateCluster = async (level: number, cluster: string) => {
+    const updateCluster = (level: number, cluster: string) => {
         // Find row to get component scores
         const row = rawData.find(r => {
             const levelCol = Object.keys(r).find(k => {
@@ -1210,18 +1211,38 @@ export default function WeeklyCheckPage() {
             return r;
         }));
 
+        // Mark as pending
+        setPendingClusterChanges(prev => ({ ...prev, [level]: true }));
+    };
+
+    const saveClusterChange = async (level: number) => {
+        const saved = savedScores[level];
+        if (!saved) return;
+
         try {
-            await fetch("/api/level-scores", {
+            setLoading(true);
+            const res = await fetch("/api/level-scores", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     gameId: selectedGameId || config?.games[0]?.id,
-                    levels: [{ level, cluster, score: newScore }]
+                    levels: [{ level, cluster: saved.cluster, score: saved.score }]
                 }),
             });
+            if (res.ok) {
+                setPendingClusterChanges(prev => {
+                    const next = { ...prev };
+                    delete next[level];
+                    return next;
+                });
+            } else {
+                alert("Failed to save cluster");
+            }
         } catch (e) {
             console.error("Failed to save cluster", e);
             alert("Failed to save cluster");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -1365,6 +1386,17 @@ export default function WeeklyCheckPage() {
                                                                             {renderMiniTable(combinedData)}
                                                                         </PopoverContent>
                                                                     </Popover>
+                                                                    {pendingClusterChanges[Number(row['Level'])] && (
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            className="h-8 w-8 p-0 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 rounded-full border border-green-200"
+                                                                            onClick={() => saveClusterChange(Number(row['Level']))}
+                                                                            title="Save Cluster Change"
+                                                                        >
+                                                                            <Save className="h-4 w-4" />
+                                                                        </Button>
+                                                                    )}
                                                                 </div>
                                                             );
                                                         })()}
