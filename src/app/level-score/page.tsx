@@ -148,48 +148,30 @@ export default function LevelScorePage() {
         if (level <= 900) return 26;
         if (level <= 950) return 27;
         if (level <= 1000) return 28;
-        if (level <= 1100) return 29;
-        if (level <= 1200) return 30;
-        if (level <= 1300) return 31;
-        if (level <= 1400) return 32;
-        if (level <= 1500) return 33;
-        if (level <= 1600) return 34;
-        if (level <= 1700) return 35;
-        if (level <= 1800) return 36;
-        if (level <= 1900) return 37;
-        if (level <= 2000) return 38;
-        if (level <= 2100) return 39;
-        if (level <= 2200) return 40;
-        if (level <= 2300) return 41;
-        if (level <= 2400) return 42;
-        if (level <= 2500) return 43;
-        if (level <= 2600) return 44;
-        if (level <= 2700) return 45;
-        if (level <= 2800) return 46;
-        if (level <= 2900) return 47;
-        if (level <= 3000) return 48;
-        if (level <= 3100) return 49;
-        if (level <= 3200) return 50;
-        if (level <= 3300) return 51;
-        if (level <= 3400) return 52;
-        if (level <= 3500) return 53;
-        if (level <= 3600) return 54;
-        if (level <= 3700) return 55;
-        if (level <= 3800) return 56;
-        if (level <= 3900) return 57;
-        if (level <= 4000) return 58;
-        if (level <= 4100) return 59;
-        if (level <= 4200) return 60;
-        if (level <= 4300) return 61;
-        if (level <= 4400) return 62;
-        if (level <= 4500) return 63;
-        if (level <= 4600) return 64;
-        if (level <= 4700) return 65;
-        if (level <= 4800) return 66;
-        if (level <= 4900) return 67;
-        if (level <= 5000) return 68;
+        if (level <= 2000) return 26;
+        if (level <= 2200) return 27;
+        if (level <= 2400) return 28;
+        if (level <= 2600) return 29;
+        if (level <= 3000) return 30; // 2901-3000
 
-        return Math.floor((level - 5000) / 100) + 69;
+        // 200-level buckets for better distribution
+        if (level <= 3200) return 31;
+        if (level <= 3400) return 32;
+        if (level <= 3600) return 33;
+        if (level <= 3800) return 34;
+        if (level <= 4000) return 35;
+        if (level <= 4200) return 36;
+        if (level <= 4400) return 37;
+        if (level <= 4600) return 38;
+        if (level <= 4800) return 39;
+        if (level <= 5000) return 40;
+        if (level <= 5200) return 41;
+        if (level <= 5400) return 42;
+        if (level <= 5600) return 43;
+        if (level <= 5800) return 44;
+        if (level <= 6000) return 45;
+
+        return Math.floor((level - 6000) / 200) + 46;
     };
 
     const performClustering = () => {
@@ -249,16 +231,32 @@ export default function LevelScorePage() {
                     return [repeat, rmRatio, playTime];
                 });
 
-                // Min-Max Scaling [0, 1] for all features to give them equal weight
-                const numFeatures = rawFeatures[0].length;
-                const scaledFeatures = rawFeatures.map(row => [...row]);
+                // Logarithmic Scaling (Log1p) to handle outliers
+                const scaledFeatures = rawFeatures.map(row => {
+                    return [
+                        Math.log1p(row[0]), // Repeat
+                        row[1],             // RM Ratio (already 0-1ish usually)
+                        Math.log1p(row[2])  // PlayTime (can be huge)
+                    ];
+                });
+
+                // Then standardize to 0-1 range to align weights
+                const numFeatures = scaledFeatures[0].length;
                 for (let j = 0; j < numFeatures; j++) {
-                    const vals = rawFeatures.map(row => row[j]);
+                    const vals = scaledFeatures.map(row => row[j]);
                     const max = Math.max(...vals);
                     const min = Math.min(...vals);
                     const range = max - min || 1;
-                    for (let i = 0; i < groupLevels.length; i++) {
-                        scaledFeatures[i][j] = (rawFeatures[i][j] - min) / range;
+
+                    // If range is tiny, effectively all points are the same
+                    if (range < 0.00001) {
+                        for (let i = 0; i < groupLevels.length; i++) {
+                            scaledFeatures[i][j] = 0.5; // Neutral
+                        }
+                    } else {
+                        for (let i = 0; i < groupLevels.length; i++) {
+                            scaledFeatures[i][j] = (scaledFeatures[i][j] - min) / range;
+                        }
                     }
                 }
 
