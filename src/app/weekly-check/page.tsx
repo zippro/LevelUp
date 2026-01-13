@@ -686,15 +686,22 @@ export default function WeeklyCheckPage() {
                     return num.toFixed(2);
                 };
 
+                const formatPercent = (v: any) => {
+                    if (v === '-' || v === undefined || v === null) return '-';
+                    const num = parseFloat(v);
+                    if (isNaN(num)) return String(v);
+                    return (num * 100).toFixed(2) + '%';
+                };
+
                 const formattedRow = {
                     level: item.level,
                     action: item.actionType,
-                    churn3d: formatVal(churn3d),
+                    churn3d: formatPercent(churn3d),
                     repeat: formatVal(repeat),
                     playon: formatVal(playon),
                     totalMoves: formatVal(totalMoves),
                     playTime: formatVal(playTime),
-                    firstTryWin: formatVal(firstTryWin),
+                    firstTryWin: formatPercent(firstTryWin),
                     remaining: formatVal(remaining)
                 };
                 detailsArray.push(formattedRow);
@@ -877,7 +884,14 @@ export default function WeeklyCheckPage() {
                         return num.toFixed(2);
                     };
 
-                    summary += `${item.level}\t${item.actionType}\t${formatVal(churn3d)}\t${formatVal(repeat)}\t${formatVal(playon)}\t${formatVal(totalMoves)}\t${formatVal(playTime)}\t${formatVal(firstTryWin)}\t${formatVal(remaining)}\n`;
+                    const formatPercent = (v: any) => {
+                        if (v === '-' || v === undefined || v === null) return '-';
+                        const num = parseFloat(v);
+                        if (isNaN(num)) return String(v);
+                        return (num * 100).toFixed(2) + '%';
+                    };
+
+                    summary += `${item.level}\t${item.actionType}\t${formatPercent(churn3d)}\t${formatVal(repeat)}\t${formatVal(playon)}\t${formatVal(totalMoves)}\t${formatVal(playTime)}\t${formatPercent(firstTryWin)}\t${formatVal(remaining)}\n`;
                 });
             }
         }
@@ -1134,18 +1148,25 @@ export default function WeeklyCheckPage() {
                                                                                             return num.toFixed(2);
                                                                                         };
 
+                                                                                        const formatPercent = (v: any) => {
+                                                                                            if (v === '-' || v === undefined) return '-';
+                                                                                            const num = parseFloat(v);
+                                                                                            if (isNaN(num)) return String(v).substring(0, 4);
+                                                                                            return (num * 100).toFixed(2) + '%';
+                                                                                        };
+
                                                                                         return (
                                                                                             <tr key={ri} className={cn(
                                                                                                 "border-t hover:bg-muted/50 transition-colors",
                                                                                                 isCurrent && "bg-muted font-bold border-primary/20"
                                                                                             )}>
                                                                                                 <td className="p-1 font-medium">{r['Level']}</td>
-                                                                                                <td className="p-1 text-right">{formatVal(churn3d)}</td>
+                                                                                                <td className="p-1 text-right">{formatPercent(churn3d)}</td>
                                                                                                 <td className="p-1 text-right">{formatVal(repeat)}</td>
                                                                                                 <td className="p-1 text-right">{formatVal(playon)}</td>
                                                                                                 <td className="p-1 text-right">{formatVal(totalMoves)}</td>
                                                                                                 <td className="p-1 text-right">{formatVal(playTime)}</td>
-                                                                                                <td className="p-1 text-right">{formatVal(firstTryWin)}</td>
+                                                                                                <td className="p-1 text-right">{formatPercent(firstTryWin)}</td>
                                                                                                 <td className="p-1 text-right">{formatVal(remaining)}</td>
                                                                                             </tr>
                                                                                         );
