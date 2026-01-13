@@ -83,7 +83,7 @@ export function generateLevelScoreTopUnsuccessful(
         });
 }
 
-// Generate Level Score Top Successful - sorted by Level Score DESC (highest first)
+// Generate Level Score Top Successful - sorted by Score DESC (highest first)
 export function generateLevelScoreTopSuccessful(
     data: LevelRow[],
     settings?: ReportSettings
@@ -96,8 +96,9 @@ export function generateLevelScoreTopSuccessful(
         //     return levelScore > 0;
         // })
         .sort((a, b) => {
-            const aScore = findMetricValue(a, 'Level Score');
-            const bScore = findMetricValue(b, 'Level Score');
+            // Sort by Score column (not Level Score)
+            const aScore = findMetricValue(a, 'Score');
+            const bScore = findMetricValue(b, 'Score');
             return sortOrder === 'desc' ? bScore - aScore : aScore - bScore;
         });
 }
