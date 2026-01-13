@@ -53,11 +53,14 @@ const parseNum = (val: any): number => {
 };
 
 const getCol = (row: any, ...names: string[]) => {
+    const keys = Object.keys(row);
     for (const name of names) {
-        const normalized = normalizeHeader(name);
-        // Try exact match in row keys (after normalizing keys too)
-        const key = Object.keys(row).find(k => normalizeHeader(k) === normalized);
-        if (key && row[key] !== undefined) return row[key];
+        const normalizedCandidate = normalizeHeader(name);
+        const actualKey = keys.find(k => {
+            const normKey = normalizeHeader(k);
+            return normKey === normalizedCandidate || normKey.includes(normalizedCandidate) || normalizedCandidate.includes(normKey);
+        });
+        if (actualKey && row[actualKey] !== undefined) return row[actualKey];
     }
     return '';
 };

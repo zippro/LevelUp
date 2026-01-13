@@ -412,20 +412,24 @@ export default function LevelScorePage() {
             });
 
             const getCol = (row: any, ...candidates: string[]) => {
+                const keys = Object.keys(row);
                 for (const c of candidates) {
-                    const norm = normalize(c);
-                    const actualKey = headerMap[norm];
+                    const normCandidate = normalize(c);
+                    // Match if candidate is exact or a substring of the header
+                    const actualKey = keys.find(k => {
+                        const normKey = normalize(k);
+                        return normKey === normCandidate || normKey.includes(normCandidate) || normCandidate.includes(normKey);
+                    });
                     if (actualKey && row[actualKey] !== undefined) return row[actualKey];
                 }
                 return undefined;
             };
 
             const parseNum = (val: any) => {
-                if (!val) return 0;
+                if (val === undefined || val === null || val === '') return 0;
                 if (typeof val === 'number') return val;
                 const s = String(val).trim();
-                // Replace comma with dot if present 
-                const clean = s.replace(',', '.');
+                const clean = s.replace(',', '.').replace(/[^\d.-]/g, '');
                 const f = parseFloat(clean);
                 return isNaN(f) ? 0 : f;
             };
@@ -471,10 +475,10 @@ export default function LevelScorePage() {
                 const finalCluster = getCol(row, 'FinalCluster', 'Final Cluster') || '';
 
                 // Clustering fields parsing with robust search
-                const avgRepeatRatio = parseNum(getCol(row, 'Avg. Repeat Rate', 'Avg. Repeat Ratio', 'Repeat', 'Repeat Rate'));
-                const avgTotalMoves = parseNum(getCol(row, 'Avg. Total Moves', 'Total Moves'));
-                const rmFixed = parseNum(getCol(row, 'Avg. RM Fixed', 'RM Fixed', 'RM'));
-                const levelPlayTime = parseNum(getCol(row, 'Avg. Level Play', 'Avg. Level Play Time', 'Level Play Time', 'Avg Level Play'));
+                const avgRepeatRatio = parseNum(getCol(row, 'Repeat Ratio', 'Repeat Rate', 'Repeat'));
+                const avgTotalMoves = parseNum(getCol(row, 'Total Moves', 'Move Count', 'TotalMove'));
+                const rmFixed = parseNum(getCol(row, 'RM Fixed', 'RM Total', 'Remaining Move'));
+                const levelPlayTime = parseNum(getCol(row, 'Level Play Time', 'Play Time', 'PlayTime'));
 
                 // DEBUG: Alert first row values to verify parsing
                 // DEBUG: Alert first row values to verify parsing

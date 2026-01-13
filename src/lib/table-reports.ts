@@ -32,8 +32,8 @@ function findMetricValue(row: LevelRow, metricName: string): number {
 
     // Comprehensive partial matching - synced with excel-report.ts
     const metricPatterns: Record<string, string[]> = {
-        // Level Score - various naming conventions
         'level score': ['level score along', 'level score', 'levelscore', 'level_score'],
+        'score': ['score'],
         // Churn columns - various naming conventions per game
         'instant churn': ['instant churn', 'instantchurn', 'instant_churn', '0 day churn', '0day churn', 'churn instant'],
         '3 days churn': ['3 days churn', '3 day churn', '3daychurn', '3dayschurn', '3_days_churn', 'd3 churn', 'churn 3 days', 'churn 3 day'],
