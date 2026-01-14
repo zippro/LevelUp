@@ -730,7 +730,7 @@ export default function WeeklyCheckPage() {
                 const totalMoves = r['Avg. Total Moves'] || r['Total Move'] || r['TotalMove'] || '-';
                 const playTime = r['Avg. Level Play'] || r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || '-';
                 const firstTryWin = r['Avg. FirstTryWin'] || r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || '-';
-                const remaining = r['Avg. RM Fixed'] || r['Average remaining move'] || r['avg remaining move'] || r['remaining moves'] || r['Rem'] || r['RM'] || r['Avg. RM'] || r['Avg RM'] || '-';
+                const remaining = getCol(r, 'Avg. RM Fixed', 'Average remaining move', 'avg remaining move', 'remaining moves', 'Rem', 'RM', 'Avg. RM', 'Avg RM', 'Moves Left', 'remaining');
 
                 const formatVal = (v: any) => {
                     if (v === '-' || v === undefined || v === null) return '-';
@@ -931,7 +931,7 @@ export default function WeeklyCheckPage() {
                     const totalMoves = r['Avg. Total Moves'] || r['Total Move'] || r['TotalMove'] || '-';
                     const playTime = r['Avg. Level Play'] || r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || '-';
                     const firstTryWin = r['Avg. FirstTryWin'] || r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || '-';
-                    const remaining = r['Avg. RM Fixed'] || r['Average remaining move'] || r['avg remaining move'] || r['remaining moves'] || r['Rem'] || r['RM'] || r['Avg. RM'] || r['Avg RM'] || '-';
+                    const remaining = getCol(r, 'Avg. RM Fixed', 'Average remaining move', 'avg remaining move', 'remaining moves', 'Rem', 'RM', 'Avg. RM', 'Avg RM', 'Moves Left', 'remaining');
 
                     const formatVal = (v: any) => {
                         if (v === '-' || v === undefined || v === null) return '-';
@@ -971,7 +971,7 @@ export default function WeeklyCheckPage() {
                     const totalMoves = r['Avg. Total Moves'] || r['Total Move'] || r['TotalMove'] || '-';
                     const playTime = r['Avg. Level Play'] || r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || '-';
                     const firstTryWin = r['Avg. FirstTryWin'] || r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || '-';
-                    const remaining = r['Avg. RM Fixed'] || r['Average remaining move'] || r['avg remaining move'] || r['remaining moves'] || r['Rem'] || r['RM'] || r['Avg. RM'] || r['Avg RM'] || '-';
+                    const remaining = getCol(r, 'Avg. RM Fixed', 'Average remaining move', 'avg remaining move', 'remaining moves', 'Rem', 'RM', 'Avg. RM', 'Avg RM', 'Moves Left', 'remaining');
 
                     const formatVal = (v: any) => {
                         if (v === '-' || v === undefined || v === null) return '-';
@@ -1369,7 +1369,7 @@ export default function WeeklyCheckPage() {
                                                                                         const totalMoves = r['Avg. Total Moves'] || r['Total Move'] || r['TotalMove'] || '-';
                                                                                         const playTime = r['Avg. Level Play'] || r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || '-';
                                                                                         const firstTryWin = r['Avg. FirstTryWin'] || r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || '-';
-                                                                                        const remaining = r['Avg. RM Fixed'] || r['Average remaining move'] || r['avg remaining move'] || r['remaining moves'] || r['Rem'] || r['RM'] || r['Avg. RM'] || r['Avg RM'] || '-';
+                                                                                        const remaining = getCol(r, 'Avg. RM Fixed', 'Average remaining move', 'avg remaining move', 'remaining moves', 'Rem', 'RM', 'Avg. RM', 'Avg RM', 'Moves Left', 'remaining');
 
                                                                                         const formatVal = (v: any) => {
                                                                                             if (v === '-' || v === undefined) return '-';
