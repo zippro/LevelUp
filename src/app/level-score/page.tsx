@@ -250,6 +250,15 @@ export default function LevelScorePage() {
                     }
                 }
 
+                // Apply WEIGHTS
+                const weights = [5.0, 1.0, 1.0, 1.0, 1.0]; // Repeat=5x, others=1x (User requested Repeat as main metric)
+
+                for (let i = 0; i < groupLevels.length; i++) {
+                    for (let j = 0; j < numFeatures; j++) {
+                        scaledFeatures[i][j] *= weights[j];
+                    }
+                }
+
                 // KMeans on Scaled Features
                 const k = Math.min(4, scaledFeatures.length);
                 const result = kmeans(scaledFeatures, k, { initialization: 'kmeans++' });
@@ -729,7 +738,12 @@ export default function LevelScorePage() {
 
                     {clusterStatsResult.length > 0 && (
                         <div className="mt-4 border-t pt-3">
-                            <div className="text-xs font-semibold text-muted-foreground mb-2">Clustering Impact / Stats:</div>
+                            <div className="flex justify-between items-center mb-2">
+                                <div className="text-xs font-semibold text-muted-foreground">Clustering Impact / Stats:</div>
+                                <div className="text-[10px] text-muted-foreground bg-muted px-2 py-1 rounded">
+                                    Weights: Repeat(5x), Others(1x)
+                                </div>
+                            </div>
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                 {clusterStatsResult.map(s => (
                                     <div key={s.cluster} className="flex flex-col p-2 border rounded bg-background/50 text-xs">
