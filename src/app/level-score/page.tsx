@@ -43,9 +43,11 @@ interface LevelData {
     editableCluster: string;
     // Clustering fields
     avgRepeatRatio: number;
-    avgTotalMoves: number;
-    rmFixed: number;
     levelPlayTime: number;
+    // New metrics
+    playOnWinRatio: number;
+    playOnPerUser: number;
+    firstTryWinPercent: number;
 }
 
 
@@ -181,14 +183,14 @@ export default function LevelScorePage() {
             const groupedByConcept = new Map<number, LevelData[]>();
 
             // Debug first item features
+            // Debug first item features
             if (relevantData.length > 0) {
                 const d = relevantData[0];
                 const repeat = d.avgRepeatRatio;
-                const totalMoves = d.avgTotalMoves;
-                const rmFixed = d.rmFixed;
-                const playTime = d.levelPlayTime;
-                // alert(`Debug Level ${d.level}:\nRepeat: ${repeat}\nTotal Moves: ${totalMoves}\nRM Fixed: ${rmFixed}\nPlayTime: ${playTime}`);
-                if (repeat === 0 && totalMoves === 0 && rmFixed === 0 && playTime === 0) {
+                const time = d.levelPlayTime;
+                const winRatio = d.playOnWinRatio;
+
+                if (repeat === 0 && time === 0 && winRatio === 0) {
                     alert(`Warning: All clustering features are 0 for Level ${d.level}. Please check "Debug Headers" to ensure column names match.`);
                 }
             }
@@ -202,24 +204,30 @@ export default function LevelScorePage() {
             // Process each concept group
             groupedByConcept.forEach((groupLevels, concept) => {
                 if (groupLevels.length < 4) {
-                    console.warn(`Concept ${concept} has too few levels (${groupLevels.length}), skipping clustering for this group.`);
+                    // console.warn(`Concept ${concept} has too few levels (${groupLevels.length}), skipping clustering for this group.`);
                     return;
                 }
 
-                // Extract raw features
                 const rawFeatures = groupLevels.map(d => {
-                    const repeat = d.avgRepeatRatio || 0;
-                    const rmRatio = d.avgTotalMoves > 0 ? (d.rmFixed / d.avgTotalMoves) : 0;
-                    const playTime = d.levelPlayTime || 0;
-                    return [repeat, rmRatio, playTime];
+                    return [
+                        d.avgRepeatRatio || 0,
+                        d.levelPlayTime || 0,
+                        d.playOnWinRatio || 0,
+                        d.playOnPerUser || 0,
+                        d.firstTryWinPercent || 0
+                    ];
                 });
 
-                // Logarithmic Scaling (Log1p) to handle outliers
-                const scaledFeatures = rawFeatures.map((row, idx) => {
-                    const r = Math.log1p(row[0]);
-                    const rm = row[1];
-                    const pt = Math.log1p(row[2]);
-                    return [r, rm, pt];
+                // Scaled Features
+                // Log scaling for Repeat, PlayTime, PlayOnPerUser as they can have outliers
+                const scaledFeatures = rawFeatures.map((row) => {
+                    return [
+                        Math.log1p(row[0]), // Repeat
+                        Math.log1p(row[1]), // Time
+                        row[2],             // PlayOnWin (Ratio 0-1 usually, or small num)
+                        Math.log1p(row[3]), // PlayOnPerUser
+                        row[4]              // FTW (Percent 0-100) -> Maybe log? Let's keep linear for now as it's bounded 0-100 usually
+                    ];
                 });
 
                 // Then standardize to 0-1 range to align weights
@@ -254,21 +262,20 @@ export default function LevelScorePage() {
                     if (pointsInCluster.length === 0) return { cIdx, score: 999 };
 
                     // Calculate mean for each feature in this cluster
-                    const means = [0, 0, 0];
+                    const means = [0, 0, 0, 0, 0];
                     pointsInCluster.forEach(p => {
                         means[0] += p[0]; // Repeat
-                        means[1] += p[1]; // RM Ratio
-                        means[2] += p[2]; // Play Time
+                        means[1] += p[1]; // Play Time
+                        means[2] += p[2]; // PlayOnWin
+                        means[3] += p[3]; // PlayOnPerUser
+                        means[4] += p[4]; // FTW
                     });
-                    means[0] /= pointsInCluster.length;
-                    means[1] /= pointsInCluster.length;
-                    means[2] /= pointsInCluster.length;
+                    means.forEach((_, idx) => means[idx] /= pointsInCluster.length);
 
-                    // Composite Difficulty Score
-                    // High score = Harder.
-                    // Repeat + PlayTime (Positive Correlation)
-                    // RM Ratio (Negative Correlation) -> Use (1 - RM Ratio)
-                    const difficultyScore = (means[0] * 0.6) + ((1 - means[1]) * 0.2) + (means[2] * 0.2);
+                    // Composite Difficulty Score (Approximate/Heuristic)
+                    // High score = Harder? Or just distinctness?
+                    // Let's just use SUM for now to rank them, usually harder levels have higher Repeat/PlayTime/PlayOnWin
+                    const difficultyScore = means.reduce((a, b) => a + b, 0);
                     return { cIdx, score: difficultyScore };
                 });
 
@@ -291,8 +298,8 @@ export default function LevelScorePage() {
             // Update State
             let updateCount = 0;
             const newData = [...data];
-            const statsMap = new Map<string, { count: number, sumRep: number, sumMoves: number }>();
-            ['1', '2', '3', '4'].forEach(c => statsMap.set(c, { count: 0, sumRep: 0, sumMoves: 0 }));
+            const statsMap = new Map<string, { count: number, sumRep: number, sumTime: number }>();
+            ['1', '2', '3', '4'].forEach(c => statsMap.set(c, { count: 0, sumRep: 0, sumTime: 0 }));
 
             updates.forEach(u => {
                 const idx = newData.findIndex(d => d.level === u.level);
@@ -305,7 +312,7 @@ export default function LevelScorePage() {
                     const s = statsMap.get(u.cluster)!;
                     s.count++;
                     s.sumRep += newData[idx].avgRepeatRatio;
-                    s.sumMoves += newData[idx].avgTotalMoves;
+                    s.sumTime += newData[idx].levelPlayTime;
                 }
             });
 
@@ -313,7 +320,7 @@ export default function LevelScorePage() {
                 cluster: c,
                 count: val.count,
                 avgRep: val.count ? (val.sumRep / val.count).toFixed(2) : '0.00',
-                avgMoves: val.count ? (val.sumMoves / val.count).toFixed(2) : '0.00'
+                avgTime: val.count ? (val.sumTime / val.count).toFixed(2) : '0.00'
             })).sort((a, b) => a.cluster.localeCompare(b.cluster));
 
             setClusterStatsResult(statsArr);
@@ -348,7 +355,7 @@ export default function LevelScorePage() {
                     });
                 }
             })
-            .catch((e) => console.error(e));
+            .catch((e) => { console.error(e); });
     }, []);
 
     const getMultipliers = (cluster: string): { monetization: number; engagement: number; satisfaction: number } => {
@@ -387,7 +394,7 @@ export default function LevelScorePage() {
             const res = await fetch("/api/sync-tableau", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ viewId, tableName: "level_scores_data" }),
+                body: JSON.stringify({ viewId, tableName: "level_design_data" }), // Use level_design_data to match WeeklyCheck and get all columns
             });
 
             if (!res.ok) throw new Error("Failed to fetch data");
@@ -399,6 +406,7 @@ export default function LevelScorePage() {
 
             if (parsed.data.length > 0) {
                 setDebugHeaders(Object.keys(parsed.data[0] as object));
+                // console.log("CSV Headers Found:", Object.keys(parsed.data[0] as object));
             }
 
             // Normalization Helper
@@ -411,14 +419,28 @@ export default function LevelScorePage() {
                 headerMap[normalize(h)] = h;
             });
 
+
             const getCol = (row: any, ...candidates: string[]) => {
                 const keys = Object.keys(row);
                 for (const c of candidates) {
                     const normCandidate = normalize(c);
-                    // Match if candidate is exact or a substring of the header
                     const actualKey = keys.find(k => {
                         const normKey = normalize(k);
-                        return normKey === normCandidate || normKey.includes(normCandidate) || normCandidate.includes(normKey);
+                        // EXACT MATCH logic first
+                        if (normKey === normCandidate) return true;
+
+                        // Strict Inclusion: "Level Score" should NOT match "Level"
+                        // If candidate involves "level score", we demand "score" in the key
+                        if (normCandidate.includes('level') && !normCandidate.includes('score')) {
+                            // Searching for "Level": check that key does NOT have "score"
+                            if (normKey.includes('score')) return false;
+                        }
+                        if (normCandidate.includes('level') && normCandidate.includes('score')) {
+                            // Searching for "Level Score": check that key HAS "score"
+                            if (!normKey.includes('score')) return false;
+                        }
+
+                        return normKey === normCandidate || normKey.includes(normCandidate);
                     });
                     if (actualKey && row[actualKey] !== undefined) return row[actualKey];
                 }
@@ -475,16 +497,15 @@ export default function LevelScorePage() {
                 const finalCluster = getCol(row, 'FinalCluster', 'Final Cluster') || '';
 
                 // Clustering fields parsing with robust search
-                const avgRepeatRatio = parseNum(getCol(row, 'Repeat Ratio', 'Repeat Rate', 'Repeat'));
-                const avgTotalMoves = parseNum(getCol(row, 'Total Moves', 'Move Count', 'TotalMove'));
-                const rmFixed = parseNum(getCol(row, 'RM Fixed', 'RM Total', 'Remaining Move'));
-                const levelPlayTime = parseNum(getCol(row, 'Level Play Time', 'Play Time', 'PlayTime'));
+                const avgRepeatRatio = parseNum(getCol(row, 'Repeat Ratio', 'Repeat', 'Avg. Repeat Ratio'));
+                const levelPlayTime = parseNum(getCol(row, 'Level Play Time', 'Play Time', 'Avg. Level Play Time'));
+
+                // New metrics
+                const playOnWinRatio = parseNum(getCol(row, 'PlayOnWinRatio', 'Play On Win Ratio', 'PlayOnWin'));
+                const playOnPerUser = parseNum(getCol(row, 'Playon per User', 'Play On Per User', 'PlayOnPerUser'));
+                const firstTryWinPercent = parseNum(getCol(row, 'Avg. FirstTryWinPercent', 'FirstTryWinPercent', 'First Try Win'));
 
                 // DEBUG: Alert first row values to verify parsing
-                // DEBUG: Alert first row values to verify parsing
-                if (idx === 0) {
-                    // console.log("Debug Parsing First Row:", { level, avgRepeatRatio, avgTotalMoves, rmFixed, levelPlayTime });
-                }
 
 
 
@@ -502,9 +523,10 @@ export default function LevelScorePage() {
                     calculatedScore: 0,
                     editableCluster,
                     avgRepeatRatio,
-                    avgTotalMoves,
-                    rmFixed,
                     levelPlayTime,
+                    playOnWinRatio,
+                    playOnPerUser,
+                    firstTryWinPercent,
                 };
 
 
@@ -719,13 +741,53 @@ export default function LevelScorePage() {
                                             <span>R:</span> <span>{s.avgRep}</span>
                                         </div>
                                         <div className="text-muted-foreground flex justify-between">
-                                            <span>M:</span> <span>{s.avgMoves}</span>
+                                            <span>T:</span> <span>{s.avgTime}</span>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* Source Data Preview (Transparency) */}
+            {data.length > 0 && (
+                <div className="rounded-xl border shadow-sm bg-card overflow-hidden">
+                    <div className="p-4 border-b bg-muted/50 flex justify-between items-center">
+                        <h3 className="font-semibold text-sm flex items-center gap-2">
+                            🔍 Source Data Preview
+                            <span className="text-muted-foreground font-normal text-xs ml-2">
+                                (First 20 levels - used for clustering)
+                            </span>
+                        </h3>
+                    </div>
+                    <div className="max-h-[300px] overflow-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-[80px]">Level</TableHead>
+                                    <TableHead>Avg. Repeat</TableHead>
+                                    <TableHead>Play Time</TableHead>
+                                    <TableHead>PlayOnWin</TableHead>
+                                    <TableHead>PlayOnPerUser</TableHead>
+                                    <TableHead>1stWin %</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {data.slice(0, 20).map(row => (
+                                    <TableRow key={row.level}>
+                                        <TableCell className="font-medium">{row.level}</TableCell>
+                                        <TableCell>{row.avgRepeatRatio?.toFixed(4) || '-'}</TableCell>
+                                        <TableCell>{row.levelPlayTime?.toFixed(2) || '-'}</TableCell>
+                                        <TableCell>{row.playOnWinRatio?.toFixed(4) || '-'}</TableCell>
+                                        <TableCell>{row.playOnPerUser?.toFixed(4) || '-'}</TableCell>
+                                        <TableCell>{row.firstTryWinPercent?.toFixed(2) || '-'}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </div>
             )}
 
