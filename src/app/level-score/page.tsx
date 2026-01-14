@@ -18,6 +18,8 @@ interface Config {
         name: string;
         viewMappings: Record<string, string>;
         scoreMultipliers?: ScoreMultipliers;
+        clusteringWeights?: Record<string, number>;
+        columnAliases?: Record<string, string>;
     }[];
     reportSettings?: {
         levelScoreTable?: LevelScoreTableSettings;
@@ -251,7 +253,17 @@ export default function LevelScorePage() {
                 }
 
                 // Apply WEIGHTS
-                const weights = [5.0, 1.0, 1.0, 1.0, 1.0]; // Repeat=5x, others=1x (User requested Repeat as main metric)
+                const game = config?.games.find(g => g.id === selectedGameId);
+                const w = game?.clusteringWeights;
+
+                // Defaults if not set
+                const wRepeat = w?.avgRepeatRatio ?? 5.0;
+                const wTime = w?.levelPlayTime ?? 1.0;
+                const wPlayOnWin = w?.playOnWinRatio ?? 1.0;
+                const wPlayOnUser = w?.playOnPerUser ?? 1.0;
+                const wFTW = w?.firstTryWinPercent ?? 1.0;
+
+                const weights = [wRepeat, wTime, wPlayOnWin, wPlayOnUser, wFTW];
 
                 for (let i = 0; i < groupLevels.length; i++) {
                     for (let j = 0; j < numFeatures; j++) {
@@ -428,6 +440,13 @@ export default function LevelScorePage() {
                 headerMap[normalize(h)] = h;
             });
 
+            // Prepare Aliases from Config
+            const aliases: Record<string, string[]> = {};
+            if (game.columnAliases) {
+                Object.entries(game.columnAliases).forEach(([metric, aliasStr]) => {
+                    aliases[metric] = aliasStr.split(',').map(s => s.trim()).filter(Boolean);
+                });
+            }
 
             const getCol = (row: any, ...candidates: string[]) => {
                 const keys = Object.keys(row);
@@ -505,14 +524,19 @@ export default function LevelScorePage() {
 
                 const finalCluster = getCol(row, 'FinalCluster', 'Final Cluster') || '';
 
-                // Clustering fields parsing with robust search
-                const avgRepeatRatio = parseNum(getCol(row, 'Repeat Ratio', 'Repeat', 'Avg. Repeat Ratio'));
-                const levelPlayTime = parseNum(getCol(row, 'Level Play Time', 'Play Time', 'Avg. Level Play Time'));
+                // Clustering fields parsing with robust search + Configurable Aliases
+                // Merge configured aliases with hardcoded defaults to ensure backward compatibility
+                const getAliases = (metric: string, defaults: string[]) => {
+                    return [...(aliases[metric] || []), ...defaults];
+                };
+
+                const avgRepeatRatio = parseNum(getCol(row, ...getAliases('avgRepeatRatio', ['Repeat Ratio', 'Repeat', 'Avg. Repeat Ratio', 'rep'])));
+                const levelPlayTime = parseNum(getCol(row, ...getAliases('levelPlayTime', ['Level Play Time', 'Play Time', 'Avg. Level Play Time', 'time'])));
 
                 // New metrics
-                const playOnWinRatio = parseNum(getCol(row, 'PlayOnWinRatio', 'Play On Win Ratio', 'PlayOnWin'));
-                const playOnPerUser = parseNum(getCol(row, 'Playon per User', 'Play On Per User', 'PlayOnPerUser'));
-                const firstTryWinPercent = parseNum(getCol(row, 'Avg. FirstTryWinPercent', 'FirstTryWinPercent', 'First Try Win'));
+                const playOnWinRatio = parseNum(getCol(row, ...getAliases('playOnWinRatio', ['PlayOnWinRatio', 'Play On Win Ratio', 'PlayOnWin'])));
+                const playOnPerUser = parseNum(getCol(row, ...getAliases('playOnPerUser', ['Playon per User', 'Play On Per User', 'PlayOnPerUser'])));
+                const firstTryWinPercent = parseNum(getCol(row, ...getAliases('firstTryWinPercent', ['Avg. FirstTryWinPercent', 'FirstTryWinPercent', 'First Try Win'])));
 
                 // DEBUG: Alert first row values to verify parsing
 
@@ -741,7 +765,12 @@ export default function LevelScorePage() {
                             <div className="flex justify-between items-center mb-2">
                                 <div className="text-xs font-semibold text-muted-foreground">Clustering Impact / Stats:</div>
                                 <div className="text-[10px] text-muted-foreground bg-muted px-2 py-1 rounded">
-                                    Weights: Repeat(5x), Others(1x)
+                                    {(() => {
+                                        const g = config?.games.find(g => g.id === selectedGameId);
+                                        const w = g?.clusteringWeights;
+                                        if (!w) return "Weights: Repeat(5x), Others(1x) [Default]";
+                                        return `Weights: Rep(${w.avgRepeatRatio}x), Time(${w.levelPlayTime}x), Win(${w.playOnWinRatio}x)...`;
+                                    })()}
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -781,24 +810,31 @@ export default function LevelScorePage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className="w-[80px]">Level</TableHead>
-                                    <TableHead>Avg. Repeat</TableHead>
-                                    <TableHead>Play Time</TableHead>
-                                    <TableHead>PlayOnWin</TableHead>
-                                    <TableHead>PlayOnPerUser</TableHead>
-                                    <TableHead>1stWin %</TableHead>
+                                    <TableHead title="Avg. Repeat Ratio">Avg. Repeat</TableHead>
+                                    <TableHead title="Level Play Time">Play Time</TableHead>
+                                    <TableHead title="PlayOnWinRatio">PlayOnWin</TableHead>
+                                    <TableHead title="Playon per User">PlayOnUser</TableHead>
+                                    <TableHead title="FirstTryWinPercent">1stWin %</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {data.slice(0, 20).map(row => (
-                                    <TableRow key={row.level}>
-                                        <TableCell className="font-medium">{row.level}</TableCell>
-                                        <TableCell>{row.avgRepeatRatio?.toFixed(4) || '-'}</TableCell>
-                                        <TableCell>{row.levelPlayTime?.toFixed(2) || '-'}</TableCell>
-                                        <TableCell>{row.playOnWinRatio?.toFixed(4) || '-'}</TableCell>
-                                        <TableCell>{row.playOnPerUser?.toFixed(4) || '-'}</TableCell>
-                                        <TableCell>{row.firstTryWinPercent?.toFixed(2) || '-'}</TableCell>
-                                    </TableRow>
-                                ))}
+                                {data.slice(0, 20).map(row => {
+                                    // Helper to warn if missing (0)
+                                    const Warn = ({ val, name }: { val: number, name: string }) => {
+                                        if (val === 0) return <span title={`Value is 0. Column '${name}' might be missing or empty.`} className="text-amber-500 cursor-help ml-1">⚠️</span>;
+                                        return null;
+                                    };
+                                    return (
+                                        <TableRow key={row.level}>
+                                            <TableCell className="font-medium">{row.level}</TableCell>
+                                            <TableCell>{row.avgRepeatRatio?.toFixed(4) || '-'}<Warn val={row.avgRepeatRatio} name="Repeat" /></TableCell>
+                                            <TableCell>{row.levelPlayTime?.toFixed(2) || '-'}<Warn val={row.levelPlayTime} name="Time" /></TableCell>
+                                            <TableCell>{row.playOnWinRatio?.toFixed(4) || '-'}<Warn val={row.playOnWinRatio} name="PlayOnWin" /></TableCell>
+                                            <TableCell>{row.playOnPerUser?.toFixed(4) || '-'}<Warn val={row.playOnPerUser} name="PlayOnUser" /></TableCell>
+                                            <TableCell>{row.firstTryWinPercent?.toFixed(2) || '-'}<Warn val={row.firstTryWinPercent} name="FTW" /></TableCell>
+                                        </TableRow>
+                                    );
+                                })}
                             </TableBody>
                         </Table>
                     </div>
