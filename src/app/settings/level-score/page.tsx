@@ -52,10 +52,10 @@ const DEFAULT_CLUSTERING_WEIGHTS = {
 
 const DEFAULT_COLUMN_ALIASES = {
     avgRepeatRatio: "Repeat Ratio, Repeat, Avg. Repeat Ratio, rep",
-    levelPlayTime: "Level Play Time, Play Time, Avg. Level Play Time, time",
-    playOnWinRatio: "PlayOnWinRatio, Play On Win Ratio, PlayOnWin",
+    levelPlayTime: "Level Play Time, Play Time, Avg. Level Play Time, Avg Play Time, Duration",
+    playOnWinRatio: "PlayOnWinRatio, Play On Win Ratio, PlayOnWin, Play on Win, Win Ratio",
     playOnPerUser: "Playon per User, Play On Per User, PlayOnPerUser",
-    firstTryWinPercent: "Avg. FirstTryWinPercent, FirstTryWinPercent, First Try Win"
+    firstTryWinPercent: "Avg. FirstTryWinPercent, FirstTryWinPercent, First Try Win, 1st Win %"
 };
 
 const METRIC_LABELS: Record<string, string> = {

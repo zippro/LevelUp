@@ -533,12 +533,12 @@ export default function LevelScorePage() {
                 };
 
                 const avgRepeatRatio = parseNum(getCol(row, ...getAliases('avgRepeatRatio', ['Repeat Ratio', 'Repeat', 'Avg. Repeat Ratio', 'rep'])));
-                const levelPlayTime = parseNum(getCol(row, ...getAliases('levelPlayTime', ['Level Play Time', 'Play Time', 'Avg. Level Play Time', 'time'])));
+                const levelPlayTime = parseNum(getCol(row, ...getAliases('levelPlayTime', ['Level Play Time', 'Play Time', 'Avg. Level Play Time', 'Avg Play Time', 'Duration'])));
 
                 // New metrics
-                const playOnWinRatio = parseNum(getCol(row, ...getAliases('playOnWinRatio', ['PlayOnWinRatio', 'Play On Win Ratio', 'PlayOnWin'])));
+                const playOnWinRatio = parseNum(getCol(row, ...getAliases('playOnWinRatio', ['PlayOnWinRatio', 'Play On Win Ratio', 'PlayOnWin', 'Play on Win', 'Win Ratio'])));
                 const playOnPerUser = parseNum(getCol(row, ...getAliases('playOnPerUser', ['Playon per User', 'Play On Per User', 'PlayOnPerUser'])));
-                const firstTryWinPercent = parseNum(getCol(row, ...getAliases('firstTryWinPercent', ['Avg. FirstTryWinPercent', 'FirstTryWinPercent', 'First Try Win'])));
+                const firstTryWinPercent = parseNum(getCol(row, ...getAliases('firstTryWinPercent', ['Avg. FirstTryWinPercent', 'FirstTryWinPercent', 'First Try Win', '1st Win %'])));
 
                 // DEBUG: Alert first row values to verify parsing
 
