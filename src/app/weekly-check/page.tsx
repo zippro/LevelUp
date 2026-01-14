@@ -26,7 +26,7 @@ interface SavedScore {
 
 const HEADER_DEFINITIONS = [
     { name: "Total Move", aliases: ["total move", "totalmove", "total moves", "move count", "avg. total moves", "avg total moves"] },
-    { name: "Average remaining move", aliases: ["average remaining move", "avg remaining move", "avg. remaining move", "remaining moves", "avg remaining moves", "remaining move", "rem", "rm", "avg. rm", "avg rm", "moves left"] },
+    { name: "Average remaining move", aliases: ["average remaining move", "avg remaining move", "avg. remaining move", "remaining moves", "avg remaining moves", "remaining move", "rem", "rm", "avg. rm", "avg rm", "moves left", "rm total"] },
     { name: "In app value", aliases: ["in app value", "inappvalue", "in-app value", "in app values", "inapp value", "inapp_value"] },
     { name: "Level Score", aliases: ["level score", "levelscore", "level_score"] },
     { name: "3 Days Churn", aliases: ["3 days churn", "3 day churn", "3daychurn", "3_days_churn"] },
@@ -725,12 +725,12 @@ export default function WeeklyCheckPage() {
             actionedLevels.forEach(item => {
                 const r = item.row;
                 const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
-                const repeat = r['Avg. Repeat Rate'] || r['Repeat'] || r['Repeat Rate'] || '-';
+                const repeat = getCol(r, 'Avg. Repeat Ratio (birleşik)', 'Avg. Repeat Rate', 'Repeat', 'Repeat Rate', 'rep');
                 const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
                 const totalMoves = r['Avg. Total Moves'] || r['Total Move'] || r['TotalMove'] || '-';
                 const playTime = r['Avg. Level Play'] || r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || '-';
                 const firstTryWin = r['Avg. FirstTryWin'] || r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || '-';
-                const remaining = getCol(r, 'Avg. RM Fixed', 'Average remaining move', 'avg remaining move', 'remaining moves', 'Rem', 'RM', 'Avg. RM', 'Avg RM', 'Moves Left', 'remaining');
+                const remaining = getCol(r, 'RM Total', 'Avg. RM Fixed', 'Average remaining move', 'avg remaining move', 'remaining moves', 'Rem', 'RM', 'Avg. RM', 'Avg RM', 'Moves Left', 'remaining');
 
                 const formatVal = (v: any) => {
                     if (v === '-' || v === undefined || v === null) return '-';
@@ -926,12 +926,12 @@ export default function WeeklyCheckPage() {
                 actionedLevels.forEach(item => {
                     const r = item.row;
                     const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
-                    const repeat = r['Avg. Repeat Rate'] || r['Repeat'] || r['Repeat Rate'] || '-';
+                    const repeat = getCol(r, 'Avg. Repeat Ratio (birleşik)', 'Avg. Repeat Rate', 'Repeat', 'Repeat Rate', 'rep');
                     const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
                     const totalMoves = r['Avg. Total Moves'] || r['Total Move'] || r['TotalMove'] || '-';
                     const playTime = r['Avg. Level Play'] || r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || '-';
                     const firstTryWin = r['Avg. FirstTryWin'] || r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || '-';
-                    const remaining = getCol(r, 'Avg. RM Fixed', 'Average remaining move', 'avg remaining move', 'remaining moves', 'Rem', 'RM', 'Avg. RM', 'Avg RM', 'Moves Left', 'remaining');
+                    const remaining = getCol(r, 'RM Total', 'Avg. RM Fixed', 'Average remaining move', 'avg remaining move', 'remaining moves', 'Rem', 'RM', 'Avg. RM', 'Avg RM', 'Moves Left', 'remaining');
 
                     const formatVal = (v: any) => {
                         if (v === '-' || v === undefined || v === null) return '-';
@@ -966,12 +966,12 @@ export default function WeeklyCheckPage() {
                 title: section.title, content, headers, summary, details: actionedLevels.length > 0 ? actionedLevels.map(item => {
                     const r = item.row;
                     const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
-                    const repeat = r['Avg. Repeat Rate'] || r['Repeat'] || r['Repeat Rate'] || '-';
+                    const repeat = getCol(r, 'Avg. Repeat Ratio (birleşik)', 'Avg. Repeat Rate', 'Repeat', 'Repeat Rate', 'rep');
                     const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
                     const totalMoves = r['Avg. Total Moves'] || r['Total Move'] || r['TotalMove'] || '-';
                     const playTime = r['Avg. Level Play'] || r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || '-';
                     const firstTryWin = r['Avg. FirstTryWin'] || r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || '-';
-                    const remaining = getCol(r, 'Avg. RM Fixed', 'Average remaining move', 'avg remaining move', 'remaining moves', 'Rem', 'RM', 'Avg. RM', 'Avg RM', 'Moves Left', 'remaining');
+                    const remaining = getCol(r, 'RM Total', 'Avg. RM Fixed', 'Average remaining move', 'avg remaining move', 'remaining moves', 'Rem', 'RM', 'Avg. RM', 'Avg RM', 'Moves Left', 'remaining');
 
                     const formatVal = (v: any) => {
                         if (v === '-' || v === undefined || v === null) return '-';
@@ -1364,12 +1364,12 @@ export default function WeeklyCheckPage() {
                                                                                     {data.map((r, ri) => {
                                                                                         const isCurrent = r.isCurrent;
                                                                                         const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
-                                                                                        const repeat = r['Avg. Repeat Rate'] || r['Repeat'] || r['Repeat Rate'] || '-';
+                                                                                        const repeat = getCol(r, 'Avg. Repeat Ratio (birleşik)', 'Avg. Repeat Rate', 'Repeat', 'Repeat Rate', 'rep');
                                                                                         const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
                                                                                         const totalMoves = r['Avg. Total Moves'] || r['Total Move'] || r['TotalMove'] || '-';
                                                                                         const playTime = r['Avg. Level Play'] || r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || '-';
                                                                                         const firstTryWin = r['Avg. FirstTryWin'] || r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || '-';
-                                                                                        const remaining = getCol(r, 'Avg. RM Fixed', 'Average remaining move', 'avg remaining move', 'remaining moves', 'Rem', 'RM', 'Avg. RM', 'Avg RM', 'Moves Left', 'remaining');
+                                                                                        const remaining = getCol(r, 'RM Total', 'Avg. RM Fixed', 'Average remaining move', 'avg remaining move', 'remaining moves', 'Rem', 'RM', 'Avg. RM', 'Avg RM', 'Moves Left', 'remaining');
 
                                                                                         const formatVal = (v: any) => {
                                                                                             if (v === '-' || v === undefined) return '-';
