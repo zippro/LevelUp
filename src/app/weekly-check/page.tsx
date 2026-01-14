@@ -725,7 +725,7 @@ export default function WeeklyCheckPage() {
             actionedLevels.forEach(item => {
                 const r = item.row;
                 const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
-                const repeat = getCol(r, 'Avg. Repeat Ratio (birleşik)', 'Avg. Repeat Rate', 'Repeat', 'Repeat Rate', 'rep');
+                const repeat = getCol(r, 'Avg. Repeat Ratio (birleşik)', 'Avg. Repeat Rate', 'Repeat', 'Repeat Rate', 'rep', 'birleşik', 'birlesik');
                 const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
                 const totalMoves = r['Avg. Total Moves'] || r['Total Move'] || r['TotalMove'] || '-';
                 const playTime = r['Avg. Level Play'] || r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || '-';
@@ -926,7 +926,7 @@ export default function WeeklyCheckPage() {
                 actionedLevels.forEach(item => {
                     const r = item.row;
                     const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
-                    const repeat = getCol(r, 'Avg. Repeat Ratio (birleşik)', 'Avg. Repeat Rate', 'Repeat', 'Repeat Rate', 'rep');
+                    const repeat = getCol(r, 'Avg. Repeat Ratio (birleşik)', 'Avg. Repeat Rate', 'Repeat', 'Repeat Rate', 'rep', 'birleşik', 'birlesik');
                     const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
                     const totalMoves = r['Avg. Total Moves'] || r['Total Move'] || r['TotalMove'] || '-';
                     const playTime = r['Avg. Level Play'] || r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || '-';
@@ -966,7 +966,7 @@ export default function WeeklyCheckPage() {
                 title: section.title, content, headers, summary, details: actionedLevels.length > 0 ? actionedLevels.map(item => {
                     const r = item.row;
                     const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
-                    const repeat = getCol(r, 'Avg. Repeat Ratio (birleşik)', 'Avg. Repeat Rate', 'Repeat', 'Repeat Rate', 'rep');
+                    const repeat = getCol(r, 'Avg. Repeat Ratio (birleşik)', 'Avg. Repeat Rate', 'Repeat', 'Repeat Rate', 'rep', 'birleşik', 'birlesik');
                     const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
                     const totalMoves = r['Avg. Total Moves'] || r['Total Move'] || r['TotalMove'] || '-';
                     const playTime = r['Avg. Level Play'] || r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || '-';
@@ -1364,7 +1364,7 @@ export default function WeeklyCheckPage() {
                                                                                     {data.map((r, ri) => {
                                                                                         const isCurrent = r.isCurrent;
                                                                                         const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
-                                                                                        const repeat = getCol(r, 'Avg. Repeat Ratio (birleşik)', 'Avg. Repeat Rate', 'Repeat', 'Repeat Rate', 'rep');
+                                                                                        const repeat = getCol(r, 'Avg. Repeat Ratio (birleşik)', 'Avg. Repeat Rate', 'Repeat', 'Repeat Rate', 'rep', 'birleşik', 'birlesik');
                                                                                         const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
                                                                                         const totalMoves = r['Avg. Total Moves'] || r['Total Move'] || r['TotalMove'] || '-';
                                                                                         const playTime = r['Avg. Level Play'] || r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || '-';
