@@ -16,8 +16,6 @@ interface Config {
         viewMappings: Record<string, string>;
         urlMappings?: Record<string, string>;
         scoreMultipliers?: ScoreMultipliers;
-        clusteringWeights?: Record<string, number>;
-        columnAliases?: Record<string, string>;
     }[];
 }
 
@@ -43,30 +41,6 @@ const DEFAULT_MULTIPLIERS: ScoreMultipliers = {
     default: { monetization: 0.30, engagement: 0.30, satisfaction: 0.40 },
 };
 
-const DEFAULT_CLUSTERING_WEIGHTS: Record<string, number> = {
-    avgRepeatRatio: 5.0,
-    levelPlayTime: 1.0,
-    playOnWinRatio: 1.0,
-    playOnPerUser: 1.0,
-    firstTryWinPercent: 1.0
-};
-
-const DEFAULT_COLUMN_ALIASES: Record<string, string> = {
-    avgRepeatRatio: "Repeat Ratio, Repeat, Avg. Repeat Ratio, rep",
-    levelPlayTime: "Level Play Time, Play Time, Avg. Level Play Time, time",
-    playOnWinRatio: "PlayOnWinRatio, Play On Win Ratio, PlayOnWin",
-    playOnPerUser: "Playon per User, Play On Per User, PlayOnPerUser",
-    firstTryWinPercent: "Avg. FirstTryWinPercent, FirstTryWinPercent, First Try Win"
-};
-
-const METRIC_LABELS: Record<string, string> = {
-    avgRepeatRatio: "Avg. Repeat Ratio",
-    levelPlayTime: "Level Play Time",
-    playOnWinRatio: "PlayOnWin Ratio",
-    playOnPerUser: "PlayOn per User",
-    firstTryWinPercent: "First Try Win %"
-};
-
 export default function GameDetailsPage() {
     const params = useParams();
     const router = useRouter();
@@ -82,10 +56,6 @@ export default function GameDetailsPage() {
     const [lookingUp, setLookingUp] = useState<Record<string, boolean>>({});
     const [multipliers, setMultipliers] = useState<ScoreMultipliers>(DEFAULT_MULTIPLIERS);
 
-    // Clustering Config State
-    const [clusteringWeights, setClusteringWeights] = useState<Record<string, number>>(DEFAULT_CLUSTERING_WEIGHTS);
-    const [columnAliases, setColumnAliases] = useState<Record<string, string>>(DEFAULT_COLUMN_ALIASES);
-
     useEffect(() => {
         fetch("/api/config")
             .then((res) => res.json())
@@ -96,8 +66,6 @@ export default function GameDetailsPage() {
                     setMappings(game.viewMappings || {});
                     setUrls(game.urlMappings || {});
                     setMultipliers(game.scoreMultipliers || DEFAULT_MULTIPLIERS);
-                    setClusteringWeights({ ...DEFAULT_CLUSTERING_WEIGHTS, ...(game.clusteringWeights || {}) });
-                    setColumnAliases({ ...DEFAULT_COLUMN_ALIASES, ...(game.columnAliases || {}) });
                 } else {
                     // Handle not found?
                 }
@@ -116,9 +84,7 @@ export default function GameDetailsPage() {
                     ...g,
                     viewMappings: mappings,
                     urlMappings: urls,
-                    scoreMultipliers: multipliers,
-                    clusteringWeights,
-                    columnAliases
+                    scoreMultipliers: multipliers
                 };
             }
             return g;
@@ -222,45 +188,6 @@ export default function GameDetailsPage() {
                     ))}
                 </CardContent>
             </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Clustering Configuration</CardTitle>
-                    <CardDescription>
-                        Configure weights for the clustering algorithm and map CSV column names (aliases) to metrics.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="grid grid-cols-1 gap-4">
-                        {Object.keys(DEFAULT_CLUSTERING_WEIGHTS).map((metricKey) => (
-                            <div key={metricKey} className="border p-4 rounded-lg flex flex-col gap-3">
-                                <div className="font-semibold text-sm">{METRIC_LABELS[metricKey] || metricKey}</div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-xs text-muted-foreground">Weight (Multiplier)</label>
-                                        <Input
-                                            type="number"
-                                            step="0.1"
-                                            value={clusteringWeights[metricKey]}
-                                            onChange={(e) => setClusteringWeights(prev => ({ ...prev, [metricKey]: parseFloat(e.target.value) || 0 }))}
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-xs text-muted-foreground">Column Aliases (comma separated)</label>
-                                        <Input
-                                            value={columnAliases[metricKey]}
-                                            onChange={(e) => setColumnAliases(prev => ({ ...prev, [metricKey]: e.target.value }))}
-                                            placeholder="e.g. Repeat Ratio, rep, repeat_val"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </CardContent>
-            </Card>
-
-
 
             <div className="flex justify-end">
                 <Button onClick={handleSave} disabled={saving}>

@@ -28,6 +28,10 @@ interface Config {
     reportSettings?: {
         levelScoreTable?: LevelScoreTableSettings;
     };
+    clusteringSettings?: {
+        weights?: Record<string, number>;
+        aliases?: Record<string, string>;
+    };
 }
 
 const DEFAULT_MULTIPLIERS: ScoreMultipliers = {
@@ -36,6 +40,30 @@ const DEFAULT_MULTIPLIERS: ScoreMultipliers = {
     cluster3: { monetization: 0.30, engagement: 0.35, satisfaction: 0.35 },
     cluster4: { monetization: 0.35, engagement: 0.35, satisfaction: 0.30 },
     default: { monetization: 0.30, engagement: 0.30, satisfaction: 0.40 },
+};
+
+const DEFAULT_CLUSTERING_WEIGHTS = {
+    avgRepeatRatio: 5.0,
+    levelPlayTime: 1.0,
+    playOnWinRatio: 1.0,
+    playOnPerUser: 1.0,
+    firstTryWinPercent: 1.0
+};
+
+const DEFAULT_COLUMN_ALIASES = {
+    avgRepeatRatio: "Repeat Ratio, Repeat, Avg. Repeat Ratio, rep",
+    levelPlayTime: "Level Play Time, Play Time, Avg. Level Play Time, time",
+    playOnWinRatio: "PlayOnWinRatio, Play On Win Ratio, PlayOnWin",
+    playOnPerUser: "Playon per User, Play On Per User, PlayOnPerUser",
+    firstTryWinPercent: "Avg. FirstTryWinPercent, FirstTryWinPercent, First Try Win"
+};
+
+const METRIC_LABELS: Record<string, string> = {
+    avgRepeatRatio: "Avg. Repeat Ratio",
+    levelPlayTime: "Level Play Time",
+    playOnWinRatio: "Play On Win Ratio",
+    playOnPerUser: "Play On Per User",
+    firstTryWinPercent: "First Try Win %"
 };
 
 const DEFAULT_TABLE_SETTINGS = DEFAULT_REPORT_SETTINGS.levelScoreTable!;
@@ -49,6 +77,10 @@ export default function LevelScoreSettingsPage() {
     // Multiplier State
     const [selectedGameId, setSelectedGameId] = useState<string>("");
     const [multipliers, setMultipliers] = useState<ScoreMultipliers>(DEFAULT_MULTIPLIERS);
+
+    // Global Clustering State
+    const [clusteringWeights, setClusteringWeights] = useState<Record<string, number>>(DEFAULT_CLUSTERING_WEIGHTS);
+    const [columnAliases, setColumnAliases] = useState<Record<string, string>>(DEFAULT_COLUMN_ALIASES);
 
     // Table Settings State
     const [tableSettings, setTableSettings] = useState<LevelScoreTableSettings>(DEFAULT_TABLE_SETTINGS);
@@ -73,6 +105,13 @@ export default function LevelScoreSettingsPage() {
                         }
                     });
                 }
+
+                // Load global clustering settings
+                if (data.clusteringSettings) {
+                    setClusteringWeights({ ...DEFAULT_CLUSTERING_WEIGHTS, ...data.clusteringSettings.weights });
+                    setColumnAliases({ ...DEFAULT_COLUMN_ALIASES, ...data.clusteringSettings.aliases });
+                }
+
                 setLoading(false);
             })
             .catch((e) => console.error(e));
@@ -109,7 +148,11 @@ export default function LevelScoreSettingsPage() {
         const newConfig = {
             ...config,
             games: updatedGames,
-            reportSettings: newReportSettings
+            reportSettings: newReportSettings,
+            clusteringSettings: {
+                weights: clusteringWeights,
+                aliases: columnAliases
+            }
         };
 
         try {
@@ -231,6 +274,59 @@ export default function LevelScoreSettingsPage() {
                             </div>
                         );
                     })}
+                </CardContent>
+            </Card>
+
+            {/* --- CLUSTERING CONFIGURATION (GLOBAL) --- */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Global Clustering Weights & Aliases</CardTitle>
+                    <CardDescription>
+                        Configure how levels are clustered across ALL games.
+                        Define weights (multipliers) for each metric and matching column aliases.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Weights */}
+                        <div className="space-y-4">
+                            <h3 className="text-sm font-semibold border-b pb-2">Metric Weights (Multipliers)</h3>
+                            {Object.entries(clusteringWeights).map(([key, val]) => (
+                                <div key={key} className="flex items-center justify-between gap-4">
+                                    <label className="text-sm text-muted-foreground min-w-[140px]">{METRIC_LABELS[key] || key}</label>
+                                    <Input
+                                        type="number"
+                                        step="0.1"
+                                        className="font-mono w-[100px]"
+                                        value={val}
+                                        onChange={(e) => setClusteringWeights(prev => ({
+                                            ...prev,
+                                            [key]: parseFloat(e.target.value) || 0
+                                        }))}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Aliases */}
+                        <div className="space-y-4">
+                            <h3 className="text-sm font-semibold border-b pb-2">Column Aliases (Comma Separated)</h3>
+                            {Object.entries(columnAliases).map(([key, val]) => (
+                                <div key={key} className="space-y-1">
+                                    <label className="text-xs font-medium text-muted-foreground">{METRIC_LABELS[key] || key}</label>
+                                    <Input
+                                        className="font-mono text-xs"
+                                        value={val}
+                                        onChange={(e) => setColumnAliases(prev => ({
+                                            ...prev,
+                                            [key]: e.target.value
+                                        }))}
+                                        placeholder="e.g. Repeat Ratio, rep..."
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
 

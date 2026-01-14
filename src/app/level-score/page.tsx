@@ -18,11 +18,13 @@ interface Config {
         name: string;
         viewMappings: Record<string, string>;
         scoreMultipliers?: ScoreMultipliers;
-        clusteringWeights?: Record<string, number>;
-        columnAliases?: Record<string, string>;
     }[];
     reportSettings?: {
         levelScoreTable?: LevelScoreTableSettings;
+    };
+    clusteringSettings?: {
+        weights?: Record<string, number>;
+        aliases?: Record<string, string>;
     };
 }
 
@@ -253,8 +255,7 @@ export default function LevelScorePage() {
                 }
 
                 // Apply WEIGHTS
-                const game = config?.games.find(g => g.id === selectedGameId);
-                const w = game?.clusteringWeights;
+                const w = config?.clusteringSettings?.weights;
 
                 // Defaults if not set
                 const wRepeat = w?.avgRepeatRatio ?? 5.0;
@@ -441,9 +442,10 @@ export default function LevelScorePage() {
             });
 
             // Prepare Aliases from Config
+            // Prepare Aliases from Global Config
             const aliases: Record<string, string[]> = {};
-            if (game.columnAliases) {
-                Object.entries(game.columnAliases).forEach(([metric, aliasStr]) => {
+            if (config.clusteringSettings?.aliases) {
+                Object.entries(config.clusteringSettings.aliases).forEach(([metric, aliasStr]) => {
                     aliases[metric] = aliasStr.split(',').map(s => s.trim()).filter(Boolean);
                 });
             }
@@ -766,10 +768,9 @@ export default function LevelScorePage() {
                                 <div className="text-xs font-semibold text-muted-foreground">Clustering Impact / Stats:</div>
                                 <div className="text-[10px] text-muted-foreground bg-muted px-2 py-1 rounded">
                                     {(() => {
-                                        const g = config?.games.find(g => g.id === selectedGameId);
-                                        const w = g?.clusteringWeights;
+                                        const w = config?.clusteringSettings?.weights;
                                         if (!w) return "Weights: Repeat(5x), Others(1x) [Default]";
-                                        return `Weights: Rep(${w.avgRepeatRatio}x), Time(${w.levelPlayTime}x), Win(${w.playOnWinRatio}x)...`;
+                                        return `Weights: Rep(${w.avgRepeatRatio}x), Time(${w.levelPlayTime}x), Win(${w.playOnWinRatio}x)... (Global)`;
                                     })()}
                                 </div>
                             </div>
