@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { supabase } from '@/lib/supabase';
 import { createClient } from '@supabase/supabase-js';
+import { getSystemConfig } from '@/lib/config';
 
 // Force dynamic to ensure we don't cache stale config on Vercel
 export const dynamic = 'force-dynamic';
@@ -11,43 +12,10 @@ const CONFIG_BUCKET = 'data-repository';
 const CONFIG_FILE = 'system/dashboard-config.json';
 const LOCAL_CONFIG_PATH = path.join(process.cwd(), 'config', 'dashboard-data.json');
 
-// Helper to read local default config
-function readLocalConfig() {
-    if (!fs.existsSync(LOCAL_CONFIG_PATH)) {
-        return { variables: [], games: [] };
-    }
-    const fileContents = fs.readFileSync(LOCAL_CONFIG_PATH, 'utf8');
-    return JSON.parse(fileContents);
-}
-
 // GET: Retrieve configuration from Supabase, fallback to local
 export async function GET() {
-    try {
-        // 1. Try Supabase
-        const { data, error } = await supabase
-            .storage
-            .from(CONFIG_BUCKET)
-            .download(CONFIG_FILE);
-
-        if (!error && data) {
-            const text = await data.text();
-            try {
-                const json = JSON.parse(text);
-                return NextResponse.json(json);
-            } catch (e) {
-                console.error("Failed to parse Supabase config JSON", e);
-            }
-        }
-
-        // 2. Fallback to Local
-        console.log("Config not found in Supabase (or error), using local default.");
-        const localData = readLocalConfig();
-        return NextResponse.json(localData);
-
-    } catch (error) {
-        console.error("Config GET error:", error);
-        return NextResponse.json({ error: 'Failed to read config' }, { status: 500 });
-    }
+    const config = await getSystemConfig();
+    return NextResponse.json(config);
 }
 
 // POST: Update configuration to Supabase

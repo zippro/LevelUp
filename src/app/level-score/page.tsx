@@ -52,6 +52,10 @@ interface LevelData {
     playOnWinRatio: number;
     playOnPerUser: number;
     firstTryWinPercent: number;
+    churnRate: number;
+    playOnRate: number; // Matches "Playon" from screenshot
+    avgMoves: number;
+    avgRemainingMoves: number;
 }
 
 
@@ -540,6 +544,13 @@ export default function LevelScorePage() {
                 const playOnPerUser = parseNum(getCol(row, ...getAliases('playOnPerUser', ['Playon per User', 'Play On Per User', 'PlayOnPerUser'])));
                 const firstTryWinPercent = parseNum(getCol(row, ...getAliases('firstTryWinPercent', ['Avg. FirstTryWinPercent', 'FirstTryWinPercent', 'First Try Win', '1st Win %'])));
 
+                // Integration Metrics (Screenshot specific)
+                const churnRate = parseNum(getCol(row, ...getAliases('churnRate', ['Churn', 'churn', 'Churn Rate'])));
+                const playOnRate = parseNum(getCol(row, ...getAliases('playOnRate', ['Playon', 'PlayOn', 'Play On'])));
+                const avgMoves = parseNum(getCol(row, ...getAliases('avgMoves', ['Moves', 'Avg. Moves', 'Avg Moves'])));
+                const avgRemainingMoves = parseNum(getCol(row, ...getAliases('avgRemainingMoves', ['Rem', 'Remaining Moves', 'Avg Remaining Moves', 'Rem Moves'])));
+
+
                 // DEBUG: Alert first row values to verify parsing
 
 
@@ -562,6 +573,10 @@ export default function LevelScorePage() {
                     playOnWinRatio,
                     playOnPerUser,
                     firstTryWinPercent,
+                    churnRate,
+                    playOnRate,
+                    avgMoves,
+                    avgRemainingMoves,
                 };
 
 
@@ -614,6 +629,14 @@ export default function LevelScorePage() {
             level: row.level,
             score: row.calculatedScore,
             cluster: row.editableCluster || row.finalCluster,
+            // New Metrics Mapping for API
+            churn_rate: row.churnRate,
+            replay_rate: row.avgRepeatRatio,
+            play_on_rate: row.playOnRate, // Using the direct "Playon" mapping
+            avg_moves: row.avgMoves,
+            avg_time: row.levelPlayTime,
+            win_rate_1st: row.firstTryWinPercent,
+            avg_remaining_moves: row.avgRemainingMoves,
         }));
 
         try {

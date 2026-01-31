@@ -53,11 +53,18 @@ export async function POST(request: Request) {
     }
 
     // Upsert level scores
-    const upsertData = levels.map((item: { level: number; score: number; cluster?: string }) => ({
+    const upsertData = levels.map((item: any) => ({
         game_id: gameId,
         level: item.level,
         score: item.score,
         cluster: item.cluster || null,
+        churn_rate: item.churn_rate || null,
+        replay_rate: item.replay_rate || null,
+        play_on_rate: item.play_on_rate || null,
+        avg_moves: item.avg_moves || null,
+        avg_time: item.avg_time || null,
+        win_rate_1st: item.win_rate_1st || null,
+        avg_remaining_moves: item.avg_remaining_moves || null,
         updated_at: new Date().toISOString()
     }));
 

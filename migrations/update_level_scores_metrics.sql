@@ -1,0 +1,9 @@
+-- Add metrics columns to level_scores
+ALTER TABLE level_scores
+ADD COLUMN IF NOT EXISTS churn_rate DECIMAL(10,4),
+ADD COLUMN IF NOT EXISTS replay_rate DECIMAL(10,4),
+ADD COLUMN IF NOT EXISTS play_on_rate DECIMAL(10,4),
+ADD COLUMN IF NOT EXISTS avg_moves DECIMAL(10,4),
+ADD COLUMN IF NOT EXISTS avg_time DECIMAL(10,4),
+ADD COLUMN IF NOT EXISTS win_rate_1st DECIMAL(10,4),
+ADD COLUMN IF NOT EXISTS avg_remaining_moves DECIMAL(10,4);
