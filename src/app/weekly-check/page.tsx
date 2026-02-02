@@ -518,9 +518,6 @@ export default function WeeklyCheckPage() {
                 processedHeaders = processedHeaders.filter(h => !hiddenSet.has(h));
             }
             setHeaders(processedHeaders);
-
-            // Auto-sync to database for Discord bot (silent, in background)
-            syncAllLevelsToDb(rawRows, true).catch(err => console.error('[Auto-Sync] Error:', err));
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -1282,122 +1279,6 @@ export default function WeeklyCheckPage() {
             alert("Failed to save changes");
         } finally {
             setLoading(false);
-        }
-    };
-
-    // Sync all level data with metrics to database for Discord bot
-    const syncAllLevelsToDb = async (dataToSync?: any[], silent: boolean = false) => {
-        const data = dataToSync || rawData;
-        if (!data || data.length === 0) {
-            if (!silent) alert('No data loaded. Please load data first.');
-            return;
-        }
-
-        const gameId = selectedGameId || config?.games[0]?.id;
-        if (!gameId) {
-            if (!silent) alert('No game selected');
-            return;
-        }
-
-        try {
-            if (!silent) setLoading(true);
-
-            // Helper to get column value with aliases
-            const getCol = (row: any, ...names: string[]) => {
-                for (const name of names) {
-                    const key = Object.keys(row).find(k =>
-                        normalizeHeader(k).includes(normalizeHeader(name))
-                    );
-                    if (key && row[key] !== undefined && row[key] !== '') return row[key];
-                }
-                return null;
-            };
-
-            // Map data to level_scores format
-            const levels = data.map((row: any) => {
-                const levelCol = Object.keys(row).find(k => {
-                    const n = normalizeHeader(k);
-                    return n === 'level' || n === 'levelnumber' || n === 'level_number';
-                }) || 'Level';
-                const level = parseInt(String(row[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
-
-                if (level <= 0) return null;
-
-                // Get cluster from saved state or CSV
-                const savedCluster = savedScores[level]?.cluster;
-                const csvCluster = getCol(row, 'finalcluster', 'clu', 'cluster');
-                const cluster = savedCluster || csvCluster || null;
-
-                // Get score
-                const score = savedScores[level]?.score ?? null;
-
-                // Get metrics - parse as decimals
-                const parseDecimal = (val: any) => {
-                    if (val === null || val === undefined || val === '' || val === '-') return null;
-                    const num = parseFloat(String(val).replace(/[%,]/g, ''));
-                    return isNaN(num) ? null : num;
-                };
-
-                const churnVal = getCol(row, '3daychurn', '3dayschurn', 'churn', '3 days churn', '3 Day Churn');
-                const replayVal = getCol(row, 'repeat', 'repeatratio', 'avgrepeat', 'Avg. Repeat');
-                const playonVal = getCol(row, 'playon', 'playonperuser', 'Playon per User');
-                const movesVal = getCol(row, 'Total Move', 'Avg. Total Moves', 'TotalMove', 'totalmove', 'avgtotalmoves');
-                const timeVal = getCol(row, 'Avg. Level Play', 'Avg. Level Play Time', 'Level Play Time', 'LevelPlayTime', 'levelplaytime');
-                const winVal = getCol(row, 'firsttrywin', 'avgfirsttrywin', 'Avg. First Try Win', 'First Try Win');
-                const remVal = getCol(row, 'RM Total', 'Avg. RM Fixed', 'Average remaining move', 'Avg. RM', 'Avg RM', 'Moves Left', 'remaining', 'Rem');
-
-                // Convert percentages (values < 1 are already decimals, values > 1 might be percents)
-                let churn_rate = parseDecimal(churnVal);
-                if (churn_rate !== null && churn_rate > 1) churn_rate = churn_rate / 100;
-
-                let win_rate_1st = parseDecimal(winVal);
-                if (win_rate_1st !== null && win_rate_1st > 1) win_rate_1st = win_rate_1st / 100;
-
-                return {
-                    level,
-                    cluster,
-                    score,
-                    churn_rate,
-                    replay_rate: parseDecimal(replayVal),
-                    play_on_rate: parseDecimal(playonVal),
-                    avg_moves: parseDecimal(movesVal),
-                    avg_time: parseDecimal(timeVal),
-                    win_rate_1st,
-                    avg_remaining_moves: parseDecimal(remVal),
-                };
-            }).filter(Boolean);
-
-            if (levels.length === 0) {
-                if (!silent) alert('No valid level data to sync');
-                return;
-            }
-
-            // Sync in batches of 500
-            const batchSize = 500;
-            let synced = 0;
-            for (let i = 0; i < levels.length; i += batchSize) {
-                const batch = levels.slice(i, i + batchSize);
-                const res = await fetch("/api/level-scores", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ gameId, levels: batch }),
-                });
-
-                if (!res.ok) {
-                    const err = await res.json();
-                    throw new Error(err.error || 'Failed to sync');
-                }
-
-                synced += batch.length;
-            }
-
-            console.log(`[Auto-Sync] Synced ${synced} levels to database`);
-            if (!silent) alert(`✅ Synced ${synced} levels to database! Discord bot will now show all metrics.`);
-        } catch (e: any) {
-            console.error('Sync error:', e);
-            if (!silent) alert(`Failed to sync: ${e.message}`);
-        } finally {
-            if (!silent) setLoading(false);
         }
     };
 
