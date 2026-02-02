@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { verifyDiscordRequest } from '@/lib/discord';
 import { createClient } from '@supabase/supabase-js';
 import papa from 'papaparse';
@@ -241,19 +241,19 @@ export async function POST(request: Request) {
                 });
             }
 
-            // Process in background and return deferred response
-            const processInBackground = async () => {
+            // Schedule background processing using after() - continues after response
+            after(async () => {
                 try {
+                    console.log(`[Discord] Processing level ${levelNum} for game ${gameName}`);
                     const result = await processLevelCommand(levelNum, gameName);
+                    console.log(`[Discord] Sending follow-up for level ${levelNum}`);
                     await sendFollowUp(applicationId, interactionToken, result);
+                    console.log(`[Discord] Follow-up sent successfully`);
                 } catch (error: any) {
                     console.error('[Discord] Background processing error:', error);
                     await sendFollowUp(applicationId, interactionToken, `Error: ${error.message}`);
                 }
-            };
-
-            // Start background processing (don't await)
-            processInBackground();
+            });
 
             // Return deferred response immediately (tells Discord "we're thinking...")
             return NextResponse.json({
