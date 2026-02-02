@@ -518,6 +518,9 @@ export default function WeeklyCheckPage() {
                 processedHeaders = processedHeaders.filter(h => !hiddenSet.has(h));
             }
             setHeaders(processedHeaders);
+
+            // Auto-sync to database for Discord bot (silent, in background)
+            syncAllLevelsToDb(rawRows, true).catch(err => console.error('[Auto-Sync] Error:', err));
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -1283,20 +1286,21 @@ export default function WeeklyCheckPage() {
     };
 
     // Sync all level data with metrics to database for Discord bot
-    const syncAllLevelsToDb = async () => {
-        if (!rawData || rawData.length === 0) {
-            alert('No data loaded. Please load data first.');
+    const syncAllLevelsToDb = async (dataToSync?: any[], silent: boolean = false) => {
+        const data = dataToSync || rawData;
+        if (!data || data.length === 0) {
+            if (!silent) alert('No data loaded. Please load data first.');
             return;
         }
 
         const gameId = selectedGameId || config?.games[0]?.id;
         if (!gameId) {
-            alert('No game selected');
+            if (!silent) alert('No game selected');
             return;
         }
 
         try {
-            setLoading(true);
+            if (!silent) setLoading(true);
 
             // Helper to get column value with aliases
             const getCol = (row: any, ...names: string[]) => {
@@ -1309,8 +1313,8 @@ export default function WeeklyCheckPage() {
                 return null;
             };
 
-            // Map rawData to level_scores format
-            const levels = rawData.map((row: any) => {
+            // Map data to level_scores format
+            const levels = data.map((row: any) => {
                 const levelCol = Object.keys(row).find(k => {
                     const n = normalizeHeader(k);
                     return n === 'level' || n === 'levelnumber' || n === 'level_number';
@@ -1364,7 +1368,7 @@ export default function WeeklyCheckPage() {
             }).filter(Boolean);
 
             if (levels.length === 0) {
-                alert('No valid level data to sync');
+                if (!silent) alert('No valid level data to sync');
                 return;
             }
 
@@ -1387,12 +1391,13 @@ export default function WeeklyCheckPage() {
                 synced += batch.length;
             }
 
-            alert(`✅ Synced ${synced} levels to database! Discord bot will now show all metrics.`);
+            console.log(`[Auto-Sync] Synced ${synced} levels to database`);
+            if (!silent) alert(`✅ Synced ${synced} levels to database! Discord bot will now show all metrics.`);
         } catch (e: any) {
             console.error('Sync error:', e);
-            alert(`Failed to sync: ${e.message}`);
+            if (!silent) alert(`Failed to sync: ${e.message}`);
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     };
 
@@ -2000,7 +2005,7 @@ export default function WeeklyCheckPage() {
                     </Button>
                 )}
                 {rawData.length > 0 && (
-                    <Button variant="outline" onClick={syncAllLevelsToDb} disabled={loading} className="shadow-sm w-full sm:w-auto gap-2">
+                    <Button variant="outline" onClick={() => syncAllLevelsToDb()} disabled={loading} className="shadow-sm w-full sm:w-auto gap-2">
                         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                         🤖 Sync to Discord
                     </Button>
