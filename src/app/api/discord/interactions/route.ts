@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { verifyDiscordRequest } from '@/lib/discord';
 import { createClient } from '@supabase/supabase-js';
+import papa from 'papaparse';
 
 // Initialize Supabase Client
 const supabase = createClient(
@@ -58,91 +59,168 @@ export async function POST(request: Request) {
             const startLevel = centerLevel - 5;
             const endLevel = centerLevel + 5;
 
-            // Resolve Game Name
-            let matchedGameId = null;
-            if (gameName) {
-                // Import config helper
+            try {
+                // Get config to find game name
                 const { getSystemConfig } = await import('@/lib/config');
                 const config = await getSystemConfig();
 
-                // Find game by ID or Name (case-insensitive)
-                const game = config.games?.find((g: any) =>
-                    g.id.toLowerCase() === gameName.toLowerCase() ||
-                    g.name.toLowerCase() === gameName.toLowerCase()
-                );
+                let matchedGame: any = null;
+                if (gameName) {
+                    matchedGame = config.games?.find((g: any) =>
+                        g.id.toLowerCase() === gameName.toLowerCase() ||
+                        g.name.toLowerCase() === gameName.toLowerCase()
+                    );
 
-                if (game) {
-                    matchedGameId = game.id;
-                } else {
-                    // If provided but not found, list available
-                    const available = config.games?.map((g: any) => g.name).join(', ') || 'None';
+                    if (!matchedGame) {
+                        const available = config.games?.map((g: any) => g.name).join(', ') || 'None';
+                        return NextResponse.json({
+                            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                            data: { content: `Game '${gameName}' not found. Available games: ${available}` },
+                        });
+                    }
+                }
+
+                // Find most recent Level Revize CSV in data-repository
+                const { data: files, error: listError } = await supabase.storage
+                    .from('data-repository')
+                    .list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } });
+
+                if (listError || !files) {
                     return NextResponse.json({
                         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                        data: { content: `Game '${gameName}' not found. Available games: ${available}` },
+                        data: { content: `Error listing data: ${listError?.message || 'No files found'}` },
                     });
                 }
-            }
 
-            // Query level_scores
-            // Assuming 'game_id' is constant or handled? The prompt implies specific game context is implicit or we query all?
-            // Screenshot shows "Level Context: 2331".
-            // We'll query across all games or filter if game_id is known. 
-            // For now, let's just query by level range. If multiple games exist, this might return mix data.
-            // But based on context, there's likely a main game. We'll order by level.
+                // Find matching file (game name + Level Revize)
+                const gameNameToMatch = matchedGame?.name || gameName;
+                let matchingFile = null;
 
-            let query = supabase
-                .from('level_scores')
-                .select('*')
-                .gte('level', startLevel)
-                .lte('level', endLevel)
-                .order('level', { ascending: true });
+                if (gameNameToMatch) {
+                    matchingFile = files.find(f =>
+                        f.name.toLowerCase().includes(gameNameToMatch.toLowerCase()) &&
+                        f.name.toLowerCase().includes('level revize')
+                    );
+                } else {
+                    // No game specified - find first Level Revize file
+                    matchingFile = files.find(f =>
+                        f.name.toLowerCase().includes('level revize')
+                    );
+                }
 
-            if (matchedGameId) {
-                query = query.eq('game_id', matchedGameId);
-            }
+                if (!matchingFile) {
+                    return NextResponse.json({
+                        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                        data: { content: `No Level Revize data found${gameNameToMatch ? ` for game '${gameNameToMatch}'` : ''}. Please load data from the Weekly Check page first.` },
+                    });
+                }
 
-            const { data: scores, error } = await query;
+                // Download and parse the CSV
+                const { data: fileData, error: downloadError } = await supabase.storage
+                    .from('data-repository')
+                    .download(matchingFile.name);
 
-            if (error) {
+                if (downloadError || !fileData) {
+                    return NextResponse.json({
+                        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                        data: { content: `Error downloading data: ${downloadError?.message || 'Unknown error'}` },
+                    });
+                }
+
+                const csvText = await fileData.text();
+                const parsed = papa.parse(csvText, { header: true, skipEmptyLines: true });
+                const rows = parsed.data as any[];
+
+                // Find level column
+                const sampleRow = rows[0] || {};
+                const levelCol = Object.keys(sampleRow).find(k => {
+                    const n = k.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    return n === 'level' || n === 'levelnumber' || n === 'level_number';
+                }) || 'Level';
+
+                // Filter to level range
+                const filteredRows = rows.filter(row => {
+                    const lvl = parseInt(String(row[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
+                    return lvl >= startLevel && lvl <= endLevel;
+                }).sort((a, b) => {
+                    const lvlA = parseInt(String(a[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
+                    const lvlB = parseInt(String(b[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
+                    return lvlA - lvlB;
+                });
+
+                if (filteredRows.length === 0) {
+                    return NextResponse.json({
+                        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                        data: { content: `No data found for level ${levelNum} (+/- 5)${gameNameToMatch ? ` in game '${gameNameToMatch}'` : ''}.` },
+                    });
+                }
+
+                // Helper to get column value with aliases
+                const getCol = (row: any, ...names: string[]) => {
+                    for (const name of names) {
+                        const key = Object.keys(row).find(k =>
+                            k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(name.toLowerCase().replace(/[^a-z0-9]/g, ''))
+                        );
+                        if (key && row[key] !== undefined && row[key] !== '') return row[key];
+                    }
+                    return null;
+                };
+
+                // Format Table
+                const header = "Lvl   Churn   Rep   Playon  Moves  Time    1stWin  Rem   Clu";
+                const tableRows = filteredRows.map((row: any) => {
+                    const lvl = String(row[levelCol] || '-').padEnd(6);
+
+                    // 3 Day Churn
+                    const churnVal = getCol(row, '3daychurn', '3dayschurn', 'churn');
+                    const churn = churnVal !== null ? (parseFloat(churnVal) < 1 ? (parseFloat(churnVal) * 100).toFixed(1) + '%' : parseFloat(churnVal).toFixed(1) + '%') : '-';
+
+                    // Repeat
+                    const repVal = getCol(row, 'repeat', 'repeatratio', 'avgrepeat');
+                    const rep = repVal !== null ? parseFloat(repVal).toFixed(2) : '-';
+
+                    // Playon
+                    const playonVal = getCol(row, 'playon', 'playonperuser');
+                    const playon = playonVal !== null ? parseFloat(playonVal).toFixed(2) : '-';
+
+                    // Total Moves
+                    const movesVal = getCol(row, 'totalmove', 'avgtotalmoves', 'moves');
+                    const moves = movesVal !== null ? parseFloat(movesVal).toFixed(1) : '-';
+
+                    // Play Time
+                    const timeVal = getCol(row, 'levelplaytime', 'playtime', 'avglevelplay');
+                    const time = timeVal !== null ? parseFloat(timeVal).toFixed(1) : '-';
+
+                    // First Try Win
+                    const winVal = getCol(row, 'firsttrywin', 'avgfirsttrywin', 'win');
+                    const win = winVal !== null ? (parseFloat(winVal) < 1 ? (parseFloat(winVal) * 100).toFixed(1) + '%' : parseFloat(winVal).toFixed(1) + '%') : '-';
+
+                    // Remaining Move
+                    const remVal = getCol(row, 'remainingmove', 'rmtotal', 'avgrm', 'rem');
+                    const rem = remVal !== null ? parseFloat(remVal).toFixed(1) : '-';
+
+                    // Cluster
+                    const cluVal = getCol(row, 'clu', 'finalcluster', 'cluster');
+                    const clu = cluVal !== null ? String(cluVal) : '-';
+
+                    return `${lvl}${churn.padStart(7)} ${rep.padStart(5)} ${playon.padStart(7)} ${moves.padStart(6)} ${time.padStart(7)} ${win.padStart(7)} ${rem.padStart(5)} ${clu.padStart(4)}`;
+                });
+
+                const extractedGameName = matchingFile.name.split(' - ')[0] || 'Unknown';
+                const table = `**Level Context: ${levelNum} (${extractedGameName})**\n\`\`\`\n${header}\n${tableRows.join('\n')}\n\`\`\``;
+
                 return NextResponse.json({
                     type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                    data: { content: `Error fetching data: ${error.message}` },
+                    data: { content: table },
                 });
-            }
 
-            if (!scores || scores.length === 0) {
+            } catch (error: any) {
+                console.error('Level command error:', error);
                 return NextResponse.json({
                     type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                    data: { content: `No data found for level ${levelNum} (+/- 5)${gameName ? ` in game '${gameName}'` : ''}.` },
+                    data: { content: `Error: ${error.message}` },
                 });
             }
-
-            // Format Table
-            // Header: Lvl Churn Rep Playon Moves Time 1stWin Rem Clu
-            const header = "Lvl   Churn   Rep   Playon  Moves  Time    1stWin  Rem   Clu";
-            const rows = scores.map((s: any) => {
-                const lvl = s.level.toString().padEnd(6);
-                const churn = (s.churn_rate != null ? (s.churn_rate * 100).toFixed(2) + '%' : '-').padStart(7);
-                const rep = (s.replay_rate != null ? s.replay_rate.toFixed(2) : '-').padStart(6);
-                const playon = (s.play_on_rate != null ? s.play_on_rate.toFixed(2) : '-').padStart(7);
-                const moves = (s.avg_moves != null ? s.avg_moves.toFixed(2) : '-').padStart(7);
-                const time = (s.avg_time != null ? s.avg_time.toFixed(2) : '-').padStart(8);
-                const win = (s.win_rate_1st != null ? (s.win_rate_1st * 100).toFixed(2) + '%' : '-').padStart(8);
-                const rem = (s.avg_remaining_moves != null ? s.avg_remaining_moves.toFixed(2) : '-').padStart(6);
-                const clu = (s.cluster || '-').padStart(4);
-
-                // Highlight the requested level?
-                const prefix = s.level === centerLevel ? '> ' : '  ';
-
-                return `${lvl}${churn} ${rep} ${playon} ${moves} ${time} ${win} ${rem} ${clu}`;
-            });
-
-            const table = `**Level Context: ${levelNum} ${gameName ? `(${gameName})` : ''}**\n\`\`\`\n${header}\n${rows.join('\n')}\n\`\`\``;
-
-            return NextResponse.json({
-                type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: { content: table },
-            });
         }
 
         // Handle /games command
