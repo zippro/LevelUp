@@ -522,23 +522,6 @@ export default function WeeklyCheckPage() {
             // Auto-sync all level data to database for Discord bot
             const gameId = selectedGameId;
             if (gameId && rawRows.length > 0) {
-                // More robust column finder - looks for any key containing search term
-                const findCol = (row: any, ...searchTerms: string[]) => {
-                    const keys = Object.keys(row);
-                    for (const term of searchTerms) {
-                        // First try exact match
-                        if (row[term] !== undefined && row[term] !== '') return row[term];
-                        // Then try case-insensitive contains match
-                        const lowerTerm = term.toLowerCase().replace(/[^a-z0-9]/g, '');
-                        const key = keys.find(k => {
-                            const lowerKey = k.toLowerCase().replace(/[^a-z0-9]/g, '');
-                            return lowerKey.includes(lowerTerm) || lowerTerm.includes(lowerKey);
-                        });
-                        if (key && row[key] !== undefined && row[key] !== '') return row[key];
-                    }
-                    return null;
-                };
-
                 const parseDecimal = (val: any) => {
                     if (val === null || val === undefined || val === '' || val === '-') return null;
                     const num = parseFloat(String(val).replace(/[%,]/g, ''));
@@ -552,23 +535,28 @@ export default function WeeklyCheckPage() {
 
                 const levels = rawRows.map((row: any) => {
                     const levelCol = Object.keys(row).find(k => {
-                        const n = k.toLowerCase().replace(/[^a-z0-9]/g, '');
-                        return n === 'level' || n === 'levelnumber' || n === 'levelnumber';
+                        const n = normalizeHeader(k);
+                        return n === 'level' || n === 'level number' || n === 'levelnumber';
                     }) || 'Level';
                     const level = parseInt(String(row[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
                     if (level <= 0) return null;
 
-                    const cluster = row['Clu'] || findCol(row, 'finalcluster', 'cluster', 'clu') || null;
+                    const cluster = row['Clu'] || getCol(row, 'Final Cluster', 'FinalCluster', 'Clu', 'cluster') || null;
                     const score = row['Score'] !== undefined && row['Score'] !== '' ? parseFloat(row['Score']) : null;
 
-                    // Use findCol for ALL metrics - more robust matching
-                    const churnVal = findCol(row, '3dayschurn', '3daychurn', 'churn', 'instantchurn', '7dayschurn');
-                    const replayVal = findCol(row, 'repeatratio', 'repeatrate', 'repeat', 'avgrepeat');
-                    const playonVal = findCol(row, 'playonperuser', 'playon');
-                    const movesVal = findCol(row, 'totalmoves', 'totalmove', 'avgmoves', 'moves');
-                    const timeVal = findCol(row, 'levelplay', 'playtime', 'avgtime', 'time');
-                    const winVal = findCol(row, 'firsttrywin', 'firstwin', '1stwin', 'winrate');
-                    const remVal = findCol(row, 'rmtotal', 'rmfixed', 'remainingmove', 'remaining', 'avgrm', 'rm');
+                    // USE EXACT SAME LOOKUPS AS MAGNIFIER (lines 1452-1458)
+                    const churnVal = row['3 Days Churn'] || row['3 Day Churn'] || row['3DaysChurn'] || null;
+                    const replayVal = getCol(row, 'Avg. Repeat Ratio (birleşik)', 'Avg. Repeat Rate', 'Repeat', 'Repeat Rate', 'rep', 'birleşik', 'birlesik');
+                    const playonVal = row['Playon per User'] || row['Playon Per User'] || row['PlayonPerUser'] || null;
+                    const movesVal = row['Avg. Total Moves'] || row['Total Move'] || row['TotalMove'] || null;
+                    const timeVal = row['Avg. Level Play'] || row['Avg. Level Play Time'] || row['Level Play Time'] || row['LevelPlayTime'] || null;
+                    const winVal = row['Avg. FirstTryWin'] || row['Avg. FirstTryWinPercent'] || row['Avg First Try Win'] || row['First Try Win'] || null;
+                    const remVal = getCol(row, 'RM Total', 'Avg. RM Fixed', 'Average remaining move', 'avg remaining move', 'remaining moves', 'Rem', 'RM', 'Avg. RM', 'Avg RM', 'Moves Left', 'remaining');
+
+                    // Debug: Log first row values
+                    if (level === rawRows[0]?.[levelCol]) {
+                        console.log('[Auto-Sync] Sample row values:', { churnVal, replayVal, playonVal, movesVal, timeVal, winVal, remVal });
+                    }
 
                     let churn_rate = parseDecimal(churnVal);
                     if (churn_rate !== null && churn_rate > 1) churn_rate = churn_rate / 100;
