@@ -145,6 +145,28 @@ export async function POST(request: Request) {
             });
         }
 
+        // Handle /games command
+        if (name === 'games') {
+            const { getSystemConfig } = await import('@/lib/config');
+            const config = await getSystemConfig();
+
+            if (!config.games || config.games.length === 0) {
+                return NextResponse.json({
+                    type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                    data: { content: 'No games configured. Please add games in the Settings page.' },
+                });
+            }
+
+            const gameList = config.games.map((g: any, i: number) =>
+                `${i + 1}. **${g.name}** (ID: \`${g.id}\`)`
+            ).join('\n');
+
+            return NextResponse.json({
+                type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                data: { content: `**Available Games:**\n${gameList}\n\nUse: \`/level level_num:123 game:<id>\`` },
+            });
+        }
+
         return NextResponse.json({
             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
             data: { content: 'Unknown command' },

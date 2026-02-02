@@ -26,11 +26,15 @@ export async function GET() {
                 },
                 {
                     name: 'game',
-                    description: 'The game ID',
+                    description: 'The game ID (use /games to see list)',
                     type: 3, // String
                     required: false,
                 },
             ],
+        },
+        {
+            name: 'games',
+            description: 'List all available games',
         },
     ];
 
