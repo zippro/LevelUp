@@ -1,6 +1,8 @@
+// @ts-ignore - tweetnacl has no types
+import nacl from 'tweetnacl';
+
 /**
- * Verifies the Discord interaction request signature using Web Crypto API.
- * No external dependencies required.
+ * Verifies the Discord interaction request signature.
  */
 export async function verifyDiscordRequest(req: Request, appPublicKey: string) {
     const signature = req.headers.get('x-signature-ed25519');
@@ -13,26 +15,10 @@ export async function verifyDiscordRequest(req: Request, appPublicKey: string) {
     const bodyText = await req.text();
 
     try {
-        // Convert hex strings to Uint8Array
-        const signatureBytes = hexToUint8Array(signature);
-        const publicKeyBytes = hexToUint8Array(appPublicKey);
-        const messageBytes = new TextEncoder().encode(timestamp + bodyText);
-
-        // Import the public key with explicit type casting for TypeScript
-        const cryptoKey = await crypto.subtle.importKey(
-            'raw',
-            publicKeyBytes.buffer as ArrayBuffer,
-            { name: 'Ed25519' },
-            false,
-            ['verify']
-        );
-
-        // Verify the signature with explicit type casting
-        const isVerified = await crypto.subtle.verify(
-            'Ed25519',
-            cryptoKey,
-            signatureBytes.buffer as ArrayBuffer,
-            messageBytes.buffer as ArrayBuffer
+        const isVerified = nacl.sign.detached.verify(
+            new TextEncoder().encode(timestamp + bodyText),
+            hexToUint8Array(signature),
+            hexToUint8Array(appPublicKey)
         );
 
         if (!isVerified) {
