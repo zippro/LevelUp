@@ -44,7 +44,7 @@ export async function POST(request: Request) {
         const { name, options } = body.data;
 
         if (name === 'level') {
-            const levelNum = options?.find((o: any) => o.name === 'level_num')?.value;
+            const levelNum = options?.find((o: any) => o.name === 'no')?.value;
             const gameName = options?.find((o: any) => o.name === 'game')?.value;
 
             if (!levelNum) {

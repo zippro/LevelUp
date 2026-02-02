@@ -19,7 +19,7 @@ export async function GET() {
             description: 'Get level context and metrics',
             options: [
                 {
-                    name: 'level_num',
+                    name: 'no',
                     description: 'The level number',
                     type: 4, // Integer
                     required: true,
