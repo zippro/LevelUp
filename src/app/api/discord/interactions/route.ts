@@ -244,24 +244,21 @@ export async function POST(request: Request) {
                 });
             }
 
-            // Use deferred response pattern with native waitUntil
-            const backgroundTask = (async () => {
-                try {
-                    console.log(`[Discord] Processing level ${levelNum} for game ${gameName}`);
-                    const result = await processLevelCommand(levelNum, gameName);
-                    console.log(`[Discord] Sending follow-up for level ${levelNum}`);
-                    await sendFollowUp(applicationId, interactionToken, result);
-                    console.log(`[Discord] Follow-up sent successfully`);
-                } catch (error: any) {
-                    console.error('[Discord] Background processing error:', error);
-                    await sendFollowUp(applicationId, interactionToken, `Error: ${error.message}`);
-                }
-            })();
+            // Trigger background processing via separate API call (fire-and-forget)
+            const baseUrl = process.env.VERCEL_URL
+                ? `https://${process.env.VERCEL_URL}`
+                : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-            // If globalThis.waitUntil exists (edge/Vercel), use it to keep function alive
-            if (typeof (globalThis as any).waitUntil === 'function') {
-                (globalThis as any).waitUntil(backgroundTask);
-            }
+            fetch(`${baseUrl}/api/discord/process-level`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    levelNum,
+                    gameName,
+                    applicationId,
+                    interactionToken,
+                }),
+            }).catch(err => console.error('[Discord] Failed to trigger background processing:', err));
 
             // Return deferred response immediately
             return NextResponse.json({
