@@ -3,6 +3,9 @@ import { verifyDiscordRequest } from '@/lib/discord';
 import { createClient } from '@supabase/supabase-js';
 import papa from 'papaparse';
 
+// Use Edge Runtime for waitUntil support
+export const runtime = 'edge';
+
 // Initialize Supabase Client
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,9 +31,7 @@ const normalizeHeader = (str: string) => str.toLowerCase().replace(/[^a-z0-9]/g,
 // Helper to get column value with aliases
 const getCol = (row: any, ...names: string[]) => {
     for (const name of names) {
-        // Try exact match first
         if (row[name] !== undefined && row[name] !== '') return row[name];
-        // Try normalized match
         const key = Object.keys(row).find(k =>
             normalizeHeader(k).includes(normalizeHeader(name))
         );
@@ -52,7 +53,7 @@ async function sendFollowUp(applicationId: string, token: string, content: strin
     }
 }
 
-// Process level command and send follow-up
+// Process level command
 async function processLevelCommand(
     applicationId: string,
     token: string,
@@ -64,34 +65,31 @@ async function processLevelCommand(
     const endLevel = centerLevel + 5;
 
     try {
-        // Find the Level Revize CSV file for this game
         const { data: files, error: listError } = await supabase.storage
             .from('data-repository')
             .list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } });
 
         if (listError || !files) {
-            await sendFollowUp(applicationId, token, `Error listing files: ${listError?.message || 'No files found'}`);
+            await sendFollowUp(applicationId, token, `Error: ${listError?.message || 'No files found'}`);
             return;
         }
 
-        // Find matching file (game name + Level Revize)
         const matchingFile = files.find((f: any) =>
             f.name.toLowerCase().includes(matchedGame.name.toLowerCase()) &&
             f.name.toLowerCase().includes('level revize')
         );
 
         if (!matchingFile) {
-            await sendFollowUp(applicationId, token, `No Level Revize data found for '${matchedGame.name}'. Please load data from Weekly Check first.`);
+            await sendFollowUp(applicationId, token, `No Level Revize data for '${matchedGame.name}'. Load from Weekly Check first.`);
             return;
         }
 
-        // Download the CSV file
         const { data: fileData, error: downloadError } = await supabase.storage
             .from('data-repository')
             .download(matchingFile.name);
 
         if (downloadError || !fileData) {
-            await sendFollowUp(applicationId, token, `Error downloading data: ${downloadError?.message || 'Unknown error'}`);
+            await sendFollowUp(applicationId, token, `Error: ${downloadError?.message || 'Download failed'}`);
             return;
         }
 
@@ -99,14 +97,12 @@ async function processLevelCommand(
         const parsed = papa.parse(csvText, { header: true, skipEmptyLines: true });
         const rows = parsed.data as any[];
 
-        // Find level column
         const sampleRow = rows[0] || {};
         const levelCol = Object.keys(sampleRow).find(k => {
             const n = normalizeHeader(k);
             return n === 'level' || n === 'levelnumber' || n === 'level_number';
         }) || 'Level';
 
-        // Filter to level range
         const filteredRows = rows.filter(row => {
             const lvl = parseInt(String(row[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
             return lvl >= startLevel && lvl <= endLevel;
@@ -117,11 +113,10 @@ async function processLevelCommand(
         });
 
         if (filteredRows.length === 0) {
-            await sendFollowUp(applicationId, token, `No data found for level ${levelNum} (+/- 5) in '${matchedGame.name}'.`);
+            await sendFollowUp(applicationId, token, `No data for level ${levelNum} (+/- 5) in '${matchedGame.name}'.`);
             return;
         }
 
-        // Fetch clusters from level_scores table
         let clusterMap: Record<number, string> = {};
         const { data: scoreData } = await supabase
             .from('level_scores')
@@ -136,7 +131,6 @@ async function processLevelCommand(
             });
         }
 
-        // Format Table
         const header = "    Lvl   Churn   Rep   Playon  Moves  Time    1stWin  Rem   Clu";
         const tableRows = filteredRows.map((row: any) => {
             const lvlNum = parseInt(String(row[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
@@ -144,35 +138,27 @@ async function processLevelCommand(
             const prefix = isCenter ? '>>> ' : '    ';
             const lvl = String(lvlNum).padEnd(6);
 
-            // 3 Day Churn
             const churnVal = getCol(row, '3 Days Churn', '3 Day Churn', '3daychurn', 'churn');
             const churn = churnVal !== null ? (parseFloat(churnVal) < 1 ? (parseFloat(churnVal) * 100).toFixed(1) + '%' : parseFloat(churnVal).toFixed(1) + '%') : '-';
 
-            // Repeat
-            const repVal = getCol(row, 'Avg. Repeat', 'Repeat', 'repeat', 'repeatratio');
+            const repVal = getCol(row, 'Avg. Repeat', 'Repeat', 'repeat');
             const rep = repVal !== null ? parseFloat(repVal).toFixed(2) : '-';
 
-            // Playon
             const playonVal = getCol(row, 'Playon per User', 'Playon', 'playon');
             const playon = playonVal !== null ? parseFloat(playonVal).toFixed(2) : '-';
 
-            // Total Moves
-            const movesVal = getCol(row, 'Total Move', 'Avg. Total Moves', 'TotalMove', 'totalmove');
+            const movesVal = getCol(row, 'Total Move', 'Avg. Total Moves', 'TotalMove');
             const moves = movesVal !== null ? parseFloat(movesVal).toFixed(1) : '-';
 
-            // Play Time
-            const timeVal = getCol(row, 'Avg. Level Play', 'Level Play Time', 'LevelPlayTime', 'playtime');
+            const timeVal = getCol(row, 'Avg. Level Play', 'Level Play Time', 'LevelPlayTime');
             const time = timeVal !== null ? parseFloat(timeVal).toFixed(1) : '-';
 
-            // First Try Win
             const winVal = getCol(row, 'Avg. First Try Win', 'First Try Win', 'firsttrywin');
             const win = winVal !== null ? (parseFloat(winVal) < 1 ? (parseFloat(winVal) * 100).toFixed(1) + '%' : parseFloat(winVal).toFixed(1) + '%') : '-';
 
-            // Remaining Move
-            const remVal = getCol(row, 'RM Total', 'Avg. RM Fixed', 'Avg. RM', 'remaining', 'Rem');
+            const remVal = getCol(row, 'RM Total', 'Avg. RM Fixed', 'Avg. RM', 'Rem');
             const rem = remVal !== null ? parseFloat(remVal).toFixed(1) : '-';
 
-            // Cluster - first from DB, then from CSV
             const dbCluster = clusterMap[lvlNum];
             const csvCluster = getCol(row, 'Final Cluster', 'FinalCluster', 'Clu', 'cluster');
             const clu = dbCluster || (csvCluster !== null ? String(csvCluster) : '-');
@@ -181,7 +167,6 @@ async function processLevelCommand(
         });
 
         const table = `**Level Context: ${levelNum} (${matchedGame.name})**\n\`\`\`\n${header}\n${tableRows.join('\n')}\n\`\`\``;
-
         await sendFollowUp(applicationId, token, table);
 
     } catch (error: any) {
@@ -194,7 +179,6 @@ export async function POST(request: Request) {
     const publicKey = process.env.DISCORD_PUBLIC_KEY;
 
     if (!publicKey) {
-        console.error('Missing DISCORD_PUBLIC_KEY');
         return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
@@ -204,12 +188,10 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid request signature' }, { status: 401 });
     }
 
-    // Handle PING
     if (body.type === InteractionType.PING) {
         return NextResponse.json({ type: InteractionResponseType.PONG });
     }
 
-    // Handle Commands
     if (body.type === InteractionType.APPLICATION_COMMAND) {
         const { name, options } = body.data;
         const applicationId = body.application_id;
@@ -227,7 +209,6 @@ export async function POST(request: Request) {
             }
 
             try {
-                // Get config to find game name
                 const { getSystemConfig } = await import('@/lib/config');
                 const config = await getSystemConfig();
 
@@ -247,7 +228,7 @@ export async function POST(request: Request) {
                         }).join('\n') || 'None';
                         return NextResponse.json({
                             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                            data: { content: `❌ Game '${gameName}' not found.\n\n**Available games & aliases:**\n${gameTable}\n\n**Usage:** \`/level no:123 game:<alias>\`` },
+                            data: { content: `❌ Game '${gameName}' not found.\n\n**Available games:**\n${gameTable}` },
                         });
                     }
                 }
@@ -255,21 +236,25 @@ export async function POST(request: Request) {
                 if (!matchedGame) {
                     return NextResponse.json({
                         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                        data: { content: 'Please specify a game. Use `/games` to see available options.' },
+                        data: { content: 'Please specify a game. Use `/games` to see options.' },
                     });
                 }
 
-                // Trigger background processing - don't await
-                processLevelCommand(applicationId, interactionToken, parseInt(levelNum), matchedGame)
-                    .catch(err => console.error('[Discord] Background processing error:', err));
+                // Use waitUntil to keep the function alive for background work
+                const ctx = (globalThis as any).waitUntil;
+                if (ctx) {
+                    ctx(processLevelCommand(applicationId, interactionToken, parseInt(levelNum), matchedGame));
+                } else {
+                    // Fallback: try to process anyway
+                    processLevelCommand(applicationId, interactionToken, parseInt(levelNum), matchedGame)
+                        .catch(err => console.error('[Discord] Background error:', err));
+                }
 
-                // Return deferred response immediately
                 return NextResponse.json({
                     type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
                 });
 
             } catch (error: any) {
-                console.error('Level command error:', error);
                 return NextResponse.json({
                     type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
                     data: { content: `Error: ${error.message}` },
@@ -277,7 +262,6 @@ export async function POST(request: Request) {
             }
         }
 
-        // Handle /games command - fast, no need for deferred
         if (name === 'games') {
             const { getSystemConfig } = await import('@/lib/config');
             const config = await getSystemConfig();
@@ -285,7 +269,7 @@ export async function POST(request: Request) {
             if (!config.games || config.games.length === 0) {
                 return NextResponse.json({
                     type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                    data: { content: 'No games configured. Please add games in the Settings page.' },
+                    data: { content: 'No games configured.' },
                 });
             }
 
@@ -296,7 +280,7 @@ export async function POST(request: Request) {
 
             return NextResponse.json({
                 type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: { content: `**🎮 Available Games & Aliases:**\n\n${gameTable}\n\n**Usage:** \`/level no:123 game:<alias>\`` },
+                data: { content: `**🎮 Available Games:**\n\n${gameTable}\n\n**Usage:** \`/level no:123 game:<alias>\`` },
             });
         }
 
