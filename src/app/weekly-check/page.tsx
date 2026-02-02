@@ -1282,6 +1282,120 @@ export default function WeeklyCheckPage() {
         }
     };
 
+    // Sync all level data with metrics to database for Discord bot
+    const syncAllLevelsToDb = async () => {
+        if (!rawData || rawData.length === 0) {
+            alert('No data loaded. Please load data first.');
+            return;
+        }
+
+        const gameId = selectedGameId || config?.games[0]?.id;
+        if (!gameId) {
+            alert('No game selected');
+            return;
+        }
+
+        try {
+            setLoading(true);
+
+            // Helper to get column value with aliases
+            const getCol = (row: any, ...names: string[]) => {
+                for (const name of names) {
+                    const key = Object.keys(row).find(k =>
+                        normalizeHeader(k).includes(normalizeHeader(name))
+                    );
+                    if (key && row[key] !== undefined && row[key] !== '') return row[key];
+                }
+                return null;
+            };
+
+            // Map rawData to level_scores format
+            const levels = rawData.map((row: any) => {
+                const levelCol = Object.keys(row).find(k => {
+                    const n = normalizeHeader(k);
+                    return n === 'level' || n === 'levelnumber' || n === 'level_number';
+                }) || 'Level';
+                const level = parseInt(String(row[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
+
+                if (level <= 0) return null;
+
+                // Get cluster from saved state or CSV
+                const savedCluster = savedScores[level]?.cluster;
+                const csvCluster = getCol(row, 'finalcluster', 'clu', 'cluster');
+                const cluster = savedCluster || csvCluster || null;
+
+                // Get score
+                const score = savedScores[level]?.score ?? null;
+
+                // Get metrics - parse as decimals
+                const parseDecimal = (val: any) => {
+                    if (val === null || val === undefined || val === '' || val === '-') return null;
+                    const num = parseFloat(String(val).replace(/[%,]/g, ''));
+                    return isNaN(num) ? null : num;
+                };
+
+                const churnVal = getCol(row, '3daychurn', '3dayschurn', 'churn', '3 days churn');
+                const replayVal = getCol(row, 'repeat', 'repeatratio', 'avgrepeat');
+                const playonVal = getCol(row, 'playon', 'playonperuser');
+                const movesVal = getCol(row, 'totalmove', 'avgtotalmoves', 'avgmoves');
+                const timeVal = getCol(row, 'levelplaytime', 'playtime', 'avglevelplay', 'avgplaytime');
+                const winVal = getCol(row, 'firsttrywin', 'avgfirsttrywin');
+                const remVal = getCol(row, 'remainingmove', 'rmtotal', 'avgrm');
+
+                // Convert percentages (values < 1 are already decimals, values > 1 might be percents)
+                let churn_rate = parseDecimal(churnVal);
+                if (churn_rate !== null && churn_rate > 1) churn_rate = churn_rate / 100;
+
+                let win_rate_1st = parseDecimal(winVal);
+                if (win_rate_1st !== null && win_rate_1st > 1) win_rate_1st = win_rate_1st / 100;
+
+                return {
+                    level,
+                    cluster,
+                    score,
+                    churn_rate,
+                    replay_rate: parseDecimal(replayVal),
+                    play_on_rate: parseDecimal(playonVal),
+                    avg_moves: parseDecimal(movesVal),
+                    avg_time: parseDecimal(timeVal),
+                    win_rate_1st,
+                    avg_remaining_moves: parseDecimal(remVal),
+                };
+            }).filter(Boolean);
+
+            if (levels.length === 0) {
+                alert('No valid level data to sync');
+                return;
+            }
+
+            // Sync in batches of 500
+            const batchSize = 500;
+            let synced = 0;
+            for (let i = 0; i < levels.length; i += batchSize) {
+                const batch = levels.slice(i, i + batchSize);
+                const res = await fetch("/api/level-scores", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ gameId, levels: batch }),
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error || 'Failed to sync');
+                }
+
+                synced += batch.length;
+            }
+
+            alert(`✅ Synced ${synced} levels to database! Discord bot will now show all metrics.`);
+        } catch (e: any) {
+            console.error('Sync error:', e);
+            alert(`Failed to sync: ${e.message}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const renderSection = (section: TableSection, tabType: 'unsuccessful' | 'successful' | 'last30') => (
         <div key={section.id} className="rounded-xl border shadow-sm bg-card overflow-hidden">
             <button
@@ -1883,6 +1997,12 @@ export default function WeeklyCheckPage() {
                 {combinedReport.length > 0 && (
                     <Button variant="secondary" onClick={() => setShowWeeklyReportDialog(true)} className="shadow-sm w-full sm:w-auto gap-2">
                         📋 Weekly Report ({combinedReport.length})
+                    </Button>
+                )}
+                {rawData.length > 0 && (
+                    <Button variant="outline" onClick={syncAllLevelsToDb} disabled={loading} className="shadow-sm w-full sm:w-auto gap-2">
+                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                        🤖 Sync to Discord
                     </Button>
                 )}
             </div>
