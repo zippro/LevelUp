@@ -74,12 +74,13 @@ export async function POST(request: Request) {
                     );
 
                     if (!matchedGame) {
-                        const available = config.games?.map((g: any) =>
-                            `${g.name} (${g.aliases?.join(', ') || g.id})`
-                        ).join('\n') || 'None';
+                        const gameTable = config.games?.map((g: any) => {
+                            const aliases = g.aliases?.length > 0 ? g.aliases.join(', ') : g.id;
+                            return `• **${g.name}** → \`${aliases}\``;
+                        }).join('\n') || 'None';
                         return NextResponse.json({
                             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                            data: { content: `Game '${gameName}' not found.\n\n**Available games:**\n${available}` },
+                            data: { content: `❌ Game '${gameName}' not found.\n\n**Available games & aliases:**\n${gameTable}\n\n**Usage:** \`/level no:123 game:<alias>\`` },
                         });
                     }
                 }
@@ -262,13 +263,14 @@ export async function POST(request: Request) {
                 });
             }
 
-            const gameList = config.games.map((g: any, i: number) =>
-                `${i + 1}. **${g.name}** (aliases: \`${g.aliases?.join(', ') || g.id}\`)`
-            ).join('\n');
+            const gameTable = config.games.map((g: any) => {
+                const aliases = g.aliases?.length > 0 ? g.aliases.join(', ') : g.id;
+                return `• **${g.name}** → \`${aliases}\``;
+            }).join('\n');
 
             return NextResponse.json({
                 type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: { content: `**Available Games:**\n${gameList}\n\nUse: \`/level no:123 game:<alias>\`` },
+                data: { content: `**🎮 Available Games & Aliases:**\n\n${gameTable}\n\n**Usage:** \`/level no:123 game:<alias>\`` },
             });
         }
 
