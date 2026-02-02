@@ -163,7 +163,7 @@ export async function POST(request: Request) {
 
             return NextResponse.json({
                 type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: { content: `**Available Games:**\n${gameList}\n\nUse: \`/level level_num:123 game:<id>\`` },
+                data: { content: `**Available Games:**\n${gameList}\n\nUse: \`/level no:123 game:<id>\`` },
             });
         }
 
