@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { verifyDiscordRequest } from '@/lib/discord';
 import { createClient } from '@supabase/supabase-js';
+import papa from 'papaparse';
 
 // Initialize Supabase Client
 const supabase = createClient(
@@ -18,6 +19,23 @@ const InteractionType = {
 const InteractionResponseType = {
     PONG: 1,
     CHANNEL_MESSAGE_WITH_SOURCE: 4,
+};
+
+// Helper to normalize column names for matching
+const normalizeHeader = (str: string) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+// Helper to get column value with aliases
+const getCol = (row: any, ...names: string[]) => {
+    for (const name of names) {
+        // Try exact match first
+        if (row[name] !== undefined && row[name] !== '') return row[name];
+        // Try normalized match
+        const key = Object.keys(row).find(k =>
+            normalizeHeader(k).includes(normalizeHeader(name))
+        );
+        if (key && row[key] !== undefined && row[key] !== '') return row[key];
+    }
+    return null;
 };
 
 export async function POST(request: Request) {
@@ -84,59 +102,138 @@ export async function POST(request: Request) {
                     }
                 }
 
-                // Query level_scores database directly (much faster than CSV)
-                const gameIdForDb = matchedGame?.id || null;
-
-                if (!gameIdForDb) {
+                if (!matchedGame) {
                     return NextResponse.json({
                         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
                         data: { content: 'Please specify a game. Use `/games` to see available options.' },
                     });
                 }
 
-                const { data: levelData, error: queryError } = await supabase
-                    .from('level_scores')
-                    .select('level, cluster, churn_rate, replay_rate, play_on_rate, avg_moves, avg_time, win_rate_1st, avg_remaining_moves')
-                    .eq('game_id', gameIdForDb)
-                    .gte('level', startLevel)
-                    .lte('level', endLevel)
-                    .order('level', { ascending: true });
+                // Find the Level Revize CSV file for this game
+                const { data: files, error: listError } = await supabase.storage
+                    .from('data-repository')
+                    .list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } });
 
-                if (queryError) {
+                if (listError || !files) {
                     return NextResponse.json({
                         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                        data: { content: `Error querying data: ${queryError.message}` },
+                        data: { content: `Error listing files: ${listError?.message || 'No files found'}` },
                     });
                 }
 
-                if (!levelData || levelData.length === 0) {
+                // Find matching file (game name + Level Revize)
+                const matchingFile = files.find((f: any) =>
+                    f.name.toLowerCase().includes(matchedGame.name.toLowerCase()) &&
+                    f.name.toLowerCase().includes('level revize')
+                );
+
+                if (!matchingFile) {
                     return NextResponse.json({
                         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                        data: { content: `No data found for level ${levelNum} (+/- 5) in game '${matchedGame?.name}'. Please sync data from Weekly Check first.` },
+                        data: { content: `No Level Revize data found for '${matchedGame.name}'. Please load data from Weekly Check first.` },
+                    });
+                }
+
+                // Download the CSV file
+                const { data: fileData, error: downloadError } = await supabase.storage
+                    .from('data-repository')
+                    .download(matchingFile.name);
+
+                if (downloadError || !fileData) {
+                    return NextResponse.json({
+                        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                        data: { content: `Error downloading data: ${downloadError?.message || 'Unknown error'}` },
+                    });
+                }
+
+                const csvText = await fileData.text();
+                const parsed = papa.parse(csvText, { header: true, skipEmptyLines: true });
+                const rows = parsed.data as any[];
+
+                // Find level column
+                const sampleRow = rows[0] || {};
+                const levelCol = Object.keys(sampleRow).find(k => {
+                    const n = normalizeHeader(k);
+                    return n === 'level' || n === 'levelnumber' || n === 'level_number';
+                }) || 'Level';
+
+                // Filter to level range
+                const filteredRows = rows.filter(row => {
+                    const lvl = parseInt(String(row[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
+                    return lvl >= startLevel && lvl <= endLevel;
+                }).sort((a, b) => {
+                    const lvlA = parseInt(String(a[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
+                    const lvlB = parseInt(String(b[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
+                    return lvlA - lvlB;
+                });
+
+                if (filteredRows.length === 0) {
+                    return NextResponse.json({
+                        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                        data: { content: `No data found for level ${levelNum} (+/- 5) in '${matchedGame.name}'.` },
+                    });
+                }
+
+                // Fetch clusters from level_scores table
+                let clusterMap: Record<number, string> = {};
+                const { data: scoreData } = await supabase
+                    .from('level_scores')
+                    .select('level, cluster')
+                    .eq('game_id', matchedGame.id)
+                    .gte('level', startLevel)
+                    .lte('level', endLevel);
+
+                if (scoreData) {
+                    scoreData.forEach((s: any) => {
+                        if (s.cluster) clusterMap[s.level] = s.cluster;
                     });
                 }
 
                 // Format Table
                 const header = "    Lvl   Churn   Rep   Playon  Moves  Time    1stWin  Rem   Clu";
-                const tableRows = levelData.map((row: any) => {
-                    const lvlNum = row.level;
+                const tableRows = filteredRows.map((row: any) => {
+                    const lvlNum = parseInt(String(row[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
                     const isCenter = lvlNum === centerLevel;
                     const prefix = isCenter ? '>>> ' : '    ';
                     const lvl = String(lvlNum).padEnd(6);
 
-                    const churn = row.churn_rate !== null ? (row.churn_rate * 100).toFixed(1) + '%' : '-';
-                    const rep = row.replay_rate !== null ? row.replay_rate.toFixed(2) : '-';
-                    const playon = row.play_on_rate !== null ? row.play_on_rate.toFixed(2) : '-';
-                    const moves = row.avg_moves !== null ? row.avg_moves.toFixed(1) : '-';
-                    const time = row.avg_time !== null ? row.avg_time.toFixed(1) : '-';
-                    const win = row.win_rate_1st !== null ? (row.win_rate_1st * 100).toFixed(1) + '%' : '-';
-                    const rem = row.avg_remaining_moves !== null ? row.avg_remaining_moves.toFixed(1) : '-';
-                    const clu = row.cluster || '-';
+                    // 3 Day Churn
+                    const churnVal = getCol(row, '3 Days Churn', '3 Day Churn', '3daychurn', 'churn');
+                    const churn = churnVal !== null ? (parseFloat(churnVal) < 1 ? (parseFloat(churnVal) * 100).toFixed(1) + '%' : parseFloat(churnVal).toFixed(1) + '%') : '-';
+
+                    // Repeat
+                    const repVal = getCol(row, 'Avg. Repeat', 'Repeat', 'repeat', 'repeatratio');
+                    const rep = repVal !== null ? parseFloat(repVal).toFixed(2) : '-';
+
+                    // Playon
+                    const playonVal = getCol(row, 'Playon per User', 'Playon', 'playon');
+                    const playon = playonVal !== null ? parseFloat(playonVal).toFixed(2) : '-';
+
+                    // Total Moves
+                    const movesVal = getCol(row, 'Total Move', 'Avg. Total Moves', 'TotalMove', 'totalmove');
+                    const moves = movesVal !== null ? parseFloat(movesVal).toFixed(1) : '-';
+
+                    // Play Time
+                    const timeVal = getCol(row, 'Avg. Level Play', 'Level Play Time', 'LevelPlayTime', 'playtime');
+                    const time = timeVal !== null ? parseFloat(timeVal).toFixed(1) : '-';
+
+                    // First Try Win
+                    const winVal = getCol(row, 'Avg. First Try Win', 'First Try Win', 'firsttrywin');
+                    const win = winVal !== null ? (parseFloat(winVal) < 1 ? (parseFloat(winVal) * 100).toFixed(1) + '%' : parseFloat(winVal).toFixed(1) + '%') : '-';
+
+                    // Remaining Move
+                    const remVal = getCol(row, 'RM Total', 'Avg. RM Fixed', 'Avg. RM', 'remaining', 'Rem');
+                    const rem = remVal !== null ? parseFloat(remVal).toFixed(1) : '-';
+
+                    // Cluster - first from DB, then from CSV
+                    const dbCluster = clusterMap[lvlNum];
+                    const csvCluster = getCol(row, 'Final Cluster', 'FinalCluster', 'Clu', 'cluster');
+                    const clu = dbCluster || (csvCluster !== null ? String(csvCluster) : '-');
 
                     return `${prefix}${lvl}${churn.padStart(7)} ${rep.padStart(5)} ${playon.padStart(7)} ${moves.padStart(6)} ${time.padStart(7)} ${win.padStart(7)} ${rem.padStart(5)} ${clu.padStart(4)}`;
                 });
 
-                const table = `**Level Context: ${levelNum} (${matchedGame?.name})**\n\`\`\`\n${header}\n${tableRows.join('\n')}\n\`\`\``;
+                const table = `**Level Context: ${levelNum} (${matchedGame.name})**\n\`\`\`\n${header}\n${tableRows.join('\n')}\n\`\`\``;
 
                 return NextResponse.json({
                     type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
