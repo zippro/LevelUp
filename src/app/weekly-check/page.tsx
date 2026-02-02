@@ -1338,13 +1338,13 @@ export default function WeeklyCheckPage() {
                     return isNaN(num) ? null : num;
                 };
 
-                const churnVal = getCol(row, '3daychurn', '3dayschurn', 'churn', '3 days churn');
-                const replayVal = getCol(row, 'repeat', 'repeatratio', 'avgrepeat');
-                const playonVal = getCol(row, 'playon', 'playonperuser');
-                const movesVal = getCol(row, 'totalmove', 'avgtotalmoves', 'avgmoves');
-                const timeVal = getCol(row, 'levelplaytime', 'playtime', 'avglevelplay', 'avgplaytime');
-                const winVal = getCol(row, 'firsttrywin', 'avgfirsttrywin');
-                const remVal = getCol(row, 'remainingmove', 'rmtotal', 'avgrm');
+                const churnVal = getCol(row, '3daychurn', '3dayschurn', 'churn', '3 days churn', '3 Day Churn');
+                const replayVal = getCol(row, 'repeat', 'repeatratio', 'avgrepeat', 'Avg. Repeat');
+                const playonVal = getCol(row, 'playon', 'playonperuser', 'Playon per User');
+                const movesVal = getCol(row, 'Total Move', 'Avg. Total Moves', 'TotalMove', 'totalmove', 'avgtotalmoves');
+                const timeVal = getCol(row, 'Avg. Level Play', 'Avg. Level Play Time', 'Level Play Time', 'LevelPlayTime', 'levelplaytime');
+                const winVal = getCol(row, 'firsttrywin', 'avgfirsttrywin', 'Avg. First Try Win', 'First Try Win');
+                const remVal = getCol(row, 'RM Total', 'Avg. RM Fixed', 'Average remaining move', 'Avg. RM', 'Avg RM', 'Moves Left', 'remaining', 'Rem');
 
                 // Convert percentages (values < 1 are already decimals, values > 1 might be percents)
                 let churn_rate = parseDecimal(churnVal);
