@@ -2004,12 +2004,6 @@ export default function WeeklyCheckPage() {
                         📋 Weekly Report ({combinedReport.length})
                     </Button>
                 )}
-                {rawData.length > 0 && (
-                    <Button variant="outline" onClick={() => syncAllLevelsToDb()} disabled={loading} className="shadow-sm w-full sm:w-auto gap-2">
-                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                        🤖 Sync to Discord
-                    </Button>
-                )}
             </div>
 
             {
