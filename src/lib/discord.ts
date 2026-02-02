@@ -18,21 +18,21 @@ export async function verifyDiscordRequest(req: Request, appPublicKey: string) {
         const publicKeyBytes = hexToUint8Array(appPublicKey);
         const messageBytes = new TextEncoder().encode(timestamp + bodyText);
 
-        // Import the public key
+        // Import the public key with explicit type casting for TypeScript
         const cryptoKey = await crypto.subtle.importKey(
             'raw',
-            publicKeyBytes,
+            publicKeyBytes.buffer as ArrayBuffer,
             { name: 'Ed25519' },
             false,
             ['verify']
         );
 
-        // Verify the signature
+        // Verify the signature with explicit type casting
         const isVerified = await crypto.subtle.verify(
             'Ed25519',
             cryptoKey,
-            signatureBytes,
-            messageBytes
+            signatureBytes.buffer as ArrayBuffer,
+            messageBytes.buffer as ArrayBuffer
         );
 
         if (!isVerified) {
