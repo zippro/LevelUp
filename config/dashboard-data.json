@@ -12,6 +12,11 @@
     {
       "id": "game-1",
       "name": "Christmas Puzzle",
+      "aliases": [
+        "christmas",
+        "cp",
+        "xmas"
+      ],
       "viewMappings": {
         "Final Level Score": "7d23b782-5716-488a-a9a8-4c1b174e230c",
         "Level Revize": "99b6db23-884c-45e2-a56b-2e1322f90129"
@@ -20,31 +25,55 @@
     {
       "id": "garden-design",
       "name": "Garden Design",
+      "aliases": [
+        "garden",
+        "gd"
+      ],
       "viewMappings": {}
     },
     {
       "id": "wish-wonder",
       "name": "Wish Wonder",
+      "aliases": [
+        "wish",
+        "ww"
+      ],
       "viewMappings": {}
     },
     {
       "id": "dream-design",
       "name": "Dream Design",
+      "aliases": [
+        "dream",
+        "dd"
+      ],
       "viewMappings": {}
     },
     {
       "id": "zen-master",
       "name": "Zen Master",
+      "aliases": [
+        "zen",
+        "zm"
+      ],
       "viewMappings": {}
     },
     {
       "id": "friends-adventure",
       "name": "Friends Adventure",
+      "aliases": [
+        "friends",
+        "fa"
+      ],
       "viewMappings": {}
     },
     {
       "id": "royal-decor",
       "name": "Royal Decor",
+      "aliases": [
+        "royal",
+        "rd"
+      ],
       "viewMappings": {}
     }
   ]

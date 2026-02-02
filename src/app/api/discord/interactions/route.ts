@@ -66,16 +66,20 @@ export async function POST(request: Request) {
 
                 let matchedGame: any = null;
                 if (gameName) {
+                    const searchTerm = gameName.toLowerCase();
                     matchedGame = config.games?.find((g: any) =>
-                        g.id.toLowerCase() === gameName.toLowerCase() ||
-                        g.name.toLowerCase() === gameName.toLowerCase()
+                        g.id.toLowerCase() === searchTerm ||
+                        g.name.toLowerCase() === searchTerm ||
+                        g.aliases?.some((alias: string) => alias.toLowerCase() === searchTerm)
                     );
 
                     if (!matchedGame) {
-                        const available = config.games?.map((g: any) => g.name).join(', ') || 'None';
+                        const available = config.games?.map((g: any) =>
+                            `${g.name} (${g.aliases?.join(', ') || g.id})`
+                        ).join('\n') || 'None';
                         return NextResponse.json({
                             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                            data: { content: `Game '${gameName}' not found. Available games: ${available}` },
+                            data: { content: `Game '${gameName}' not found.\n\n**Available games:**\n${available}` },
                         });
                     }
                 }
@@ -97,13 +101,13 @@ export async function POST(request: Request) {
                 let matchingFile = null;
 
                 if (gameNameToMatch) {
-                    matchingFile = files.find(f =>
+                    matchingFile = files.find((f: any) =>
                         f.name.toLowerCase().includes(gameNameToMatch.toLowerCase()) &&
                         f.name.toLowerCase().includes('level revize')
                     );
                 } else {
                     // No game specified - find first Level Revize file
-                    matchingFile = files.find(f =>
+                    matchingFile = files.find((f: any) =>
                         f.name.toLowerCase().includes('level revize')
                     );
                 }
@@ -155,6 +159,25 @@ export async function POST(request: Request) {
                     });
                 }
 
+                // Fetch clusters from level_scores table
+                const gameIdForDb = matchedGame?.id || null;
+                let clusterMap: Record<number, string> = {};
+
+                if (gameIdForDb) {
+                    const { data: scoreData } = await supabase
+                        .from('level_scores')
+                        .select('level, cluster')
+                        .eq('game_id', gameIdForDb)
+                        .gte('level', startLevel)
+                        .lte('level', endLevel);
+
+                    if (scoreData) {
+                        scoreData.forEach((s: any) => {
+                            if (s.cluster) clusterMap[s.level] = s.cluster;
+                        });
+                    }
+                }
+
                 // Helper to get column value with aliases
                 const getCol = (row: any, ...names: string[]) => {
                     for (const name of names) {
@@ -202,9 +225,10 @@ export async function POST(request: Request) {
                     const remVal = getCol(row, 'remainingmove', 'rmtotal', 'avgrm', 'rem');
                     const rem = remVal !== null ? parseFloat(remVal).toFixed(1) : '-';
 
-                    // Cluster
-                    const cluVal = getCol(row, 'clu', 'finalcluster', 'cluster');
-                    const clu = cluVal !== null ? String(cluVal) : '-';
+                    // Cluster - first from DB, then from CSV
+                    const dbCluster = clusterMap[lvlNum];
+                    const csvCluster = getCol(row, 'clu', 'finalcluster', 'cluster');
+                    const clu = dbCluster || (csvCluster !== null ? String(csvCluster) : '-');
 
                     return `${prefix}${lvl}${churn.padStart(7)} ${rep.padStart(5)} ${playon.padStart(7)} ${moves.padStart(6)} ${time.padStart(7)} ${win.padStart(7)} ${rem.padStart(5)} ${clu.padStart(4)}`;
                 });
@@ -239,12 +263,12 @@ export async function POST(request: Request) {
             }
 
             const gameList = config.games.map((g: any, i: number) =>
-                `${i + 1}. **${g.name}** (ID: \`${g.id}\`)`
+                `${i + 1}. **${g.name}** (aliases: \`${g.aliases?.join(', ') || g.id}\`)`
             ).join('\n');
 
             return NextResponse.json({
                 type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: { content: `**Available Games:**\n${gameList}\n\nUse: \`/level no:123 game:<id>\`` },
+                data: { content: `**Available Games:**\n${gameList}\n\nUse: \`/level no:123 game:<alias>\`` },
             });
         }
 
