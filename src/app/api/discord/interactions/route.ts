@@ -3,6 +3,9 @@ import { verifyDiscordRequest } from '@/lib/discord';
 import { createClient } from '@supabase/supabase-js';
 import papa from 'papaparse';
 
+// Use longer timeout for Vercel
+export const maxDuration = 60; // seconds
+
 // Initialize Supabase Client
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -241,23 +244,29 @@ export async function POST(request: Request) {
                 });
             }
 
-            // Process and return result directly
-            try {
-                console.log(`[Discord] Processing level ${levelNum} for game ${gameName}`);
-                const result = await processLevelCommand(levelNum, gameName);
-                console.log(`[Discord] Returning result for level ${levelNum}`);
+            // Use deferred response pattern with native waitUntil
+            const backgroundTask = (async () => {
+                try {
+                    console.log(`[Discord] Processing level ${levelNum} for game ${gameName}`);
+                    const result = await processLevelCommand(levelNum, gameName);
+                    console.log(`[Discord] Sending follow-up for level ${levelNum}`);
+                    await sendFollowUp(applicationId, interactionToken, result);
+                    console.log(`[Discord] Follow-up sent successfully`);
+                } catch (error: any) {
+                    console.error('[Discord] Background processing error:', error);
+                    await sendFollowUp(applicationId, interactionToken, `Error: ${error.message}`);
+                }
+            })();
 
-                return NextResponse.json({
-                    type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                    data: { content: result },
-                });
-            } catch (error: any) {
-                console.error('[Discord] Processing error:', error);
-                return NextResponse.json({
-                    type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                    data: { content: `Error: ${error.message}` },
-                });
+            // If globalThis.waitUntil exists (edge/Vercel), use it to keep function alive
+            if (typeof (globalThis as any).waitUntil === 'function') {
+                (globalThis as any).waitUntil(backgroundTask);
             }
+
+            // Return deferred response immediately
+            return NextResponse.json({
+                type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
+            });
         }
 
         // Handle /games command
