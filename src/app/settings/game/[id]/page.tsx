@@ -13,6 +13,7 @@ interface Config {
     games: {
         id: string;
         name: string;
+        aliases?: string[];
         viewMappings: Record<string, string>;
         urlMappings?: Record<string, string>;
         scoreMultipliers?: ScoreMultipliers;
@@ -54,6 +55,8 @@ export default function GameDetailsPage() {
     // State for URL inputs
     const [urls, setUrls] = useState<Record<string, string>>({});
     const [lookingUp, setLookingUp] = useState<Record<string, boolean>>({});
+    // State for aliases (comma-separated string for easy editing)
+    const [aliasesStr, setAliasesStr] = useState<string>("");
     const [multipliers, setMultipliers] = useState<ScoreMultipliers>(DEFAULT_MULTIPLIERS);
 
     useEffect(() => {
@@ -66,6 +69,7 @@ export default function GameDetailsPage() {
                     setMappings(game.viewMappings || {});
                     setUrls(game.urlMappings || {});
                     setMultipliers(game.scoreMultipliers || DEFAULT_MULTIPLIERS);
+                    setAliasesStr((game.aliases || []).join(', '));
                 } else {
                     // Handle not found?
                 }
@@ -78,10 +82,17 @@ export default function GameDetailsPage() {
         if (!config) return;
         setSaving(true);
 
+        // Parse aliases from comma-separated string
+        const parsedAliases = aliasesStr
+            .split(',')
+            .map(a => a.trim().toLowerCase())
+            .filter(a => a.length > 0);
+
         const updatedGames = config.games.map((g) => {
             if (g.id === gameId) {
                 return {
                     ...g,
+                    aliases: parsedAliases,
                     viewMappings: mappings,
                     urlMappings: urls,
                     scoreMultipliers: multipliers
@@ -146,6 +157,27 @@ export default function GameDetailsPage() {
                     <p className="text-muted-foreground">Map Variables to Tableau View IDs for this game.</p>
                 </div>
             </div>
+
+            {/* Aliases Card */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Discord Aliases</CardTitle>
+                    <CardDescription>
+                        Define shorthand names for this game to use in Discord commands (e.g., "/level no:123 game:wish").
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Input
+                        value={aliasesStr}
+                        onChange={(e) => setAliasesStr(e.target.value)}
+                        placeholder="wish, ww, wishwonder"
+                        className="max-w-md"
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                        Comma-separated list. Users can type any of these aliases in Discord to match this game.
+                    </p>
+                </CardContent>
+            </Card>
 
             <Card>
                 <CardHeader>
