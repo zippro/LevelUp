@@ -1,5 +1,5 @@
 // @ts-ignore - tweetnacl has no types
-import nacl from 'tweetnacl';
+import * as nacl from 'tweetnacl';
 
 /**
  * Verifies the Discord interaction request signature.
@@ -9,17 +9,25 @@ export async function verifyDiscordRequest(req: Request, appPublicKey: string) {
     const timestamp = req.headers.get('x-signature-timestamp');
 
     if (!signature || !timestamp) {
+        console.log('Missing signature or timestamp headers');
         return { isValid: false, body: null };
     }
 
     const bodyText = await req.text();
+    console.log('Verifying Discord request...');
 
     try {
+        const signatureBytes = hexToUint8Array(signature);
+        const publicKeyBytes = hexToUint8Array(appPublicKey);
+        const messageBytes = new TextEncoder().encode(timestamp + bodyText);
+
         const isVerified = nacl.sign.detached.verify(
-            new TextEncoder().encode(timestamp + bodyText),
-            hexToUint8Array(signature),
-            hexToUint8Array(appPublicKey)
+            messageBytes,
+            signatureBytes,
+            publicKeyBytes
         );
+
+        console.log('Verification result:', isVerified);
 
         if (!isVerified) {
             return { isValid: false, body: null };
