@@ -1,4 +1,4 @@
-import { NextResponse, after } from 'next/server';
+import { NextResponse } from 'next/server';
 import { verifyDiscordRequest } from '@/lib/discord';
 import { createClient } from '@supabase/supabase-js';
 import papa from 'papaparse';
@@ -241,24 +241,23 @@ export async function POST(request: Request) {
                 });
             }
 
-            // Schedule background processing using after() - continues after response
-            after(async () => {
-                try {
-                    console.log(`[Discord] Processing level ${levelNum} for game ${gameName}`);
-                    const result = await processLevelCommand(levelNum, gameName);
-                    console.log(`[Discord] Sending follow-up for level ${levelNum}`);
-                    await sendFollowUp(applicationId, interactionToken, result);
-                    console.log(`[Discord] Follow-up sent successfully`);
-                } catch (error: any) {
-                    console.error('[Discord] Background processing error:', error);
-                    await sendFollowUp(applicationId, interactionToken, `Error: ${error.message}`);
-                }
-            });
+            // Process and return result directly
+            try {
+                console.log(`[Discord] Processing level ${levelNum} for game ${gameName}`);
+                const result = await processLevelCommand(levelNum, gameName);
+                console.log(`[Discord] Returning result for level ${levelNum}`);
 
-            // Return deferred response immediately (tells Discord "we're thinking...")
-            return NextResponse.json({
-                type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
-            });
+                return NextResponse.json({
+                    type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                    data: { content: result },
+                });
+            } catch (error: any) {
+                console.error('[Discord] Processing error:', error);
+                return NextResponse.json({
+                    type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                    data: { content: `Error: ${error.message}` },
+                });
+            }
         }
 
         // Handle /games command
