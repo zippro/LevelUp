@@ -167,8 +167,11 @@ export async function POST(request: Request) {
                 };
 
                 // Format Table
-                const header = "Lvl   Churn   Rep   Playon  Moves  Time    1stWin  Rem   Clu";
+                const header = "    Lvl   Churn   Rep   Playon  Moves  Time    1stWin  Rem   Clu";
                 const tableRows = filteredRows.map((row: any) => {
+                    const lvlNum = parseInt(String(row[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
+                    const isCenter = lvlNum === centerLevel;
+                    const prefix = isCenter ? '>>> ' : '    ';
                     const lvl = String(row[levelCol] || '-').padEnd(6);
 
                     // 3 Day Churn
@@ -203,7 +206,7 @@ export async function POST(request: Request) {
                     const cluVal = getCol(row, 'clu', 'finalcluster', 'cluster');
                     const clu = cluVal !== null ? String(cluVal) : '-';
 
-                    return `${lvl}${churn.padStart(7)} ${rep.padStart(5)} ${playon.padStart(7)} ${moves.padStart(6)} ${time.padStart(7)} ${win.padStart(7)} ${rem.padStart(5)} ${clu.padStart(4)}`;
+                    return `${prefix}${lvl}${churn.padStart(7)} ${rep.padStart(5)} ${playon.padStart(7)} ${moves.padStart(6)} ${time.padStart(7)} ${win.padStart(7)} ${rem.padStart(5)} ${clu.padStart(4)}`;
                 });
 
                 const extractedGameName = matchingFile.name.split(' - ')[0] || 'Unknown';
