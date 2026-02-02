@@ -100,6 +100,7 @@ export async function POST(request: Request) {
 
                 // Find matching file (game name + Level Revize)
                 const gameNameToMatch = matchedGame?.name || gameName;
+                console.log(`[Discord] Looking for files, game: ${gameNameToMatch || 'any'}, files found: ${files.length}`);
                 let matchingFile = null;
 
                 if (gameNameToMatch) {
