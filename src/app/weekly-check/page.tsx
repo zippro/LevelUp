@@ -518,6 +518,80 @@ export default function WeeklyCheckPage() {
                 processedHeaders = processedHeaders.filter(h => !hiddenSet.has(h));
             }
             setHeaders(processedHeaders);
+
+            // Auto-sync all level data to database for Discord bot
+            const gameId = selectedGameId;
+            if (gameId && rawRows.length > 0) {
+                const getCol = (row: any, ...names: string[]) => {
+                    for (const name of names) {
+                        if (row[name] !== undefined && row[name] !== '') return row[name];
+                        const key = Object.keys(row).find(k =>
+                            normalizeHeader(k).includes(normalizeHeader(name))
+                        );
+                        if (key && row[key] !== undefined && row[key] !== '') return row[key];
+                    }
+                    return null;
+                };
+
+                const parseDecimal = (val: any) => {
+                    if (val === null || val === undefined || val === '' || val === '-') return null;
+                    const num = parseFloat(String(val).replace(/[%,]/g, ''));
+                    return isNaN(num) ? null : num;
+                };
+
+                const levels = rawRows.map((row: any) => {
+                    const levelCol = Object.keys(row).find(k => {
+                        const n = normalizeHeader(k);
+                        return n === 'level' || n === 'levelnumber' || n === 'level_number';
+                    }) || 'Level';
+                    const level = parseInt(String(row[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
+                    if (level <= 0) return null;
+
+                    const cluster = row['Clu'] || getCol(row, 'Final Cluster', 'FinalCluster', 'Clu', 'cluster') || null;
+                    const score = row['Score'] !== undefined && row['Score'] !== '' ? parseFloat(row['Score']) : null;
+
+                    const churnVal = getCol(row, '3 Days Churn', '3 Day Churn', '3daychurn', 'churn');
+                    const replayVal = getCol(row, 'Avg. Repeat', 'Repeat', 'repeat');
+                    const playonVal = getCol(row, 'Playon per User', 'Playon', 'playon');
+                    const movesVal = getCol(row, 'Total Move', 'Avg. Total Moves', 'TotalMove');
+                    const timeVal = getCol(row, 'Avg. Level Play', 'Level Play Time', 'LevelPlayTime');
+                    const winVal = getCol(row, 'Avg. First Try Win', 'First Try Win', 'firsttrywin');
+                    const remVal = getCol(row, 'RM Total', 'Avg. RM Fixed', 'Avg. RM', 'Rem');
+
+                    let churn_rate = parseDecimal(churnVal);
+                    if (churn_rate !== null && churn_rate > 1) churn_rate = churn_rate / 100;
+
+                    let win_rate_1st = parseDecimal(winVal);
+                    if (win_rate_1st !== null && win_rate_1st > 1) win_rate_1st = win_rate_1st / 100;
+
+                    return {
+                        level,
+                        cluster,
+                        score,
+                        churn_rate,
+                        replay_rate: parseDecimal(replayVal),
+                        play_on_rate: parseDecimal(playonVal),
+                        avg_moves: parseDecimal(movesVal),
+                        avg_time: parseDecimal(timeVal),
+                        win_rate_1st,
+                        avg_remaining_moves: parseDecimal(remVal),
+                    };
+                }).filter(Boolean);
+
+                // Sync in background (don't wait)
+                if (levels.length > 0) {
+                    const batchSize = 500;
+                    for (let i = 0; i < levels.length; i += batchSize) {
+                        const batch = levels.slice(i, i + batchSize);
+                        fetch("/api/level-scores", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ gameId, levels: batch }),
+                        }).catch(err => console.error('[Auto-Sync] Error:', err));
+                    }
+                    console.log(`[Auto-Sync] Synced ${levels.length} levels for Discord bot`);
+                }
+            }
         } catch (err: any) {
             setError(err.message);
         } finally {
