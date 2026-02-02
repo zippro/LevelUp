@@ -550,13 +550,14 @@ export default function WeeklyCheckPage() {
                     const cluster = row['Clu'] || getCol(row, 'Final Cluster', 'FinalCluster', 'Clu', 'cluster') || null;
                     const score = row['Score'] !== undefined && row['Score'] !== '' ? parseFloat(row['Score']) : null;
 
-                    const churnVal = getCol(row, 'Instant Churn', '7 Days Churn', '3 Days Churn', '3 Day Churn', '3daychurn', 'churn', 'Churn Rate', 'Churn');
-                    const replayVal = getCol(row, 'Avg. Repeat Rate', 'Avg. Repeat', 'Repeat', 'repeat', 'Avg Repeat', 'AvgRepeat', 'Rep');
-                    const playonVal = getCol(row, 'Playon per User', 'Playon', 'playon', 'Play On', 'PlayOn', 'Playon Rate');
-                    const movesVal = getCol(row, 'Total Move', 'Avg. Total Moves', 'TotalMove', 'Avg Total Moves', 'Moves', 'Avg Move', 'AvgMoves', 'Avg. Moves', 'Average Moves', 'Move Count', 'Total Moves');
-                    const timeVal = getCol(row, 'Avg. Level Play', 'Level Play Time', 'LevelPlayTime', 'Avg Level Play', 'Play Time', 'PlayTime', 'Avg. Play Time', 'Avg Playtime', 'Level Time', 'Avg Time', 'AvgTime', 'Time', 'Average Time');
-                    const winVal = getCol(row, 'Avg. FirstTryWin', 'Avg. First Try Win', 'First Try Win', 'firsttrywin', 'First Win', 'FirstWin', '1st Win', '1stWin', 'Win Rate');
-                    const remVal = getCol(row, 'RM Total', 'Avg. RM Fixed', 'Avg. RM', 'Rem', 'RM', 'Remaining', 'Remaining Move', 'Average remaining move', 'Avg Remaining Move', 'Remaining Moves', 'Moves Left', 'Avg RM');
+                    // Use exact same column lookups as magnifier feature
+                    const churnVal = row['3 Days Churn'] || row['3 Day Churn'] || row['3DaysChurn'] || getCol(row, 'Instant Churn', '7 Days Churn', 'churn', 'Churn Rate', 'Churn');
+                    const replayVal = getCol(row, 'Avg. Repeat Ratio (birleşik)', 'Avg. Repeat Rate', 'Repeat', 'Repeat Rate', 'rep', 'birleşik', 'birlesik', 'Avg. Repeat');
+                    const playonVal = row['Playon per User'] || row['Playon Per User'] || row['PlayonPerUser'] || getCol(row, 'Playon', 'playon');
+                    const movesVal = row['Avg. Total Moves'] || row['Total Move'] || row['TotalMove'] || getCol(row, 'Moves');
+                    const timeVal = row['Avg. Level Play'] || row['Avg. Level Play Time'] || row['Level Play Time'] || row['LevelPlayTime'] || getCol(row, 'Time', 'PlayTime');
+                    const winVal = row['Avg. FirstTryWin'] || row['Avg. FirstTryWinPercent'] || row['Avg First Try Win'] || row['First Try Win'] || getCol(row, '1stWin', 'Win Rate');
+                    const remVal = getCol(row, 'RM Total', 'Avg. RM Fixed', 'Average remaining move', 'avg remaining move', 'remaining moves', 'Rem', 'RM', 'Avg. RM', 'Avg RM', 'Moves Left', 'remaining');
 
                     let churn_rate = parseDecimal(churnVal);
                     if (churn_rate !== null && churn_rate > 1) churn_rate = churn_rate / 100;
