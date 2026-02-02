@@ -8,18 +8,29 @@ export async function verifyDiscordRequest(req: Request, appPublicKey: string) {
     const signature = req.headers.get('x-signature-ed25519');
     const timestamp = req.headers.get('x-signature-timestamp');
 
+    console.log('=== Discord Verification Debug ===');
+    console.log('Public Key (first 10 chars):', appPublicKey?.substring(0, 10));
+    console.log('Public Key Length:', appPublicKey?.length);
+    console.log('Signature (first 10 chars):', signature?.substring(0, 10));
+    console.log('Timestamp:', timestamp);
+
     if (!signature || !timestamp) {
-        console.log('Missing signature or timestamp headers');
+        console.log('ERROR: Missing signature or timestamp headers');
         return { isValid: false, body: null };
     }
 
     const bodyText = await req.text();
-    console.log('Verifying Discord request...');
+    console.log('Body Length:', bodyText.length);
+    console.log('Body Preview:', bodyText.substring(0, 100));
 
     try {
         const signatureBytes = hexToUint8Array(signature);
         const publicKeyBytes = hexToUint8Array(appPublicKey);
         const messageBytes = new TextEncoder().encode(timestamp + bodyText);
+
+        console.log('Signature Bytes Length:', signatureBytes.length); // Should be 64
+        console.log('Public Key Bytes Length:', publicKeyBytes.length); // Should be 32
+        console.log('Message Bytes Length:', messageBytes.length);
 
         const isVerified = nacl.sign.detached.verify(
             messageBytes,
@@ -27,7 +38,8 @@ export async function verifyDiscordRequest(req: Request, appPublicKey: string) {
             publicKeyBytes
         );
 
-        console.log('Verification result:', isVerified);
+        console.log('Verification Result:', isVerified);
+        console.log('=================================');
 
         if (!isVerified) {
             return { isValid: false, body: null };
