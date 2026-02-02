@@ -544,18 +544,19 @@ export default function WeeklyCheckPage() {
                     const cluster = row['Clu'] || getCol(row, 'Final Cluster', 'FinalCluster', 'Clu', 'cluster') || null;
                     const score = row['Score'] !== undefined && row['Score'] !== '' ? parseFloat(row['Score']) : null;
 
-                    // USE EXACT SAME LOOKUPS AS MAGNIFIER (lines 1452-1458)
-                    const churnVal = row['3 Days Churn'] || row['3 Day Churn'] || row['3DaysChurn'] || null;
-                    const replayVal = getCol(row, 'Avg. Repeat Ratio (birleşik)', 'Avg. Repeat Rate', 'Repeat', 'Repeat Rate', 'rep', 'birleşik', 'birlesik');
-                    const playonVal = row['Playon per User'] || row['Playon Per User'] || row['PlayonPerUser'] || null;
-                    const movesVal = row['Avg. Total Moves'] || row['Total Move'] || row['TotalMove'] || null;
-                    const timeVal = row['Avg. Level Play'] || row['Avg. Level Play Time'] || row['Level Play Time'] || row['LevelPlayTime'] || null;
-                    const winVal = row['Avg. FirstTryWin'] || row['Avg. FirstTryWinPercent'] || row['Avg First Try Win'] || row['First Try Win'] || null;
-                    const remVal = getCol(row, 'RM Total', 'Avg. RM Fixed', 'Average remaining move', 'avg remaining move', 'remaining moves', 'Rem', 'RM', 'Avg. RM', 'Avg RM', 'Moves Left', 'remaining');
+                    // USE getCol for ALL columns (fuzzy matching handles all variations)
+                    const churnVal = getCol(row, '3 Days Churn', '3 Day Churn', '3DaysChurn', 'Instant Churn', '7 Days Churn', 'Churn', 'churn');
+                    const replayVal = getCol(row, 'Avg. Repeat Ratio', 'Avg. Repeat Rate', 'Repeat Rate', 'Repeat', 'Rep', 'birleşik');
+                    const playonVal = getCol(row, 'Playon per User', 'Playon Per User', 'PlayonPerUser', 'Playon', 'Play On');
+                    const movesVal = getCol(row, 'Avg. Total Moves', 'Total Move', 'TotalMove', 'Total Moves', 'Moves', 'Move');
+                    const timeVal = getCol(row, 'Avg. Level Play', 'Level Play Time', 'LevelPlayTime', 'Play Time', 'Time');
+                    const winVal = getCol(row, 'Avg. FirstTryWin', 'Avg First Try Win', 'First Try Win', 'FirstTryWin', '1st Win', 'Win Rate');
+                    const remVal = getCol(row, 'RM Total', 'Avg. RM Fixed', 'Avg. RM', 'Average remaining move', 'Remaining Move', 'Remaining', 'Rem', 'RM');
 
-                    // Debug: Log first row values
+                    // Debug: Log first row column names and values
                     if (level === rawRows[0]?.[levelCol]) {
-                        console.log('[Auto-Sync] Sample row values:', { churnVal, replayVal, playonVal, movesVal, timeVal, winVal, remVal });
+                        console.log('[Auto-Sync] CSV columns:', Object.keys(row));
+                        console.log('[Auto-Sync] Sample values:', { churnVal, replayVal, playonVal, movesVal, timeVal, winVal, remVal });
                     }
 
                     let churn_rate = parseDecimal(churnVal);

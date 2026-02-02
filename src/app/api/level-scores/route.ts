@@ -52,19 +52,19 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'gameId and levels array required' }, { status: 400 });
     }
 
-    // Upsert level scores
+    // Upsert level scores (use explicit null check to handle 0 values)
     const upsertData = levels.map((item: any) => ({
         game_id: gameId,
         level: item.level,
-        score: item.score,
+        score: item.score !== undefined && item.score !== null ? item.score : null,
         cluster: item.cluster || null,
-        churn_rate: item.churn_rate || null,
-        replay_rate: item.replay_rate || null,
-        play_on_rate: item.play_on_rate || null,
-        avg_moves: item.avg_moves || null,
-        avg_time: item.avg_time || null,
-        win_rate_1st: item.win_rate_1st || null,
-        avg_remaining_moves: item.avg_remaining_moves || null,
+        churn_rate: item.churn_rate !== undefined && item.churn_rate !== null ? item.churn_rate : null,
+        replay_rate: item.replay_rate !== undefined && item.replay_rate !== null ? item.replay_rate : null,
+        play_on_rate: item.play_on_rate !== undefined && item.play_on_rate !== null ? item.play_on_rate : null,
+        avg_moves: item.avg_moves !== undefined && item.avg_moves !== null ? item.avg_moves : null,
+        avg_time: item.avg_time !== undefined && item.avg_time !== null ? item.avg_time : null,
+        win_rate_1st: item.win_rate_1st !== undefined && item.win_rate_1st !== null ? item.win_rate_1st : null,
+        avg_remaining_moves: item.avg_remaining_moves !== undefined && item.avg_remaining_moves !== null ? item.avg_remaining_moves : null,
         updated_at: new Date().toISOString()
     }));
 
