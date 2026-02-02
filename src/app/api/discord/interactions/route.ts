@@ -115,15 +115,21 @@ export async function POST(request: Request) {
                     });
                 }
 
-                const matchingFile = files.find((f: any) =>
-                    f.name.toLowerCase().includes(matchedGame.name.toLowerCase()) &&
-                    f.name.toLowerCase().includes('level revize')
-                );
+                // Try to match file using game name or game id
+                const searchTerms = [matchedGame.name.toLowerCase(), matchedGame.id.toLowerCase()];
+                const matchingFile = files.find((f: any) => {
+                    const fname = f.name.toLowerCase();
+                    if (!fname.includes('level revize')) return false;
+                    return searchTerms.some(term => fname.includes(term));
+                });
 
                 if (!matchingFile) {
+                    // List available Level Revize files for debugging
+                    const levelRevizeFiles = files.filter((f: any) => f.name.toLowerCase().includes('level revize'));
+                    const fileList = levelRevizeFiles.slice(0, 5).map((f: any) => f.name).join('\n• ');
                     return NextResponse.json({
                         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                        data: { content: `No Level Revize data for '${matchedGame.name}'. Load data from Weekly Check first.` },
+                        data: { content: `No Level Revize data for '${matchedGame.name}'.\n\n**Available files:**\n• ${fileList || 'None'}\n\nLoad data from Weekly Check first.` },
                     });
                 }
 
