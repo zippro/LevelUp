@@ -13,6 +13,7 @@
       "id": "game-1",
       "name": "Christmas Puzzle",
       "aliases": [
+        "christmas puzzle",
         "christmas",
         "cp",
         "xmas"
@@ -26,6 +27,7 @@
       "id": "garden-design",
       "name": "Garden Design",
       "aliases": [
+        "garden design",
         "garden",
         "gd"
       ],
@@ -35,6 +37,7 @@
       "id": "wish-wonder",
       "name": "Wish Wonder",
       "aliases": [
+        "wish wonder",
         "wish",
         "ww"
       ],
@@ -44,6 +47,7 @@
       "id": "dream-design",
       "name": "Dream Design",
       "aliases": [
+        "dream design",
         "dream",
         "dd"
       ],
@@ -53,6 +57,7 @@
       "id": "zen-master",
       "name": "Zen Master",
       "aliases": [
+        "zen master",
         "zen",
         "zm"
       ],
@@ -62,6 +67,7 @@
       "id": "friends-adventure",
       "name": "Friends Adventure",
       "aliases": [
+        "friends adventure",
         "friends",
         "fa"
       ],
@@ -71,8 +77,90 @@
       "id": "royal-decor",
       "name": "Royal Decor",
       "aliases": [
+        "royal decor",
         "royal",
         "rd"
+      ],
+      "viewMappings": {}
+    },
+    {
+      "id": "farm-match",
+      "name": "Farm Match",
+      "aliases": [
+        "farm match",
+        "farm",
+        "fm"
+      ],
+      "viewMappings": {}
+    },
+    {
+      "id": "match-3d-box",
+      "name": "Match 3D Box",
+      "aliases": [
+        "match 3d box",
+        "match3d",
+        "m3d",
+        "box"
+      ],
+      "viewMappings": {}
+    },
+    {
+      "id": "christmas-3d-match",
+      "name": "Christmas 3D Match",
+      "aliases": [
+        "christmas 3d match",
+        "christmas 3d",
+        "c3d"
+      ],
+      "viewMappings": {}
+    },
+    {
+      "id": "home-match",
+      "name": "Home Match",
+      "aliases": [
+        "home match",
+        "home",
+        "hm"
+      ],
+      "viewMappings": {}
+    },
+    {
+      "id": "triple-farm",
+      "name": "Triple Farm",
+      "aliases": [
+        "triple farm",
+        "triple",
+        "tf"
+      ],
+      "viewMappings": {}
+    },
+    {
+      "id": "match-land",
+      "name": "Match Land",
+      "aliases": [
+        "match land",
+        "matchland",
+        "ml"
+      ],
+      "viewMappings": {}
+    },
+    {
+      "id": "santa-quest",
+      "name": "Santa Quest",
+      "aliases": [
+        "santa quest",
+        "santa",
+        "sq"
+      ],
+      "viewMappings": {}
+    },
+    {
+      "id": "match-3d-mania",
+      "name": "Match 3D Mania",
+      "aliases": [
+        "match 3d mania",
+        "mania",
+        "m3dm"
       ],
       "viewMappings": {}
     }
