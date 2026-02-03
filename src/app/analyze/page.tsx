@@ -131,10 +131,8 @@ export default function AnalyzePage() {
             .catch((e) => console.error(e));
     }, []);
 
-    // Get games that have Bolgesel Rapor view mapping
-    const availableGames = config?.games.filter(
-        (g) => g.viewMappings && g.viewMappings["Bolgesel Rapor"]
-    ) || [];
+    // Get all games (no longer require Bolgesel Rapor view mapping since we use cached data)
+    const availableGames = config?.games || [];
 
     // Toggle game selection
     const toggleGameSelection = (gameId: string) => {
@@ -281,10 +279,13 @@ export default function AnalyzePage() {
                     }
                 }
 
-                // If no cached data or force fresh, fetch from Tableau
+                // If no cached data or force fresh, fetch from Tableau (only if view mapping exists)
                 if (!csvData) {
                     const viewId = game.viewMappings?.["Bolgesel Rapor"];
-                    if (!viewId) continue;
+                    if (!viewId) {
+                        console.warn(`[Analyze] No cached data and no Bolgesel Rapor view mapping for ${gameName}. Load data from Weekly Check first.`);
+                        continue;
+                    }
 
                     const response = await fetch("/api/sync-tableau", {
                         method: "POST",
@@ -502,7 +503,7 @@ export default function AnalyzePage() {
                                 </label>
                             ))}
                             {availableGames.length === 0 && (
-                                <div className="px-3 py-2 text-sm text-muted-foreground">No games with Bolgesel Rapor</div>
+                                <div className="px-3 py-2 text-sm text-muted-foreground">No games configured</div>
                             )}
                         </div>
                     )}
