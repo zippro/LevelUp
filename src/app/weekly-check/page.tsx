@@ -58,7 +58,9 @@ const getCol = (row: any, ...names: string[]) => {
         const normalizedCandidate = normalizeHeader(name);
         const actualKey = keys.find(k => {
             const normKey = normalizeHeader(k);
-            return normKey === normalizedCandidate || normKey.includes(normalizedCandidate) || normalizedCandidate.includes(normKey);
+            // STRICTER matching: only allow column to contain search term (not reverse)
+            // This prevents 'Level Play' from matching 'Level'
+            return normKey === normalizedCandidate || normKey.includes(normalizedCandidate);
         });
         if (actualKey && row[actualKey] !== undefined) return row[actualKey];
     }
@@ -544,14 +546,15 @@ export default function WeeklyCheckPage() {
                     const cluster = row['Clu'] || getCol(row, 'Final Cluster', 'FinalCluster', 'Clu', 'cluster') || null;
                     const score = row['Score'] !== undefined && row['Score'] !== '' ? parseFloat(row['Score']) : null;
 
-                    // Use getCol for ALL metrics to handle whitespace/encoding issues
-                    const churnVal = getCol(row, '3 Days Churn', '3 Day Churn', 'Instant Churn', '7 Days Churn');
-                    const replayVal = getCol(row, 'Avg. Repeat Rate', 'Avg. Repeat Ratio', 'Repeat Rate', 'Repeat', 'Rep');
-                    const playonVal = getCol(row, 'Playon per User', 'Playon Per User', 'PlayonPerUser', 'Playon');
-                    const movesVal = getCol(row, 'Avg. Total Moves', 'Total Move', 'TotalMove', 'Total Moves');
-                    const timeVal = getCol(row, 'Avg. Level Play', 'Avg Level Play', 'Level Play Time', 'Level Play', 'Play Time');
-                    const winVal = getCol(row, 'Avg. FirstTryWin', 'Avg FirstTryWin', 'First Try Win', 'FirstTryWin');
-                    const remVal = getCol(row, 'Avg. RM Fixed', 'RM Fixed', 'Avg RM Fixed', 'RM Total', 'Average remaining move', 'Remaining Move', 'Remaining', 'Rem', 'RM');
+                    // USE EXACT SAME DIRECT PROPERTY ACCESS AS MAGNIFIER (lines 1442-1448)
+                    const churnVal = row['3 Days Churn'] || row['3 Day Churn'] || row['3DaysChurn'];
+                    const replayVal = getCol(row, 'Avg. Repeat Ratio (birleşik)', 'Avg. Repeat Rate', 'Repeat', 'Repeat Rate');
+                    const playonVal = row['Playon per User'] || row['Playon Per User'] || row['PlayonPerUser'];
+                    const movesVal = row['Avg. Total Moves'] || row['Total Move'] || row['TotalMove'];
+                    // TIME: Use exact same lookup as magnifier - NO 'Level Play' alone which matches 'Level' column!
+                    const timeVal = row['Avg. Level Play'] || row['Avg. Level Play Time'] || row['Level Play Time'] || row['LevelPlayTime'];
+                    const winVal = row['Avg. FirstTryWin'] || row['Avg. FirstTryWinPercent'] || row['Avg First Try Win'] || row['First Try Win'];
+                    const remVal = getCol(row, 'RM Total', 'Avg. RM Fixed', 'Average remaining move', 'Remaining Move', 'RM');
 
                     // Debug: Log first row with ALL column data
                     if (level === rawRows[0]?.[levelCol]) {
