@@ -12,10 +12,17 @@ const CONFIG_BUCKET = 'data-repository';
 const CONFIG_FILE = 'system/dashboard-config.json';
 const LOCAL_CONFIG_PATH = path.join(process.cwd(), 'config', 'dashboard-data.json');
 
+// Response headers to prevent any browser/CDN caching of config
+const NO_CACHE_HEADERS = {
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+};
+
 // GET: Retrieve configuration from Supabase, fallback to local
 export async function GET() {
     const config = await getSystemConfig();
-    return NextResponse.json(config);
+    return NextResponse.json(config, { headers: NO_CACHE_HEADERS });
 }
 
 // POST: Update configuration to Supabase

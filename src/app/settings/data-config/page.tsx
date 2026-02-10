@@ -42,27 +42,38 @@ export default function DataConfigPage() {
 
     const saveConfig = async (newConfig: Config) => {
         setConfig(newConfig); // Optimistic update
-        await fetch("/api/config", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(newConfig),
-        });
+        try {
+            const res = await fetch("/api/config", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newConfig),
+            });
+            if (!res.ok) {
+                console.error("Failed to save config:", await res.text());
+                // Revert optimistic update on failure
+                await fetchConfig();
+            }
+        } catch (e) {
+            console.error("Failed to save config:", e);
+            // Revert optimistic update on failure
+            await fetchConfig();
+        }
     };
 
     useEffect(() => {
         fetchConfig();
     }, []);
 
-    const addVariable = () => {
+    const addVariable = async () => {
         if (!newVar || !config) return;
         if (config.variables.includes(newVar)) return;
 
         const updated = { ...config, variables: [...config.variables, newVar] };
-        saveConfig(updated);
+        await saveConfig(updated);
         setNewVar("");
     };
 
-    const removeVariable = (v: string) => {
+    const removeVariable = async (v: string) => {
         if (!config) return;
         if (!confirm(`Enable removal of '${v}'? This will remove it from all game mappings and reports.`)) return;
 
@@ -81,7 +92,7 @@ export default function DataConfigPage() {
                 return newReports;
             })() : undefined
         };
-        saveConfig(updated);
+        await saveConfig(updated);
     };
 
     const startEditingVar = (v: string) => {
@@ -89,7 +100,7 @@ export default function DataConfigPage() {
         setEditVarName(v);
     };
 
-    const saveEditedVar = () => {
+    const saveEditedVar = async () => {
         if (!config || !editingVar || !editVarName) return;
         if (editVarName === editingVar) {
             setEditingVar(null);
@@ -122,26 +133,26 @@ export default function DataConfigPage() {
             })() : undefined
         };
 
-        saveConfig(updated);
+        await saveConfig(updated);
         setEditingVar(null);
         setEditVarName("");
     };
 
-    const addGame = () => {
+    const addGame = async () => {
         if (!newGame || !config) return;
         const id = newGame.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now();
         const updated = {
             ...config,
             games: [...config.games, { id, name: newGame, viewMappings: {} }],
         };
-        saveConfig(updated);
+        await saveConfig(updated);
         setNewGame("");
     };
 
-    const removeGame = (id: string) => {
+    const removeGame = async (id: string) => {
         if (!config) return;
         const updated = { ...config, games: config.games.filter((x) => x.id !== id) };
-        saveConfig(updated);
+        await saveConfig(updated);
     };
 
 
