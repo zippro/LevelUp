@@ -174,12 +174,14 @@ export default function WeeklyCheckPage() {
     const [minLevel, setMinLevel] = useState<number>(0);
     const [minDaysSinceEvent, setMinDaysSinceEvent] = useState<number>(0);
     const [finalClusters, setFinalClusters] = useState<string[]>(['1', '2', '3', '4', 'None']);
+    const [listSize, setListSize] = useState<number>(50);
 
     // Successful Tab Filters
     const [successMinTotalUser, setSuccessMinUsers] = useState<number>(50);
     const [successMinLevel, setSuccessMinLevel] = useState<number>(0);
     const [successMinDaysSinceEvent, setSuccessMinDaysSinceEvent] = useState<number>(0);
     const [successFinalClusters, setSuccessFinalClusters] = useState<string[]>(['1', '2', '3', '4', 'None']);
+    const [successListSize, setSuccessListSize] = useState<number>(50);
 
     // Last 30 Filter
     const [minTotalUserLast30, setMinUsersLast30] = useState<number>(50);
@@ -323,10 +325,10 @@ export default function WeeklyCheckPage() {
         const churnData = generate3DayChurnTopUnsuccessful(filtered);
 
         setUnsuccessfulSections(prev => [
-            { ...prev[0], data: levelScoreData.slice(0, 50), headers },
-            { ...prev[1], data: churnData.slice(0, 50), headers },
+            { ...prev[0], data: levelScoreData.slice(0, listSize), headers },
+            { ...prev[1], data: churnData.slice(0, listSize), headers },
         ]);
-    }, [rawData, headers, minTotalUser, minLevel, minDaysSinceEvent, finalClusters]);
+    }, [rawData, headers, minTotalUser, minLevel, minDaysSinceEvent, finalClusters, listSize]);
 
     // Process data for Successful tab
     useEffect(() => {
@@ -348,10 +350,10 @@ export default function WeeklyCheckPage() {
         const churnData = generate3DayChurnTopSuccessful(filtered);
 
         setSuccessfulSections(prev => [
-            { ...prev[0], data: levelScoreData.slice(0, 50), headers },
-            { ...prev[1], data: churnData.slice(0, 50), headers },
+            { ...prev[0], data: levelScoreData.slice(0, successListSize), headers },
+            { ...prev[1], data: churnData.slice(0, successListSize), headers },
         ]);
-    }, [rawData, headers, successMinTotalUser, successMinLevel, successMinDaysSinceEvent, successFinalClusters]);
+    }, [rawData, headers, successMinTotalUser, successMinLevel, successMinDaysSinceEvent, successFinalClusters, successListSize]);
 
     // Process data for Last 30 tab
     useEffect(() => {
@@ -1996,6 +1998,10 @@ export default function WeeklyCheckPage() {
                             <Input type="number" value={minDaysSinceEvent} onChange={(e) => setMinDaysSinceEvent(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
                         </div>
                         <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">List Size</label>
+                            <Input type="number" value={listSize} onChange={(e) => setListSize(Number(e.target.value))} className="w-20 h-8 bg-background" min={1} />
+                        </div>
+                        <div className="space-y-1">
                             <label className="text-xs font-semibold text-muted-foreground">Clu</label>
                             <div className="flex gap-1">
                                 {['1', '2', '3', '4', 'None'].map(c => (
@@ -2038,6 +2044,10 @@ export default function WeeklyCheckPage() {
                         <div className="space-y-1">
                             <label className="text-xs font-semibold text-muted-foreground">Min Days Old</label>
                             <Input type="number" value={successMinDaysSinceEvent} onChange={(e) => setSuccessMinDaysSinceEvent(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">List Size</label>
+                            <Input type="number" value={successListSize} onChange={(e) => setSuccessListSize(Number(e.target.value))} className="w-20 h-8 bg-background" min={1} />
                         </div>
                         <div className="space-y-1">
                             <label className="text-xs font-semibold text-muted-foreground">Clu</label>
