@@ -9,7 +9,7 @@ import { Loader2, GripVertical, Calendar, X, Eye, EyeOff, Filter } from "lucide-
 import { cn } from "@/lib/utils";
 import type { PlannerColumn, PlannerAction, PlannerCell, PlannerScheduleEntry, PlannerGameOrder, GameInfo } from "@/lib/planner-types";
 import { generateWeekRange, toWeekKey, formatWeekLabel, isCurrentWeek, isPastWeek, formatWeekLabelFull, getWeekStart } from "@/lib/planner-utils";
-import { format } from "date-fns";
+import { format, addWeeks } from "date-fns";
 
 // ========================================
 // Cell Editor Component
@@ -720,16 +720,39 @@ export default function PlannerPage() {
                                         </TableCell>
                                         {weeks.map(week => {
                                             const weekKey = toWeekKey(week);
-                                            const entry = getScheduleEntry(game.id, weekKey);
+                                            const nextWeekKey = toWeekKey(addWeeks(week, 1));
                                             const past = isPastWeek(week);
+
+                                            // Derive entries from planning cells: find cells for this game with dates in this week
+                                            const weekEntries = cells
+                                                .filter(c => {
+                                                    if (c.game_id !== game.id || !c.date || !c.action_id) return false;
+                                                    return c.date >= weekKey && c.date < nextWeekKey;
+                                                })
+                                                .map(c => {
+                                                    const col = columns.find(col => col.id === c.column_id);
+                                                    const action = actions.find(a => a.id === c.action_id);
+                                                    return { columnName: col?.name || '?', color: action?.color || '#6b7280', date: c.date };
+                                                });
+
                                             return (
                                                 <TableCell key={weekKey} className={cn("p-1", past && "opacity-60")}>
-                                                    <CellEditor
-                                                        actions={actions}
-                                                        currentActionId={entry?.action_id || null}
-                                                        currentDate={entry?.date || null}
-                                                        onSave={(actionId, date) => upsertSchedule(game.id, weekKey, actionId, date)}
-                                                    />
+                                                    {weekEntries.length > 0 ? (
+                                                        <div className="flex flex-col gap-0.5">
+                                                            {weekEntries.map((entry, i) => (
+                                                                <div
+                                                                    key={i}
+                                                                    className="px-2 py-1 rounded-md text-[11px] font-medium text-white shadow-sm truncate"
+                                                                    style={{ backgroundColor: entry.color }}
+                                                                    title={`${entry.columnName} — ${entry.date ? new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}`}
+                                                                >
+                                                                    {entry.columnName}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="min-h-[28px]" />
+                                                    )}
                                                 </TableCell>
                                             );
                                         })}
