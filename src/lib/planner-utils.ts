@@ -36,19 +36,28 @@ export function toWeekKey(date: Date): string {
 }
 
 /**
- * Format a week-start date as a compact human-readable label.
- * E.g. "Mar 2" or "Feb 24"
+ * Format a week-start date as a compact human-readable label showing the range.
+ * E.g. "Mar 3 – 9" or "Feb 24 – Mar 2"
  */
 export function formatWeekLabel(date: Date): string {
-    return format(date, 'MMM d');
+    const end = addWeeks(date, 1);
+    end.setDate(end.getDate() - 1); // Sunday
+    const startMonth = format(date, 'MMM');
+    const endMonth = format(end, 'MMM');
+    if (startMonth === endMonth) {
+        return `${format(date, 'MMM d')} – ${format(end, 'd')}`;
+    }
+    return `${format(date, 'MMM d')} – ${format(end, 'MMM d')}`;
 }
 
 /**
  * Format a week-start date with year for tooltips.
- * E.g. "Mar 2, 2026"
+ * E.g. "Mar 2 – 8, 2026"
  */
 export function formatWeekLabelFull(date: Date): string {
-    return format(date, 'MMM d, yyyy');
+    const end = addWeeks(date, 1);
+    end.setDate(end.getDate() - 1);
+    return `${format(date, 'MMM d')} – ${format(end, 'MMM d, yyyy')}`;
 }
 
 /**

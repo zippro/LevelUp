@@ -677,7 +677,7 @@ export default function PlannerPage() {
                                             <TableHead
                                                 key={weekKey}
                                                 className={cn(
-                                                    "text-center min-w-[110px] font-bold whitespace-nowrap",
+                                                    "text-center min-w-[130px] font-bold whitespace-nowrap",
                                                     current && "bg-primary/10 text-primary",
                                                     past && "text-muted-foreground/60"
                                                 )}
