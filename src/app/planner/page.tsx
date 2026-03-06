@@ -11,6 +11,22 @@ import type { PlannerColumn, PlannerAction, PlannerCell, PlannerScheduleEntry, P
 import { generateWeekRange, toWeekKey, formatWeekLabel, isCurrentWeek, isPastWeek, formatWeekLabelFull, getWeekStart } from "@/lib/planner-utils";
 import { format, addWeeks } from "date-fns";
 
+// Distinct colors for each planning column in the schedule view
+const COLUMN_COLORS = [
+    '#2563eb', // blue
+    '#16a34a', // green
+    '#dc2626', // red
+    '#9333ea', // purple
+    '#ea580c', // orange
+    '#0891b2', // cyan
+    '#be185d', // pink
+    '#854d0e', // brown
+    '#4f46e5', // indigo
+    '#0d9488', // teal
+    '#c026d3', // fuchsia
+    '#65a30d', // lime
+];
+
 // ========================================
 // Cell Editor Component
 // ========================================
@@ -731,8 +747,15 @@ export default function PlannerPage() {
                                                 })
                                                 .map(c => {
                                                     const col = columns.find(col => col.id === c.column_id);
+                                                    const colIdx = columns.findIndex(col => col.id === c.column_id);
                                                     const action = actions.find(a => a.id === c.action_id);
-                                                    return { columnName: col?.name || '?', color: action?.color || '#6b7280', date: c.date };
+                                                    return {
+                                                        columnName: col?.name || '?',
+                                                        actionName: action?.name || '',
+                                                        actionColor: action?.color || '#6b7280',
+                                                        columnColor: COLUMN_COLORS[colIdx % COLUMN_COLORS.length],
+                                                        date: c.date,
+                                                    };
                                                 });
 
                                             return (
@@ -742,11 +765,15 @@ export default function PlannerPage() {
                                                             {weekEntries.map((entry, i) => (
                                                                 <div
                                                                     key={i}
-                                                                    className="px-2 py-1 rounded-md text-[11px] font-medium text-white shadow-sm truncate"
-                                                                    style={{ backgroundColor: entry.color }}
-                                                                    title={`${entry.columnName} — ${entry.date ? new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}`}
+                                                                    className="px-2 py-1 rounded-md text-[11px] font-medium text-white shadow-sm flex items-center gap-1.5"
+                                                                    style={{ backgroundColor: entry.columnColor }}
+                                                                    title={`${entry.columnName} · ${entry.actionName}${entry.date ? ' · ' + new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}`}
                                                                 >
-                                                                    {entry.columnName}
+                                                                    <span
+                                                                        className="w-2 h-2 rounded-full flex-shrink-0 border border-white/40"
+                                                                        style={{ backgroundColor: entry.actionColor }}
+                                                                    />
+                                                                    <span className="truncate">{entry.columnName}</span>
                                                                 </div>
                                                             ))}
                                                         </div>
