@@ -568,10 +568,10 @@ export default function LevelScorePage() {
                 const firstTryWinPercent = parseNum(getCol(row, getAliases('firstTryWinPercent', ['Avg. FirstTryWinPercent', 'FirstTryWinPercent', 'First Try Win', '1st Win %', 'FTW']), ['date']));
 
                 // Integration Metrics (Screenshot specific)
-                const churnRate = parseNum(getCol(row, ...getAliases('churnRate', ['Churn', 'churn', 'Churn Rate'])));
-                const playOnRate = parseNum(getCol(row, ...getAliases('playOnRate', ['Playon', 'PlayOn', 'Play On'])));
-                const avgMoves = parseNum(getCol(row, ...getAliases('avgMoves', ['Moves', 'Avg. Moves', 'Avg Moves'])));
-                const avgRemainingMoves = parseNum(getCol(row, ...getAliases('avgRemainingMoves', ['Rem', 'Remaining Moves', 'Avg Remaining Moves', 'Rem Moves'])));
+                const churnRate = parseNum(getCol(row, getAliases('churnRate', ['Churn', 'churn', 'Churn Rate'])));
+                const playOnRate = parseNum(getCol(row, getAliases('playOnRate', ['Playon', 'PlayOn', 'Play On'])));
+                const avgMoves = parseNum(getCol(row, getAliases('avgMoves', ['Moves', 'Avg. Moves', 'Avg Moves'])));
+                const avgRemainingMoves = parseNum(getCol(row, getAliases('avgRemainingMoves', ['Rem', 'Remaining Moves', 'Avg Remaining Moves', 'Rem Moves'])));
 
 
                 // DEBUG: Alert first row values to verify parsing
