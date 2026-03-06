@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -237,6 +237,9 @@ export default function PlannerPage() {
     // Visibility state
     const [hiddenGameIds, setHiddenGameIds] = useState<Set<string>>(new Set());
     const [hiddenColumnIds, setHiddenColumnIds] = useState<Set<string>>(new Set());
+    // Ref to track if preferences have been loaded (avoid saving on initial load)
+    const prefsLoaded = useRef(false);
+    const prefsSaveTimer = useRef<NodeJS.Timeout | null>(null);
 
     // Week range
     const weeks = useMemo(() => generateWeekRange(2, 10), []);
@@ -245,12 +248,13 @@ export default function PlannerPage() {
 
     const fetchAll = async () => {
         try {
-            const [configRes, colRes, actRes, cellRes, schedRes] = await Promise.all([
+            const [configRes, colRes, actRes, cellRes, schedRes, prefRes] = await Promise.all([
                 fetch('/api/config'),
                 fetch('/api/planner/columns'),
                 fetch('/api/planner/actions'),
                 fetch('/api/planner/cells'),
                 fetch('/api/planner/schedule'),
+                fetch('/api/planner/preferences'),
             ]);
             const [configData, colData, actData, cellData, schedData] = await Promise.all([
                 configRes.json(), colRes.json(), actRes.json(), cellRes.json(), schedRes.json()
@@ -263,6 +267,13 @@ export default function PlannerPage() {
             setCells(Array.isArray(cellData) ? cellData : []);
             setSchedule(Array.isArray(schedData) ? schedData : []);
 
+            // Load preferences (hidden states)
+            if (prefRes.ok) {
+                const prefData = await prefRes.json();
+                if (prefData.hidden_game_ids) setHiddenGameIds(new Set(prefData.hidden_game_ids));
+                if (prefData.hidden_column_ids) setHiddenColumnIds(new Set(prefData.hidden_column_ids));
+            }
+
             const goRes = await fetch('/api/planner/game-order');
             if (goRes.ok) {
                 const goData = await goRes.json();
@@ -272,6 +283,7 @@ export default function PlannerPage() {
             console.error('Failed to load planner data:', e);
         } finally {
             setLoading(false);
+            prefsLoaded.current = true;
         }
     };
 
@@ -289,11 +301,27 @@ export default function PlannerPage() {
     const visibleGames = useMemo(() => sortedGames.filter(g => !hiddenGameIds.has(g.id)), [sortedGames, hiddenGameIds]);
     const visibleColumns = useMemo(() => columns.filter(c => !hiddenColumnIds.has(c.id)), [columns, hiddenColumnIds]);
 
-    // Visibility toggles
+    // Auto-save preferences when hidden state changes (debounced)
+    const savePreferences = useCallback((gameIds: Set<string>, colIds: Set<string>) => {
+        if (prefsSaveTimer.current) clearTimeout(prefsSaveTimer.current);
+        prefsSaveTimer.current = setTimeout(() => {
+            fetch('/api/planner/preferences', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    hidden_game_ids: Array.from(gameIds),
+                    hidden_column_ids: Array.from(colIds),
+                })
+            });
+        }, 500);
+    }, []);
+
+    // Visibility toggles (with auto-save)
     const toggleGameVisibility = (id: string) => {
         setHiddenGameIds(prev => {
             const next = new Set(prev);
             if (next.has(id)) next.delete(id); else next.add(id);
+            if (prefsLoaded.current) savePreferences(next, hiddenColumnIds);
             return next;
         });
     };
@@ -301,13 +329,30 @@ export default function PlannerPage() {
         setHiddenColumnIds(prev => {
             const next = new Set(prev);
             if (next.has(id)) next.delete(id); else next.add(id);
+            if (prefsLoaded.current) savePreferences(hiddenGameIds, next);
             return next;
         });
     };
-    const showAllGames = () => setHiddenGameIds(new Set());
-    const hideAllGames = () => setHiddenGameIds(new Set(games.map(g => g.id)));
-    const showAllColumns = () => setHiddenColumnIds(new Set());
-    const hideAllColumns = () => setHiddenColumnIds(new Set(columns.map(c => c.id)));
+    const showAllGames = () => {
+        const next = new Set<string>();
+        setHiddenGameIds(next);
+        if (prefsLoaded.current) savePreferences(next, hiddenColumnIds);
+    };
+    const hideAllGames = () => {
+        const next = new Set(games.map(g => g.id));
+        setHiddenGameIds(next);
+        if (prefsLoaded.current) savePreferences(next, hiddenColumnIds);
+    };
+    const showAllColumns = () => {
+        const next = new Set<string>();
+        setHiddenColumnIds(next);
+        if (prefsLoaded.current) savePreferences(hiddenGameIds, next);
+    };
+    const hideAllColumns = () => {
+        const next = new Set(columns.map(c => c.id));
+        setHiddenColumnIds(next);
+        if (prefsLoaded.current) savePreferences(hiddenGameIds, next);
+    };
 
     // Helper: get cell data
     const getCell = useCallback((gameId: string, columnId: string) => {
