@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Database, Settings, FileSpreadsheet } from "lucide-react";
+import { ArrowRight, Database, Settings, FileSpreadsheet, ClipboardList } from "lucide-react";
 import Link from "next/link";
 
 export default function SettingsHubPage() {
@@ -91,6 +91,26 @@ export default function SettingsHubPage() {
                         <CardContent>
                             <Button variant="ghost" className="w-full justify-start pl-0 hover:bg-transparent">
                                 Configure Reports <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </Link>
+
+                {/* Planner Settings */}
+                <Link href="/settings/planner">
+                    <Card className="h-full hover:bg-muted/50 transition-colors cursor-pointer border-l-4 border-l-teal-500">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <ClipboardList className="h-5 w-5 text-teal-500" />
+                                Planner
+                            </CardTitle>
+                            <CardDescription>
+                                Manage planner columns and actions. Define categories, colors, and date rules.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Button variant="ghost" className="w-full justify-start pl-0 hover:bg-transparent">
+                                Configure Planner <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
                         </CardContent>
                     </Card>

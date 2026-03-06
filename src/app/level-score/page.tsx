@@ -454,12 +454,21 @@ export default function LevelScorePage() {
                 });
             }
 
-            const getCol = (row: any, ...candidates: string[]) => {
+            const getCol = (row: any, candidates: string[], exclude: string[] = []) => {
                 const keys = Object.keys(row);
+                // Normalize exclusions once
+                const normalizedExcludes = exclude.map(e => normalize(e));
+
                 for (const c of candidates) {
                     const normCandidate = normalize(c);
                     const actualKey = keys.find(k => {
                         const normKey = normalize(k);
+
+                        // Check exclusions
+                        if (normalizedExcludes.some(ex => normKey === ex || normKey.includes(ex))) {
+                            return false;
+                        }
+
                         // EXACT MATCH logic first
                         if (normKey === normCandidate) return true;
 
@@ -472,6 +481,11 @@ export default function LevelScorePage() {
                         if (normCandidate.includes('level') && normCandidate.includes('score')) {
                             // Searching for "Level Score": check that key HAS "score"
                             if (!normKey.includes('score')) return false;
+                        }
+
+                        // If candidate is "Level Play Time" or "Play Time", avoid "Time Event"
+                        if ((normCandidate.includes('playtime') || normCandidate.includes('time')) && normKey.includes('timeevent')) {
+                            return false;
                         }
 
                         return normKey === normCandidate || normKey.includes(normCandidate);
@@ -521,14 +535,14 @@ export default function LevelScorePage() {
 
             // Process data
             const processedData: LevelData[] = parsed.data.map((row: any, idx: number) => {
-                const level = parseInt(String(getCol(row, 'Level', 'level_number') || 0).replace(/[^\d-]/g, '')) || 0;
+                const level = parseInt(String(getCol(row, ['Level', 'level_number']) || 0).replace(/[^\d-]/g, '')) || 0;
 
-                const levelScore = parseNum(getCol(row, 'Level Score', 'LevelScore'));
-                const monetizationScore = parseNum(getCol(row, 'Monetization Score', 'MonetizationScore'));
-                const engagementScore = parseNum(getCol(row, 'Engagement Score', 'EngagementScore'));
-                const satisfactionScore = parseNum(getCol(row, 'Satisfaction Score', 'SatisfactionScore'));
+                const levelScore = parseNum(getCol(row, ['Level Score', 'LevelScore']));
+                const monetizationScore = parseNum(getCol(row, ['Monetization Score', 'MonetizationScore']));
+                const engagementScore = parseNum(getCol(row, ['Engagement Score', 'EngagementScore']));
+                const satisfactionScore = parseNum(getCol(row, ['Satisfaction Score', 'SatisfactionScore']));
 
-                const finalCluster = getCol(row, 'FinalCluster', 'Final Cluster') || '';
+                const finalCluster = getCol(row, ['FinalCluster', 'Final Cluster']) || '';
 
                 // Clustering fields parsing with robust search + Configurable Aliases
                 // Merge configured aliases with hardcoded defaults to ensure backward compatibility
@@ -536,13 +550,22 @@ export default function LevelScorePage() {
                     return [...(aliases[metric] || []), ...defaults];
                 };
 
-                const avgRepeatRatio = parseNum(getCol(row, ...getAliases('avgRepeatRatio', ['Repeat Ratio', 'Repeat', 'Avg. Repeat Ratio', 'rep'])));
-                const levelPlayTime = parseNum(getCol(row, ...getAliases('levelPlayTime', ['Level Play Time', 'Play Time', 'Avg. Level Play Time', 'Avg Play Time', 'Duration'])));
+                const avgRepeatRatio = parseNum(getCol(row, getAliases('avgRepeatRatio', ['Repeat Ratio', 'Repeat', 'Avg. Repeat Ratio', 'rep']), ['date', 'time event']));
+
+                // CRITICAL FIX: Exclude "Time Event" and "Date" columns from "Play Time" matching
+                // Also add "Duration" and "Avg. Level Play Time"
+                let levelPlayTime = parseNum(getCol(row, getAliases('levelPlayTime', ['Level Play Time', 'Play Time', 'Avg. Level Play Time', 'Avg Play Time', 'Duration', 'Time']), ['time event', 'timeevent', 'date', 'created', 'first open']));
+
+                // Heuristic Check: If Play Time is huge (e.g. > 1,000,000 ~ 11 days or timestamp), invalidate it
+                if (levelPlayTime > 1000000) {
+                    // console.warn(`Level ${level}: PlayTime ${levelPlayTime} is suspiciously high, likely a timestamp. Resetting to 0.`);
+                    levelPlayTime = 0;
+                }
 
                 // New metrics
-                const playOnWinRatio = parseNum(getCol(row, ...getAliases('playOnWinRatio', ['PlayOnWinRatio', 'Play On Win Ratio', 'PlayOnWin', 'Play on Win', 'Win Ratio'])));
-                const playOnPerUser = parseNum(getCol(row, ...getAliases('playOnPerUser', ['Playon per User', 'Play On Per User', 'PlayOnPerUser'])));
-                const firstTryWinPercent = parseNum(getCol(row, ...getAliases('firstTryWinPercent', ['Avg. FirstTryWinPercent', 'FirstTryWinPercent', 'First Try Win', '1st Win %'])));
+                const playOnWinRatio = parseNum(getCol(row, getAliases('playOnWinRatio', ['PlayOnWinRatio', 'Play On Win Ratio', 'PlayOnWin', 'Play on Win', 'Win Ratio', 'Win Rate', 'Win %'])));
+                const playOnPerUser = parseNum(getCol(row, getAliases('playOnPerUser', ['Playon per User', 'Play On Per User', 'PlayOnPerUser', 'Plays Per User', 'Play/User'])));
+                const firstTryWinPercent = parseNum(getCol(row, getAliases('firstTryWinPercent', ['Avg. FirstTryWinPercent', 'FirstTryWinPercent', 'First Try Win', '1st Win %', 'FTW']), ['date']));
 
                 // Integration Metrics (Screenshot specific)
                 const churnRate = parseNum(getCol(row, ...getAliases('churnRate', ['Churn', 'churn', 'Churn Rate'])));
