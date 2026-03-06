@@ -762,20 +762,30 @@ export default function PlannerPage() {
                                                 <TableCell key={weekKey} className={cn("p-1", past && "opacity-60")}>
                                                     {weekEntries.length > 0 ? (
                                                         <div className="flex flex-col gap-0.5">
-                                                            {weekEntries.map((entry, i) => (
-                                                                <div
-                                                                    key={i}
-                                                                    className="px-2 py-1 rounded-md text-[11px] font-medium text-white shadow-sm flex items-center gap-1.5"
-                                                                    style={{ backgroundColor: entry.columnColor }}
-                                                                    title={`${entry.columnName} · ${entry.actionName}${entry.date ? ' · ' + new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}`}
-                                                                >
-                                                                    <span
-                                                                        className="w-2 h-2 rounded-full flex-shrink-0 border border-white/40"
-                                                                        style={{ backgroundColor: entry.actionColor }}
-                                                                    />
-                                                                    <span className="truncate">{entry.columnName}</span>
-                                                                </div>
-                                                            ))}
+                                                            {weekEntries.map((entry, i) => {
+                                                                const isDone = entry.actionName.toLowerCase() === 'done';
+                                                                return (
+                                                                    <div
+                                                                        key={i}
+                                                                        className={cn(
+                                                                            "px-2 py-1 rounded-md text-[11px] font-medium text-white shadow-sm flex items-center gap-1.5",
+                                                                            isDone && "opacity-80"
+                                                                        )}
+                                                                        style={{ backgroundColor: isDone ? '#22c55e' : entry.columnColor }}
+                                                                        title={`${entry.columnName} · ${entry.actionName}${entry.date ? ' · ' + new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}`}
+                                                                    >
+                                                                        {isDone ? (
+                                                                            <span className="text-[13px] flex-shrink-0">✓</span>
+                                                                        ) : (
+                                                                            <span
+                                                                                className="w-2 h-2 rounded-full flex-shrink-0 border border-white/40"
+                                                                                style={{ backgroundColor: entry.actionColor }}
+                                                                            />
+                                                                        )}
+                                                                        <span className={cn("truncate", isDone && "line-through")}>{entry.columnName}</span>
+                                                                    </div>
+                                                                );
+                                                            })}
                                                         </div>
                                                     ) : (
                                                         <div className="min-h-[28px]" />
