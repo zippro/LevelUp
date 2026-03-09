@@ -17,8 +17,8 @@ export async function GET() {
     }
 }
 
-// PUT: Upsert a cell (game_id + column_id)
-export async function PUT(request: Request) {
+// POST: Create a new cell (supports multiple tasks per game+column)
+export async function POST(request: Request) {
     try {
         const body = await request.json();
         const { game_id, column_id, action_id, date } = body;
@@ -29,21 +29,67 @@ export async function PUT(request: Request) {
 
         const { data, error } = await supabase
             .from('planner_cells')
-            .upsert(
-                {
-                    game_id,
-                    column_id,
-                    action_id: action_id || null,
-                    date: date || null,
-                    updated_at: new Date().toISOString()
-                },
-                { onConflict: 'game_id,column_id' }
-            )
+            .insert({
+                game_id,
+                column_id,
+                action_id: action_id || null,
+                date: date || null,
+            })
             .select()
             .single();
 
         if (error) throw error;
         return NextResponse.json(data);
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+// PUT: Update a specific cell by ID
+export async function PUT(request: Request) {
+    try {
+        const body = await request.json();
+        const { id, action_id, date } = body;
+
+        if (!id) {
+            return NextResponse.json({ error: 'id is required' }, { status: 400 });
+        }
+
+        const { data, error } = await supabase
+            .from('planner_cells')
+            .update({
+                action_id: action_id || null,
+                date: date || null,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return NextResponse.json(data);
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+// DELETE: Remove a specific cell by ID
+export async function DELETE(request: Request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json({ error: 'id is required' }, { status: 400 });
+        }
+
+        const { error } = await supabase
+            .from('planner_cells')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+        return NextResponse.json({ success: true });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

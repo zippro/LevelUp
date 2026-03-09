@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef, DragEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Plus } from "lucide-react";
 import { Loader2, GripVertical, Calendar, X, Eye, EyeOff, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PlannerColumn, PlannerAction, PlannerCell, PlannerScheduleEntry, PlannerGameOrder, GameInfo } from "@/lib/planner-types";
@@ -28,140 +29,132 @@ const COLUMN_COLORS = [
 ];
 
 // ========================================
-// Cell Editor Component
+// Action Picker Popover (for adding/editing a single entry)
 // ========================================
-function CellEditor({
+function ActionPicker({
     actions,
-    currentActionId,
-    currentDate,
     onSave,
+    trigger,
 }: {
     actions: PlannerAction[];
-    currentActionId: string | null;
-    currentDate: string | null;
-    onSave: (actionId: string | null, date: string | null) => void;
+    onSave: (actionId: string, date: string | null) => void;
+    trigger: React.ReactNode;
 }) {
-    const currentAction = actions.find(a => a.id === currentActionId);
     const [open, setOpen] = useState(false);
-    const [selectedActionId, setSelectedActionId] = useState<string | null>(currentActionId);
-    const [selectedDate, setSelectedDate] = useState<string>(currentDate || "");
-
-    useEffect(() => {
-        setSelectedActionId(currentActionId);
-        setSelectedDate(currentDate || "");
-    }, [currentActionId, currentDate]);
-
+    const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
+    const [selectedDate, setSelectedDate] = useState<string>("");
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
     const selectedAction = actions.find(a => a.id === selectedActionId);
 
-    const todayStr = format(new Date(), 'yyyy-MM-dd');
-
-    const handleSelectAction = (actionId: string | null) => {
+    const handleSelectAction = (actionId: string) => {
         setSelectedActionId(actionId);
         const action = actions.find(a => a.id === actionId);
         if (!action || action.date_mode === 'none') {
-            // No date needed — save immediately
             onSave(actionId, null);
+            setSelectedActionId(null);
             setSelectedDate("");
             setOpen(false);
         } else {
-            // Has date mode — default to today if not already set
-            if (!selectedDate) {
-                setSelectedDate(todayStr);
-            }
+            if (!selectedDate) setSelectedDate(todayStr);
         }
     };
 
     const handleSaveWithDate = () => {
-        const action = actions.find(a => a.id === selectedActionId);
+        if (!selectedActionId) return;
         const dateToSave = selectedDate || todayStr;
-        if (action?.date_mode === 'required' && !dateToSave) return;
         onSave(selectedActionId, dateToSave);
-        setOpen(false);
-    };
-
-    const handleClear = () => {
-        onSave(null, null);
         setSelectedActionId(null);
         setSelectedDate("");
         setOpen(false);
     };
 
     return (
-        <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-                <button
-                    className={cn(
-                        "w-full h-full min-h-[36px] min-w-[80px] px-2 py-1 rounded-md text-xs font-medium transition-all",
-                        "hover:ring-2 hover:ring-primary/30 cursor-pointer text-left flex items-center gap-1",
-                        currentAction ? "text-white shadow-sm" : "bg-muted/30 text-muted-foreground hover:bg-muted/60"
-                    )}
-                    style={currentAction ? { backgroundColor: currentAction.color } : undefined}
-                >
-                    {currentAction ? (
-                        <>
-                            <span className="truncate">{currentAction.name}</span>
-                            {currentDate && (
-                                <span className="text-[10px] opacity-80 flex-shrink-0">
-                                    {new Date(currentDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                </span>
-                            )}
-                        </>
-                    ) : (
-                        <span className="opacity-50">—</span>
-                    )}
-                </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-56 p-2" align="start">
+        <Popover open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setSelectedActionId(null); setSelectedDate(""); } }}>
+            <PopoverTrigger asChild>{trigger}</PopoverTrigger>
+            <PopoverContent className="w-52 p-2" align="start">
                 <div className="space-y-1">
-                    <p className="text-xs font-semibold text-muted-foreground mb-2 px-1">Select Action</p>
                     {actions.map(action => (
                         <button
                             key={action.id}
                             onClick={() => handleSelectAction(action.id)}
                             className={cn(
                                 "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors",
-                                selectedActionId === action.id ? "bg-muted" : "hover:bg-muted/50"
+                                selectedActionId === action.id ? "ring-2 ring-primary" : "hover:bg-muted/50"
                             )}
                         >
-                            <div className="w-3.5 h-3.5 rounded-full flex-shrink-0 border" style={{ backgroundColor: action.color }} />
-                            <span className="truncate">{action.name}</span>
-                            {action.date_mode !== 'none' && (
-                                <Calendar className="h-3 w-3 text-muted-foreground ml-auto flex-shrink-0" />
-                            )}
+                            <span className="w-3 h-3 rounded-full flex-shrink-0 border" style={{ backgroundColor: action.color }} />
+                            {action.name}
+                            {selectedActionId === action.id && <span className="ml-auto text-primary text-xs">✓</span>}
                         </button>
                     ))}
-
                     {selectedAction && selectedAction.date_mode !== 'none' && (
                         <div className="pt-2 mt-2 border-t space-y-2">
                             <label className="text-xs font-medium text-muted-foreground">
                                 Date {selectedAction.date_mode === 'required' ? '(required)' : '(optional)'}
                             </label>
-                            <Input
-                                type="date"
-                                value={selectedDate}
-                                onChange={(e) => setSelectedDate(e.target.value)}
-                                className="h-8 text-xs"
-                            />
+                            <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="h-8 text-xs" />
                             <Button size="sm" className="w-full h-7 text-xs" onClick={handleSaveWithDate}
                                 disabled={selectedAction.date_mode === 'required' && !selectedDate}
-                            >
-                                Save
-                            </Button>
+                            >Save</Button>
                         </div>
-                    )}
-
-                    {currentActionId && (
-                        <button
-                            onClick={handleClear}
-                            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-destructive hover:bg-destructive/10 transition-colors mt-1"
-                        >
-                            <X className="h-3.5 w-3.5" />
-                            Clear
-                        </button>
                     )}
                 </div>
             </PopoverContent>
         </Popover>
+    );
+}
+
+// ========================================
+// Multi-Cell Editor (shows all entries for a game+column slot + add button)
+// ========================================
+function MultiCellEditor({
+    actions,
+    entries,
+    onAdd,
+    onDelete,
+}: {
+    actions: PlannerAction[];
+    entries: PlannerCell[];
+    onAdd: (actionId: string, date: string | null) => void;
+    onDelete: (cellId: string) => void;
+}) {
+    return (
+        <div className="flex flex-col gap-0.5 min-h-[36px] min-w-[80px]">
+            {entries.map(entry => {
+                const action = actions.find(a => a.id === entry.action_id);
+                if (!action) return null;
+                return (
+                    <div
+                        key={entry.id}
+                        className="group flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-white shadow-sm relative"
+                        style={{ backgroundColor: action.color }}
+                    >
+                        <span className="truncate">{action.name}</span>
+                        {entry.date && (
+                            <span className="text-[10px] opacity-80 flex-shrink-0">
+                                {new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </span>
+                        )}
+                        <button
+                            onClick={() => onDelete(entry.id)}
+                            className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-white text-[10px] items-center justify-center hidden group-hover:flex shadow"
+                        >
+                            ×
+                        </button>
+                    </div>
+                );
+            })}
+            <ActionPicker
+                actions={actions}
+                onSave={onAdd}
+                trigger={
+                    <button className="w-full flex items-center justify-center gap-1 px-2 py-1 rounded-md text-xs text-muted-foreground bg-muted/30 hover:bg-muted/60 transition-colors min-h-[28px]">
+                        <Plus className="h-3 w-3" />
+                        {entries.length === 0 && <span className="opacity-60">Add</span>}
+                    </button>
+                }
+            />
+        </div>
     );
 }
 
@@ -370,72 +363,43 @@ export default function PlannerPage() {
         if (prefsLoaded.current) savePreferences(hiddenGameIds, next);
     };
 
-    // Helper: get cell data
-    const getCell = useCallback((gameId: string, columnId: string) => {
-        return cells.find(c => c.game_id === gameId && c.column_id === columnId);
+    // Helper: get all cells for a game+column slot
+    const getCellsForSlot = useCallback((gameId: string, columnId: string) => {
+        return cells.filter(c => c.game_id === gameId && c.column_id === columnId);
     }, [cells]);
 
-    // Helper: get schedule entry
-    const getScheduleEntry = useCallback((gameId: string, weekKey: string) => {
-        return schedule.find(s => s.game_id === gameId && s.week_start === weekKey);
-    }, [schedule]);
+    // Add a new cell (multi-task)
+    const addCell = async (gameId: string, columnId: string, actionId: string, date: string | null) => {
+        const tempId = crypto.randomUUID();
+        const newEntry: PlannerCell = { id: tempId, game_id: gameId, column_id: columnId, action_id: actionId, date };
+        setCells(prev => [...prev, newEntry]);
 
-    // Upsert cell — also syncs to the schedule table when a date is present
-    const upsertCell = async (gameId: string, columnId: string, actionId: string | null, date: string | null) => {
-        // Optimistic update for planning cells
-        setCells(prev => {
-            const idx = prev.findIndex(c => c.game_id === gameId && c.column_id === columnId);
-            const entry: PlannerCell = {
-                id: idx >= 0 ? prev[idx].id : crypto.randomUUID(),
-                game_id: gameId,
-                column_id: columnId,
-                action_id: actionId,
-                date
-            };
-            if (idx >= 0) {
-                const updated = [...prev];
-                updated[idx] = entry;
-                return updated;
-            }
-            return [...prev, entry];
-        });
-
-        // Persist cell
-        await fetch('/api/planner/cells', {
-            method: 'PUT',
+        const res = await fetch('/api/planner/cells', {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ game_id: gameId, column_id: columnId, action_id: actionId, date })
         });
+        if (res.ok) {
+            const saved = await res.json();
+            setCells(prev => prev.map(c => c.id === tempId ? { ...c, id: saved.id } : c));
+        }
+    };
 
-        // Sync to schedule: if cell has a date, reflect it in the schedule at the matching week
-        if (date && actionId) {
-            const cellDate = new Date(date + 'T00:00:00');
-            const weekStart = getWeekStart(cellDate);
-            const weekKey = toWeekKey(weekStart);
+    // Delete a specific cell by ID
+    const deleteCell = async (cellId: string) => {
+        setCells(prev => prev.filter(c => c.id !== cellId));
+        await fetch(`/api/planner/cells?id=${cellId}`, { method: 'DELETE' });
+    };
 
-            // Optimistic schedule update
-            setSchedule(prev => {
-                const idx = prev.findIndex(s => s.game_id === gameId && s.week_start === weekKey);
-                const entry: PlannerScheduleEntry = {
-                    id: idx >= 0 ? prev[idx].id : crypto.randomUUID(),
-                    game_id: gameId,
-                    week_start: weekKey,
-                    action_id: actionId,
-                    date
-                };
-                if (idx >= 0) {
-                    const updated = [...prev];
-                    updated[idx] = entry;
-                    return updated;
-                }
-                return [...prev, entry];
-            });
-
-            // Persist schedule entry
-            await fetch('/api/planner/schedule', {
+    // Update a cell's date (used by schedule DnD)
+    const updateCellDate = async (cellId: string, newDate: string) => {
+        setCells(prev => prev.map(c => c.id === cellId ? { ...c, date: newDate } : c));
+        const cell = cells.find(c => c.id === cellId);
+        if (cell) {
+            await fetch('/api/planner/cells', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ game_id: gameId, week_start: weekKey, action_id: actionId, date })
+                body: JSON.stringify({ id: cellId, action_id: cell.action_id, date: newDate })
             });
         }
     };
@@ -655,14 +619,14 @@ export default function PlannerPage() {
                                             </div>
                                         </TableCell>
                                         {visibleColumns.map(col => {
-                                            const cell = getCell(game.id, col.id);
+                                            const slotCells = getCellsForSlot(game.id, col.id);
                                             return (
                                                 <TableCell key={col.id} className="p-1">
-                                                    <CellEditor
+                                                    <MultiCellEditor
                                                         actions={actions}
-                                                        currentActionId={cell?.action_id || null}
-                                                        currentDate={cell?.date || null}
-                                                        onSave={(actionId, date) => upsertCell(game.id, col.id, actionId, date)}
+                                                        entries={slotCells}
+                                                        onAdd={(actionId, date) => addCell(game.id, col.id, actionId, date)}
+                                                        onDelete={(cellId) => deleteCell(cellId)}
                                                     />
                                                 </TableCell>
                                             );
@@ -750,6 +714,7 @@ export default function PlannerPage() {
                                                     const colIdx = columns.findIndex(col => col.id === c.column_id);
                                                     const action = actions.find(a => a.id === c.action_id);
                                                     return {
+                                                        cellId: c.id,
                                                         columnName: col?.name || '?',
                                                         actionName: action?.name || '',
                                                         actionColor: action?.color || '#6b7280',
@@ -759,20 +724,36 @@ export default function PlannerPage() {
                                                 });
 
                                             return (
-                                                <TableCell key={weekKey} className={cn("p-1", past && "opacity-60")}>
+                                                <TableCell
+                                                    key={weekKey}
+                                                    className={cn("p-1 transition-colors", past && "opacity-60")}
+                                                    onDragOver={(e) => { if (e.dataTransfer.types.includes('text/cell-id')) { e.preventDefault(); e.currentTarget.classList.add('bg-primary/10'); } }}
+                                                    onDragLeave={(e) => { e.currentTarget.classList.remove('bg-primary/10'); }}
+                                                    onDrop={(e) => {
+                                                        e.preventDefault();
+                                                        e.currentTarget.classList.remove('bg-primary/10');
+                                                        const cellId = e.dataTransfer.getData('text/cell-id');
+                                                        if (cellId) {
+                                                            // Set date to Monday of this week
+                                                            updateCellDate(cellId, weekKey);
+                                                        }
+                                                    }}
+                                                >
                                                     {weekEntries.length > 0 ? (
                                                         <div className="flex flex-col gap-0.5">
                                                             {weekEntries.map((entry, i) => {
                                                                 const isDone = entry.actionName.toLowerCase() === 'done';
                                                                 return (
                                                                     <div
-                                                                        key={i}
+                                                                        key={entry.cellId}
+                                                                        draggable
+                                                                        onDragStart={(e) => { e.dataTransfer.setData('text/cell-id', entry.cellId); e.dataTransfer.effectAllowed = 'move'; }}
                                                                         className={cn(
-                                                                            "px-2 py-1 rounded-md text-[11px] font-medium text-white shadow-sm flex items-center gap-1.5",
+                                                                            "px-2 py-1 rounded-md text-[11px] font-medium text-white shadow-sm flex items-center gap-1.5 cursor-grab active:cursor-grabbing",
                                                                             isDone && "opacity-80"
                                                                         )}
                                                                         style={{ backgroundColor: isDone ? '#22c55e' : entry.columnColor }}
-                                                                        title={`${entry.columnName} · ${entry.actionName}${entry.date ? ' · ' + new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}`}
+                                                                        title={`${entry.columnName} · ${entry.actionName}${entry.date ? ' · ' + new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}\nDrag to move to another week`}
                                                                     >
                                                                         {isDone ? (
                                                                             <span className="text-[13px] flex-shrink-0">✓</span>
