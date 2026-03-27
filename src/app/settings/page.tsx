@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Database, Settings, FileSpreadsheet, ClipboardList } from "lucide-react";
+import { ArrowRight, Database, Settings, FileSpreadsheet, ClipboardList, GitCompareArrows } from "lucide-react";
 import Link from "next/link";
 
 export default function SettingsHubPage() {
@@ -51,6 +51,26 @@ export default function SettingsHubPage() {
                         <CardContent>
                             <Button variant="ghost" className="w-full justify-start pl-0 hover:bg-transparent">
                                 Configure Weekly Check <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </Link>
+
+                {/* AB Check Settings */}
+                <Link href="/settings/ab-check">
+                    <Card className="h-full hover:bg-muted/50 transition-colors cursor-pointer border-l-4 border-l-amber-500">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <GitCompareArrows className="h-5 w-5 text-amber-500" />
+                                AB Check
+                            </CardTitle>
+                            <CardDescription>
+                                Set default filters for A/B comparison: min users, min level, revision filters.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Button variant="ghost" className="w-full justify-start pl-0 hover:bg-transparent">
+                                Configure AB Check <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
                         </CardContent>
                     </Card>

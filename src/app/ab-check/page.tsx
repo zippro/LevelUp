@@ -20,6 +20,14 @@ interface Config {
         minLevel?: number;
         minDaysSinceEvent?: number;
     };
+    abCheck?: {
+        minTotalUser?: number;
+        minLevel?: number;
+        minDaysSinceEvent?: number;
+        hideRevision9xx?: boolean;
+        columnOrder?: string[];
+        hiddenColumns?: string[];
+    };
 }
 
 const normalizeHeader = (h: string) => h.toLowerCase().trim();
@@ -44,19 +52,26 @@ const AB_METRICS = [
     { id: 'Instant Churn', label: 'Instant Churn', aliases: ['instant churn', 'instantchurn'] },
     { id: '7 Days Churn', label: '7 Day Churn', aliases: ['7 days churn', '7 day churn', '7daychurn'] },
     { id: 'Playon per User', label: 'Playon/User', aliases: ['playon per user', 'playonperuser'] },
-    { id: 'Repeat Rate', label: 'Repeat', aliases: ['repeat rate', 'repeat ratio', 'avg. repeat rate', 'avg. repeat ratio'] },
-    { id: 'In App Value', label: 'In App Value', aliases: ['in app value', 'inappvalue', 'in-app value'] },
-    { id: 'Avg. FirstTryWinPercent', label: '1st Try Win', aliases: ['avg. firsttrywinpercent', 'firsttrywinpercent', 'first try win', 'avg first try win'] },
-    { id: 'Level Play Time', label: 'Play Time', aliases: ['level play time', 'levelplaytime', 'avg level play time', 'avg. level play time'] },
-    { id: 'Total Move', label: 'Moves', aliases: ['total move', 'totalmove', 'total moves', 'avg. total moves'] },
-    { id: 'RevisionNumber', label: 'Rev#', aliases: ['revisionnumber', 'revision number', 'revision'] },
+    { id: 'Repeat Rate', label: 'Repeat', aliases: ['avg. repeat rate', 'avg repeat rate', 'repeat rate', 'repeat ratio', 'avg. repeat ratio'] },
+    { id: 'In App Value', label: 'In App Value', aliases: ['inapp value', 'in app value', 'inappvalue', 'in-app value', 'in app values'] },
+    { id: 'Avg. FirstTryWin', label: '1st Try Win', aliases: ['avg. firsttrywin', 'firsttrywin', 'avg. firsttrywinpercent', 'firsttrywinpercent', 'first try win', 'avg first try win'] },
+    { id: 'Level Play Time', label: 'Play Time', aliases: ['avg. level play', 'avg level play', 'level play time', 'levelplaytime', 'avg level play time', 'avg. level play time'] },
+    { id: 'Total Move', label: 'Moves', aliases: ['avg. total moves', 'avg total moves', 'total move', 'totalmove', 'total moves'] },
+    { id: 'RM Fixed', label: 'RM', aliases: ['avg. rm fixed', 'avg rm fixed', 'rm fixed', 'rm total', 'average remaining move', 'remaining move', 'remaining moves'] },
+    { id: 'RevisionNumber', label: 'Rev#', aliases: ['revision number', 'revisionnumber', 'revision'] },
 ];
 
 function findMetricInRow(row: any, metric: typeof AB_METRICS[0]): string {
     const keys = Object.keys(row);
+    // First pass: exact match
     for (const alias of metric.aliases) {
-        const matchKey = keys.find(k => normalizeHeader(k) === alias || normalizeHeader(k).includes(alias));
-        if (matchKey && row[matchKey] !== undefined) return String(row[matchKey]);
+        const matchKey = keys.find(k => normalizeHeader(k) === alias);
+        if (matchKey && row[matchKey] !== undefined && row[matchKey] !== '') return String(row[matchKey]);
+    }
+    // Second pass: includes match
+    for (const alias of metric.aliases) {
+        const matchKey = keys.find(k => normalizeHeader(k).includes(alias) || alias.includes(normalizeHeader(k)));
+        if (matchKey && row[matchKey] !== undefined && row[matchKey] !== '') return String(row[matchKey]);
     }
     return '-';
 }
@@ -146,11 +161,13 @@ export default function ABCheckPage() {
             .then(res => res.json())
             .then((data: Config) => {
                 setConfig(data);
-                if (data.weeklyCheck) {
-                    setMinTotalUser(data.weeklyCheck.minTotalUser ?? 50);
-                    setMinLevel(data.weeklyCheck.minLevel ?? 0);
-                    setMinDaysSinceEvent(data.weeklyCheck.minDaysSinceEvent ?? 0);
-                }
+                // Use abCheck settings if available, fallback to weeklyCheck
+                const abCfg = data.abCheck;
+                const wcCfg = data.weeklyCheck;
+                setMinTotalUser(abCfg?.minTotalUser ?? wcCfg?.minTotalUser ?? 50);
+                setMinLevel(abCfg?.minLevel ?? wcCfg?.minLevel ?? 0);
+                setMinDaysSinceEvent(abCfg?.minDaysSinceEvent ?? wcCfg?.minDaysSinceEvent ?? 0);
+                if (abCfg?.hideRevision9xx !== undefined) setHideRevision9xx(abCfg.hideRevision9xx);
                 setLoadingConfig(false);
             })
             .catch(e => console.error(e));
