@@ -161,6 +161,11 @@ export const VARIABLE_TABLE_REPORTS: Record<string, string[]> = {
         'Level Score Top Successful',
         '3 Day Churn Top Unsuccessful',
     ],
+    'Level A-B': [
+        'Level Score Top Unsuccessful',
+        'Level Score Top Successful',
+        '3 Day Churn Top Unsuccessful',
+    ],
     'Bölgesel Rapor': [
         'Level Score Top Unsuccessful',
         'Level Score Top Successful',

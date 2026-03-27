@@ -1,7 +1,9 @@
 {
   "variables": [
     "Level Revize",
-    "Churn Report"
+    "Churn Report",
+    "Champions",
+    "Level A-B"
   ],
   "reports": {
     "Level Revize": [
@@ -20,7 +22,43 @@
       ],
       "viewMappings": {
         "Final Level Score": "7d23b782-5716-488a-a9a8-4c1b174e230c",
-        "Level Revize": "99b6db23-884c-45e2-a56b-2e1322f90129"
+        "Level Revize": "99b6db23-884c-45e2-a56b-2e1322f90129",
+        "Churn Report": "99b6db23-884c-45e2-a56b-2e1322f90129",
+        "Champions": "defa3d79-4fc6-4e91-90a2-6f764c95de70",
+        "Level A-B": "5bdd5ea8-6f73-44b3-b982-d80214adee22"
+      },
+      "urlMappings": {
+        "Level Revize": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/ChristmasDesignLevelScoreAnalysis/LevelRevize",
+        "Churn Report": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/ChristmasDesignLevelScoreAnalysis/LevelRevize",
+        "Champions": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/ChristmasDesignChurn/MainChurnTopluChampLeagueLevels?:iid=2",
+        "Level A-B": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/ChristmasDesignChurn/LevelRevize-LevelA-B?:iid=1"
+      },
+      "scoreMultipliers": {
+        "cluster1": {
+          "monetization": 0.2,
+          "engagement": 0.2,
+          "satisfaction": 0.6
+        },
+        "cluster2": {
+          "monetization": 0.25,
+          "engagement": 0.25,
+          "satisfaction": 0.5
+        },
+        "cluster3": {
+          "monetization": 0.3,
+          "engagement": 0.35,
+          "satisfaction": 0.35
+        },
+        "cluster4": {
+          "monetization": 0.35,
+          "engagement": 0.35,
+          "satisfaction": 0.3
+        },
+        "default": {
+          "monetization": 0.3,
+          "engagement": 0.3,
+          "satisfaction": 0.4
+        }
       }
     },
     {
@@ -31,7 +69,43 @@
         "garden",
         "gd"
       ],
-      "viewMappings": {}
+      "viewMappings": {
+        "Level Revize": "73a331f9-7261-4da8-bbb4-75f9034459cc",
+        "Churn Report": "73a331f9-7261-4da8-bbb4-75f9034459cc",
+        "Champions": "12dc3d02-b43d-4763-a32b-2ba86ca8b23b"
+      },
+      "urlMappings": {
+        "Level Revize": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/GardenDesignChurn/LevelRevize?:iid=2",
+        "Churn Report": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/GardenDesignChurn/LevelRevize?:iid=2",
+        "Champions": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/GardenDesignChurn/ChampLeagueLevels?:iid=2"
+      },
+      "scoreMultipliers": {
+        "cluster1": {
+          "monetization": 0.2,
+          "engagement": 0.2,
+          "satisfaction": 0.6
+        },
+        "cluster2": {
+          "monetization": 0.25,
+          "engagement": 0.25,
+          "satisfaction": 0.5
+        },
+        "cluster3": {
+          "monetization": 0.3,
+          "engagement": 0.35,
+          "satisfaction": 0.35
+        },
+        "cluster4": {
+          "monetization": 0.35,
+          "engagement": 0.35,
+          "satisfaction": 0.3
+        },
+        "default": {
+          "monetization": 0.3,
+          "engagement": 0.3,
+          "satisfaction": 0.4
+        }
+      }
     },
     {
       "id": "wish-wonder",
@@ -41,7 +115,43 @@
         "wish",
         "ww"
       ],
-      "viewMappings": {}
+      "viewMappings": {
+        "Level Revize": "07838618-43c2-4901-baef-81a68785bc35",
+        "Churn Report": "07838618-43c2-4901-baef-81a68785bc35",
+        "Champions": "27a16561-5a87-40a6-83a7-4708c58d7c72"
+      },
+      "urlMappings": {
+        "Level Revize": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/WishWonderChurn/LevelRevize?:iid=1",
+        "Churn Report": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/WishWonderChurn/LevelRevize?:iid=1",
+        "Champions": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/WishWonderChurn/ChampLeagueLevels?:iid=1"
+      },
+      "scoreMultipliers": {
+        "cluster1": {
+          "monetization": 0.2,
+          "engagement": 0.2,
+          "satisfaction": 0.6
+        },
+        "cluster2": {
+          "monetization": 0.25,
+          "engagement": 0.25,
+          "satisfaction": 0.5
+        },
+        "cluster3": {
+          "monetization": 0.3,
+          "engagement": 0.35,
+          "satisfaction": 0.35
+        },
+        "cluster4": {
+          "monetization": 0.35,
+          "engagement": 0.35,
+          "satisfaction": 0.3
+        },
+        "default": {
+          "monetization": 0.3,
+          "engagement": 0.3,
+          "satisfaction": 0.4
+        }
+      }
     },
     {
       "id": "dream-design",
@@ -51,7 +161,43 @@
         "dream",
         "dd"
       ],
-      "viewMappings": {}
+      "viewMappings": {
+        "Level Revize": "770fcbc9-059e-403c-8156-fb8e9115550d",
+        "Churn Report": "770fcbc9-059e-403c-8156-fb8e9115550d",
+        "Champions": "02bad801-fb9b-4db2-9dcc-129664fb272b"
+      },
+      "urlMappings": {
+        "Level Revize": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/DreamDesignLevelScoreAnalysis/LevelRevize?:iid=1",
+        "Churn Report": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/DreamDesignLevelScoreAnalysis/LevelRevize?:iid=1",
+        "Champions": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/DreamDesignChurn/ChampLeagueLevels?:iid=1"
+      },
+      "scoreMultipliers": {
+        "cluster1": {
+          "monetization": 0.2,
+          "engagement": 0.2,
+          "satisfaction": 0.6
+        },
+        "cluster2": {
+          "monetization": 0.25,
+          "engagement": 0.25,
+          "satisfaction": 0.5
+        },
+        "cluster3": {
+          "monetization": 0.3,
+          "engagement": 0.35,
+          "satisfaction": 0.35
+        },
+        "cluster4": {
+          "monetization": 0.35,
+          "engagement": 0.35,
+          "satisfaction": 0.3
+        },
+        "default": {
+          "monetization": 0.3,
+          "engagement": 0.3,
+          "satisfaction": 0.4
+        }
+      }
     },
     {
       "id": "zen-master",
@@ -61,7 +207,43 @@
         "zen",
         "zm"
       ],
-      "viewMappings": {}
+      "viewMappings": {
+        "Level Revize": "a0922468-c466-4019-a764-627dfa4e207d",
+        "Churn Report": "a0922468-c466-4019-a764-627dfa4e207d",
+        "Champions": "9413e080-76b4-42bc-87e3-687b855a54d9"
+      },
+      "urlMappings": {
+        "Level Revize": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/ZenMasterLevelScoreAnalysis/LevelRevize?:iid=1",
+        "Churn Report": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/ZenMasterLevelScoreAnalysis/LevelRevize?:iid=1",
+        "Champions": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/ZenMasterChurn/ChampLeagueLevels?:iid=1"
+      },
+      "scoreMultipliers": {
+        "cluster1": {
+          "monetization": 0.2,
+          "engagement": 0.2,
+          "satisfaction": 0.6
+        },
+        "cluster2": {
+          "monetization": 0.25,
+          "engagement": 0.25,
+          "satisfaction": 0.5
+        },
+        "cluster3": {
+          "monetization": 0.3,
+          "engagement": 0.35,
+          "satisfaction": 0.35
+        },
+        "cluster4": {
+          "monetization": 0.35,
+          "engagement": 0.35,
+          "satisfaction": 0.3
+        },
+        "default": {
+          "monetization": 0.3,
+          "engagement": 0.3,
+          "satisfaction": 0.4
+        }
+      }
     },
     {
       "id": "friends-adventure",
@@ -71,7 +253,41 @@
         "friends",
         "fa"
       ],
-      "viewMappings": {}
+      "viewMappings": {
+        "Level Revize": "1954b104-a450-487e-bada-7de7ba189d78",
+        "Churn Report": "1954b104-a450-487e-bada-7de7ba189d78"
+      },
+      "urlMappings": {
+        "Level Revize": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/FAMLevelScoreAnalysis/LevelRevize?:iid=1",
+        "Churn Report": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/FAMLevelScoreAnalysis/LevelRevize?:iid=1"
+      },
+      "scoreMultipliers": {
+        "cluster1": {
+          "monetization": 0.2,
+          "engagement": 0.2,
+          "satisfaction": 0.6
+        },
+        "cluster2": {
+          "monetization": 0.25,
+          "engagement": 0.25,
+          "satisfaction": 0.5
+        },
+        "cluster3": {
+          "monetization": 0.3,
+          "engagement": 0.35,
+          "satisfaction": 0.35
+        },
+        "cluster4": {
+          "monetization": 0.35,
+          "engagement": 0.35,
+          "satisfaction": 0.3
+        },
+        "default": {
+          "monetization": 0.3,
+          "engagement": 0.3,
+          "satisfaction": 0.4
+        }
+      }
     },
     {
       "id": "royal-decor",
@@ -81,7 +297,41 @@
         "royal",
         "rd"
       ],
-      "viewMappings": {}
+      "viewMappings": {
+        "Level Revize": "ac2b59d8-3d5a-4ba6-b3cb-8563924dbe61",
+        "Churn Report": "ac2b59d8-3d5a-4ba6-b3cb-8563924dbe61"
+      },
+      "urlMappings": {
+        "Level Revize": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/RoyalDecorLevelScoreAnalysis/LevelRevize?:iid=1",
+        "Churn Report": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/RoyalDecorLevelScoreAnalysis/LevelRevize?:iid=1"
+      },
+      "scoreMultipliers": {
+        "cluster1": {
+          "monetization": 0.2,
+          "engagement": 0.2,
+          "satisfaction": 0.6
+        },
+        "cluster2": {
+          "monetization": 0.25,
+          "engagement": 0.25,
+          "satisfaction": 0.5
+        },
+        "cluster3": {
+          "monetization": 0.3,
+          "engagement": 0.35,
+          "satisfaction": 0.35
+        },
+        "cluster4": {
+          "monetization": 0.35,
+          "engagement": 0.35,
+          "satisfaction": 0.3
+        },
+        "default": {
+          "monetization": 0.3,
+          "engagement": 0.3,
+          "satisfaction": 0.4
+        }
+      }
     },
     {
       "id": "farm-match",
@@ -91,7 +341,41 @@
         "farm",
         "fm"
       ],
-      "viewMappings": {}
+      "viewMappings": {
+        "Level Revize": "33a41596-6392-43cb-98c5-977d80d1701a",
+        "Churn Report": "33a41596-6392-43cb-98c5-977d80d1701a"
+      },
+      "urlMappings": {
+        "Level Revize": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/FarmMatchChurn/LevelRevize?:iid=1",
+        "Churn Report": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/FarmMatchChurn/LevelRevize?:iid=1"
+      },
+      "scoreMultipliers": {
+        "cluster1": {
+          "monetization": 0.2,
+          "engagement": 0.2,
+          "satisfaction": 0.6
+        },
+        "cluster2": {
+          "monetization": 0.25,
+          "engagement": 0.25,
+          "satisfaction": 0.5
+        },
+        "cluster3": {
+          "monetization": 0.3,
+          "engagement": 0.35,
+          "satisfaction": 0.35
+        },
+        "cluster4": {
+          "monetization": 0.35,
+          "engagement": 0.35,
+          "satisfaction": 0.3
+        },
+        "default": {
+          "monetization": 0.3,
+          "engagement": 0.3,
+          "satisfaction": 0.4
+        }
+      }
     },
     {
       "id": "match-3d-box",
@@ -102,7 +386,41 @@
         "m3d",
         "box"
       ],
-      "viewMappings": {}
+      "viewMappings": {
+        "Level Revize": "f4c12c74-a337-4f3d-90af-11b6e11c6200",
+        "Churn Report": "f4c12c74-a337-4f3d-90af-11b6e11c6200"
+      },
+      "urlMappings": {
+        "Level Revize": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/Match3DBoxChurn/LevelRevize?:iid=1",
+        "Churn Report": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/Match3DBoxChurn/LevelRevize?:iid=1"
+      },
+      "scoreMultipliers": {
+        "cluster1": {
+          "monetization": 0.2,
+          "engagement": 0.2,
+          "satisfaction": 0.6
+        },
+        "cluster2": {
+          "monetization": 0.25,
+          "engagement": 0.25,
+          "satisfaction": 0.5
+        },
+        "cluster3": {
+          "monetization": 0.3,
+          "engagement": 0.35,
+          "satisfaction": 0.35
+        },
+        "cluster4": {
+          "monetization": 0.35,
+          "engagement": 0.35,
+          "satisfaction": 0.3
+        },
+        "default": {
+          "monetization": 0.3,
+          "engagement": 0.3,
+          "satisfaction": 0.4
+        }
+      }
     },
     {
       "id": "christmas-3d-match",
@@ -112,7 +430,41 @@
         "christmas 3d",
         "c3d"
       ],
-      "viewMappings": {}
+      "viewMappings": {
+        "Level Revize": "4dcc3156-f159-4b33-918b-197db941fec0",
+        "Churn Report": "4dcc3156-f159-4b33-918b-197db941fec0"
+      },
+      "urlMappings": {
+        "Level Revize": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/Christmas3DMatchChurn/LevelRevize?:iid=1",
+        "Churn Report": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/Christmas3DMatchChurn/LevelRevize?:iid=1"
+      },
+      "scoreMultipliers": {
+        "cluster1": {
+          "monetization": 0.2,
+          "engagement": 0.2,
+          "satisfaction": 0.6
+        },
+        "cluster2": {
+          "monetization": 0.25,
+          "engagement": 0.25,
+          "satisfaction": 0.5
+        },
+        "cluster3": {
+          "monetization": 0.3,
+          "engagement": 0.35,
+          "satisfaction": 0.35
+        },
+        "cluster4": {
+          "monetization": 0.35,
+          "engagement": 0.35,
+          "satisfaction": 0.3
+        },
+        "default": {
+          "monetization": 0.3,
+          "engagement": 0.3,
+          "satisfaction": 0.4
+        }
+      }
     },
     {
       "id": "home-match",
@@ -122,7 +474,41 @@
         "home",
         "hm"
       ],
-      "viewMappings": {}
+      "viewMappings": {
+        "Level Revize": "613d66e9-d368-4feb-81cb-3c3345b1da43",
+        "Churn Report": "613d66e9-d368-4feb-81cb-3c3345b1da43"
+      },
+      "urlMappings": {
+        "Level Revize": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/HomeMatch3DChurn/LevelRevize?:iid=1",
+        "Churn Report": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/HomeMatch3DChurn/LevelRevize?:iid=1"
+      },
+      "scoreMultipliers": {
+        "cluster1": {
+          "monetization": 0.2,
+          "engagement": 0.2,
+          "satisfaction": 0.6
+        },
+        "cluster2": {
+          "monetization": 0.25,
+          "engagement": 0.25,
+          "satisfaction": 0.5
+        },
+        "cluster3": {
+          "monetization": 0.3,
+          "engagement": 0.35,
+          "satisfaction": 0.35
+        },
+        "cluster4": {
+          "monetization": 0.35,
+          "engagement": 0.35,
+          "satisfaction": 0.3
+        },
+        "default": {
+          "monetization": 0.3,
+          "engagement": 0.3,
+          "satisfaction": 0.4
+        }
+      }
     },
     {
       "id": "triple-farm",
@@ -132,7 +518,41 @@
         "triple",
         "tf"
       ],
-      "viewMappings": {}
+      "viewMappings": {
+        "Churn Report": "5c02837b-e8ff-4823-b938-158eaf035e2a",
+        "Level Revize": "5c02837b-e8ff-4823-b938-158eaf035e2a"
+      },
+      "urlMappings": {
+        "Churn Report": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/TripleFarmChurn/LevelRevize?:iid=2",
+        "Level Revize": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/TripleFarmChurn/LevelRevize?:iid=2"
+      },
+      "scoreMultipliers": {
+        "cluster1": {
+          "monetization": 0.2,
+          "engagement": 0.2,
+          "satisfaction": 0.6
+        },
+        "cluster2": {
+          "monetization": 0.25,
+          "engagement": 0.25,
+          "satisfaction": 0.5
+        },
+        "cluster3": {
+          "monetization": 0.3,
+          "engagement": 0.35,
+          "satisfaction": 0.35
+        },
+        "cluster4": {
+          "monetization": 0.35,
+          "engagement": 0.35,
+          "satisfaction": 0.3
+        },
+        "default": {
+          "monetization": 0.3,
+          "engagement": 0.3,
+          "satisfaction": 0.4
+        }
+      }
     },
     {
       "id": "match-land",
@@ -152,7 +572,41 @@
         "santa",
         "sq"
       ],
-      "viewMappings": {}
+      "viewMappings": {
+        "Level Revize": "575dead1-90de-4e69-b05c-aea7377f3784",
+        "Churn Report": "575dead1-90de-4e69-b05c-aea7377f3784"
+      },
+      "urlMappings": {
+        "Level Revize": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/SantaQuestChurn/LevelRevize?:iid=1",
+        "Churn Report": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/SantaQuestChurn/LevelRevize?:iid=1"
+      },
+      "scoreMultipliers": {
+        "cluster1": {
+          "monetization": 0.2,
+          "engagement": 0.2,
+          "satisfaction": 0.6
+        },
+        "cluster2": {
+          "monetization": 0.25,
+          "engagement": 0.25,
+          "satisfaction": 0.5
+        },
+        "cluster3": {
+          "monetization": 0.3,
+          "engagement": 0.35,
+          "satisfaction": 0.35
+        },
+        "cluster4": {
+          "monetization": 0.35,
+          "engagement": 0.35,
+          "satisfaction": 0.3
+        },
+        "default": {
+          "monetization": 0.3,
+          "engagement": 0.3,
+          "satisfaction": 0.4
+        }
+      }
     },
     {
       "id": "match-3d-mania",
@@ -162,7 +616,222 @@
         "mania",
         "m3dm"
       ],
-      "viewMappings": {}
+      "viewMappings": {
+        "Level Revize": "613d66e9-d368-4feb-81cb-3c3345b1da43",
+        "Churn Report": "613d66e9-d368-4feb-81cb-3c3345b1da43"
+      },
+      "urlMappings": {
+        "Churn Report": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/Match3DChurn/LevelRevize?:iid=1",
+        "Level Revize": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/Match3DChurn/LevelRevize?:iid=1"
+      },
+      "scoreMultipliers": {
+        "cluster1": {
+          "monetization": 0.2,
+          "engagement": 0.2,
+          "satisfaction": 0.6
+        },
+        "cluster2": {
+          "monetization": 0.25,
+          "engagement": 0.25,
+          "satisfaction": 0.5
+        },
+        "cluster3": {
+          "monetization": 0.3,
+          "engagement": 0.35,
+          "satisfaction": 0.35
+        },
+        "cluster4": {
+          "monetization": 0.35,
+          "engagement": 0.35,
+          "satisfaction": 0.3
+        },
+        "default": {
+          "monetization": 0.3,
+          "engagement": 0.3,
+          "satisfaction": 0.4
+        }
+      }
+    },
+    {
+      "id": "farm-bubbles-1770036586224",
+      "name": "Farm Bubbles",
+      "viewMappings": {
+        "Level Revize": "72a71850-c4cb-488f-b3ab-2ee2733463cb",
+        "Churn Report": "72a71850-c4cb-488f-b3ab-2ee2733463cb",
+        "Champions": "b890df79-6c52-4e83-b013-95ff673d335a"
+      },
+      "aliases": [
+        "farm bubbles",
+        "farmbubbles"
+      ],
+      "urlMappings": {
+        "Level Revize": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/FarmBubblesChurn-LevelRevize/LevelRevize?:iid=1",
+        "Churn Report": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/FarmBubblesChurn-LevelRevize/LevelRevize?:iid=1",
+        "Champions": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/FarmBubblesChurn-LevelRevize/ChampLeagueLevels?:iid=1"
+      },
+      "scoreMultipliers": {
+        "cluster1": {
+          "monetization": 0.2,
+          "engagement": 0.2,
+          "satisfaction": 0.6
+        },
+        "cluster2": {
+          "monetization": 0.25,
+          "engagement": 0.25,
+          "satisfaction": 0.5
+        },
+        "cluster3": {
+          "monetization": 0.3,
+          "engagement": 0.35,
+          "satisfaction": 0.35
+        },
+        "cluster4": {
+          "monetization": 0.35,
+          "engagement": 0.35,
+          "satisfaction": 0.3
+        },
+        "default": {
+          "monetization": 0.3,
+          "engagement": 0.3,
+          "satisfaction": 0.4
+        }
+      }
+    },
+    {
+      "id": "bubble-friends-1770706877950",
+      "name": "Bubble Friends",
+      "viewMappings": {
+        "Level Revize": "843861e0-4005-486b-86fc-0baca0cab61d",
+        "Churn Report": "843861e0-4005-486b-86fc-0baca0cab61d"
+      },
+      "aliases": [],
+      "urlMappings": {
+        "Level Revize": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/BubbleFriendsChurn-LevelRevize/LevelRevize?:iid=1",
+        "Churn Report": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/BubbleFriendsChurn-LevelRevize/LevelRevize?:iid=1"
+      },
+      "scoreMultipliers": {
+        "cluster1": {
+          "monetization": 0.2,
+          "engagement": 0.2,
+          "satisfaction": 0.6
+        },
+        "cluster2": {
+          "monetization": 0.25,
+          "engagement": 0.25,
+          "satisfaction": 0.5
+        },
+        "cluster3": {
+          "monetization": 0.3,
+          "engagement": 0.35,
+          "satisfaction": 0.35
+        },
+        "cluster4": {
+          "monetization": 0.35,
+          "engagement": 0.35,
+          "satisfaction": 0.3
+        },
+        "default": {
+          "monetization": 0.3,
+          "engagement": 0.3,
+          "satisfaction": 0.4
+        }
+      }
+    },
+    {
+      "id": "farm-blast-1770966126896",
+      "name": "Farm Blast",
+      "viewMappings": {
+        "Level Revize": "58af6dbd-d40c-44b0-a6bb-51e4681fba06",
+        "Churn Report": "58af6dbd-d40c-44b0-a6bb-51e4681fba06",
+        "Champions": "bd89de6e-a953-43ac-9629-dc1352311339"
+      },
+      "aliases": [
+        "farm blast",
+        "farmblast"
+      ],
+      "urlMappings": {
+        "Level Revize": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/FarmBlastChurn-LevelRevize/LevelRevize?:iid=1",
+        "Churn Report": "https://eu-west-1a.online.tableau.com/#/site/narcadegames/views/FarmBlastChurn-LevelRevize/LevelRevize?:iid=1",
+        "Champions": "http://eu-west-1a.online.tableau.com/#/site/narcadegames/views/FarmBlastChurn-LevelRevize/ChampLeagueLevels?:iid=2"
+      },
+      "scoreMultipliers": {
+        "cluster1": {
+          "monetization": 0.2,
+          "engagement": 0.2,
+          "satisfaction": 0.6
+        },
+        "cluster2": {
+          "monetization": 0.25,
+          "engagement": 0.25,
+          "satisfaction": 0.5
+        },
+        "cluster3": {
+          "monetization": 0.3,
+          "engagement": 0.35,
+          "satisfaction": 0.35
+        },
+        "cluster4": {
+          "monetization": 0.35,
+          "engagement": 0.35,
+          "satisfaction": 0.3
+        },
+        "default": {
+          "monetization": 0.3,
+          "engagement": 0.3,
+          "satisfaction": 0.4
+        }
+      }
     }
-  ]
+  ],
+  "weeklyCheck": {
+    "minTotalUser": 50,
+    "minTotalUserLast30": 50,
+    "minLevel": 0,
+    "minDaysSinceEvent": 0,
+    "finalCluster": "1,2,3,4",
+    "columnOrder": [
+      "Level",
+      "TotalUser",
+      "3 Days Churn",
+      "Playon per User",
+      "Avg. Total Moves",
+      "Clu",
+      "Score",
+      "Min. Time Event",
+      "Engagement Score",
+      "Monetization Score",
+      "Satisfaction Score",
+      "Instant Churn ",
+      "7 Days Churn",
+      "Avg. FirstTryWin",
+      "Avg. Repeat Rate",
+      "Avg. Level Play",
+      "Avg. RM Fixed",
+      "Inapp Value",
+      "Level Score",
+      "FinalCluster",
+      "RevisionNumber",
+      "New Move",
+      "Revision Number",
+      "Total Move",
+      "Average remaining move",
+      "In app value",
+      "Avg. FirstTryWinPercent",
+      "Avg. Repeat Ratio",
+      "Level Play Time",
+      "RM Total"
+    ],
+    "columnRenames": {},
+    "hiddenColumns": [
+      "Engagement Score",
+      "Monetization Score",
+      "Satisfaction Score",
+      "Min. Time Event",
+      "FinalCluster"
+    ],
+    "successMinTotalUser": 50,
+    "successMinLevel": 0,
+    "successMinDaysSinceEvent": 0,
+    "successFinalCluster": "1,2,3,4"
+  }
 }
