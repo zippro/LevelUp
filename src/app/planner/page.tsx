@@ -111,11 +111,13 @@ function MultiCellEditor({
     actions,
     entries,
     onAdd,
+    onUpdate,
     onDelete,
 }: {
     actions: PlannerAction[];
     entries: PlannerCell[];
     onAdd: (actionId: string, date: string | null) => void;
+    onUpdate: (cellId: string, actionId: string, date: string | null) => void;
     onDelete: (cellId: string) => void;
 }) {
     return (
@@ -124,24 +126,30 @@ function MultiCellEditor({
                 const action = actions.find(a => a.id === entry.action_id);
                 if (!action) return null;
                 return (
-                    <div
+                    <ActionPicker
                         key={entry.id}
-                        className="group flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-white shadow-sm relative"
-                        style={{ backgroundColor: action.color }}
-                    >
-                        <span className="truncate">{action.name}</span>
-                        {entry.date && (
-                            <span className="text-[10px] opacity-80 flex-shrink-0">
-                                {new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                            </span>
-                        )}
-                        <button
-                            onClick={() => onDelete(entry.id)}
-                            className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-white text-[10px] items-center justify-center hidden group-hover:flex shadow"
-                        >
-                            ×
-                        </button>
-                    </div>
+                        actions={actions}
+                        onSave={(actionId, date) => onUpdate(entry.id, actionId, date)}
+                        trigger={
+                            <div
+                                className="group flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-white shadow-sm relative cursor-pointer hover:ring-2 hover:ring-primary/40 transition-all"
+                                style={{ backgroundColor: action.color }}
+                            >
+                                <span className="truncate">{action.name}</span>
+                                {entry.date && (
+                                    <span className="text-[10px] opacity-80 flex-shrink-0">
+                                        {new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                    </span>
+                                )}
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); onDelete(entry.id); }}
+                                    className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-white text-[10px] items-center justify-center hidden group-hover:flex shadow"
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        }
+                    />
                 );
             })}
             <ActionPicker
@@ -391,16 +399,21 @@ export default function PlannerPage() {
         await fetch(`/api/planner/cells?id=${cellId}`, { method: 'DELETE' });
     };
 
-    // Update a cell's date (used by schedule DnD)
+    // Update a cell (change action and/or date)
+    const updateCell = async (cellId: string, actionId: string, date: string | null) => {
+        setCells(prev => prev.map(c => c.id === cellId ? { ...c, action_id: actionId, date } : c));
+        await fetch('/api/planner/cells', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: cellId, action_id: actionId, date })
+        });
+    };
+
+    // Update a cell's date only (used by schedule DnD)
     const updateCellDate = async (cellId: string, newDate: string) => {
-        setCells(prev => prev.map(c => c.id === cellId ? { ...c, date: newDate } : c));
         const cell = cells.find(c => c.id === cellId);
         if (cell) {
-            await fetch('/api/planner/cells', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: cellId, action_id: cell.action_id, date: newDate })
-            });
+            updateCell(cellId, cell.action_id!, newDate);
         }
     };
 
@@ -626,6 +639,7 @@ export default function PlannerPage() {
                                                         actions={actions}
                                                         entries={slotCells}
                                                         onAdd={(actionId, date) => addCell(game.id, col.id, actionId, date)}
+                                                        onUpdate={(cellId, actionId, date) => updateCell(cellId, actionId, date)}
                                                         onDelete={(cellId) => deleteCell(cellId)}
                                                     />
                                                 </TableCell>
