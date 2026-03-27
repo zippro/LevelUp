@@ -12,7 +12,7 @@ interface ABCheckConfig {
     minTotalUser: number;
     minLevel: number;
     minDaysSinceEvent: number;
-    hideRevision9xx: boolean;
+    showOnly9xx: boolean;
 }
 
 interface AppConfig {
@@ -29,7 +29,7 @@ export default function ABCheckSettingsPage() {
     const [minTotalUser, setMinTotalUser] = useState(50);
     const [minLevel, setMinLevel] = useState(0);
     const [minDaysSinceEvent, setMinDaysSinceEvent] = useState(0);
-    const [hideRevision9xx, setHideRevision9xx] = useState(false);
+    const [showOnly9xx, setShowOnly9xx] = useState(false);
 
     useEffect(() => {
         fetch("/api/config")
@@ -40,7 +40,7 @@ export default function ABCheckSettingsPage() {
                     if (data.abCheck.minTotalUser !== undefined) setMinTotalUser(data.abCheck.minTotalUser);
                     if (data.abCheck.minLevel !== undefined) setMinLevel(data.abCheck.minLevel);
                     if (data.abCheck.minDaysSinceEvent !== undefined) setMinDaysSinceEvent(data.abCheck.minDaysSinceEvent);
-                    if (data.abCheck.hideRevision9xx !== undefined) setHideRevision9xx(data.abCheck.hideRevision9xx);
+                    if (data.abCheck.showOnly9xx !== undefined) setShowOnly9xx(data.abCheck.showOnly9xx);
                 }
                 setLoading(false);
             })
@@ -57,7 +57,7 @@ export default function ABCheckSettingsPage() {
                 minTotalUser,
                 minLevel,
                 minDaysSinceEvent,
-                hideRevision9xx,
+                showOnly9xx,
             }
         };
 
@@ -151,14 +151,14 @@ export default function ABCheckSettingsPage() {
                             <label className="text-sm font-medium mb-1.5 block">Revision 9xx Filter</label>
                             <div className="flex gap-2">
                                 <Button
-                                    variant={hideRevision9xx ? "destructive" : "outline"}
-                                    onClick={() => setHideRevision9xx(!hideRevision9xx)}
+                                    variant={showOnly9xx ? "default" : "outline"}
+                                    onClick={() => setShowOnly9xx(!showOnly9xx)}
                                 >
-                                    {hideRevision9xx ? "Hidden by Default" : "Shown by Default"}
+                                    {showOnly9xx ? "Show Only 9xx by Default" : "Show All by Default"}
                                 </Button>
                             </div>
                             <p className="text-xs text-muted-foreground mt-2">
-                                Whether to hide levels with 3-digit revision numbers starting with 9 (900-999) by default.
+                                When enabled, the AB Check page will default to showing only levels with 3-digit revision numbers starting with 9 (900-999).
                             </p>
                         </div>
                     </CardContent>

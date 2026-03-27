@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Loader2, GitCompareArrows, Download } from "lucide-react";
+import { Loader2, GitCompareArrows, Download, Settings2, ArrowUpDown, Eye, EyeOff } from "lucide-react";
 import papa from 'papaparse';
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
@@ -24,7 +24,7 @@ interface Config {
         minTotalUser?: number;
         minLevel?: number;
         minDaysSinceEvent?: number;
-        hideRevision9xx?: boolean;
+        showOnly9xx?: boolean;
         columnOrder?: string[];
         hiddenColumns?: string[];
     };
@@ -58,22 +58,28 @@ const AB_METRICS = [
     { id: 'Level Play Time', label: 'Play Time', aliases: ['avg. level play', 'avg level play', 'level play time', 'levelplaytime', 'avg level play time', 'avg. level play time'] },
     { id: 'Total Move', label: 'Moves', aliases: ['avg. total moves', 'avg total moves', 'total move', 'totalmove', 'total moves'] },
     { id: 'RM Fixed', label: 'RM', aliases: ['avg. rm fixed', 'avg rm fixed', 'rm fixed', 'rm total', 'average remaining move', 'remaining move', 'remaining moves'] },
+    { id: 'Engagement Score', label: 'Engagement', aliases: ['engagement score', 'engagement_score', 'engagement'] },
+    { id: 'Monetization Score', label: 'Monetization', aliases: ['monetization score', 'monetization_score', 'monetization'] },
+    { id: 'Satisfaction Score', label: 'Satisfaction', aliases: ['satisfaction score', 'satisfaction_score', 'satisfaction'] },
     { id: 'RevisionNumber', label: 'Rev#', aliases: ['revision number', 'revisionnumber', 'revision'] },
 ];
 
 function findMetricInRow(row: any, metric: typeof AB_METRICS[0]): string {
     const keys = Object.keys(row);
-    // First pass: exact match
     for (const alias of metric.aliases) {
         const matchKey = keys.find(k => normalizeHeader(k) === alias);
         if (matchKey && row[matchKey] !== undefined && row[matchKey] !== '') return String(row[matchKey]);
     }
-    // Second pass: includes match
     for (const alias of metric.aliases) {
         const matchKey = keys.find(k => normalizeHeader(k).includes(alias) || alias.includes(normalizeHeader(k)));
         if (matchKey && row[matchKey] !== undefined && row[matchKey] !== '') return String(row[matchKey]);
     }
     return '-';
+}
+
+function getNumericValue(value: string): number {
+    if (value === '-' || value === '' || value === 'undefined' || value === 'null') return NaN;
+    return parseFloat(value.replace(/[%,]/g, ''));
 }
 
 function formatMetricValue(value: string, metricId: string): string {
@@ -106,7 +112,6 @@ function detectGroupingColumn(data: any[], headers: string[]): string | null {
         }
     }
 
-    // Auto-detect: column with exactly 2 unique non-numeric values
     for (const header of headers) {
         const lower = normalizeHeader(header);
         if (lower === 'level' || lower.includes('churn') || lower.includes('user') ||
@@ -130,6 +135,8 @@ function detectGroupingColumn(data: any[], headers: string[]): string | null {
     return null;
 }
 
+type ViewMode = 'split' | 'interleaved';
+
 export default function ABCheckPage() {
     const [config, setConfig] = useState<Config | null>(null);
     const [loadingConfig, setLoadingConfig] = useState(true);
@@ -144,12 +151,22 @@ export default function ABCheckPage() {
     const [groupBLabel, setGroupBLabel] = useState("B");
     const [groupingColumn, setGroupingColumn] = useState<string | null>(null);
 
+    // View mode
+    const [viewMode, setViewMode] = useState<ViewMode>('split');
+
     // Filters
     const [minTotalUser, setMinTotalUser] = useState(50);
     const [minLevel, setMinLevel] = useState(0);
     const [minDaysSinceEvent, setMinDaysSinceEvent] = useState(0);
     const [finalClusters, setFinalClusters] = useState<string[]>(['1', '2', '3', '4', 'None']);
-    const [hideRevision9xx, setHideRevision9xx] = useState(false);
+    const [showOnly9xx, setShowOnly9xx] = useState(false);
+
+    // Column customization
+    const [visibleMetrics, setVisibleMetrics] = useState<string[]>(AB_METRICS.map(m => m.id));
+    const [showColumnSettings, setShowColumnSettings] = useState(false);
+
+    // Bigger function
+    const [biggerMetric, setBiggerMetric] = useState<string | null>(null);
 
     // Cache dialog
     const [showCacheDialog, setShowCacheDialog] = useState(false);
@@ -161,13 +178,12 @@ export default function ABCheckPage() {
             .then(res => res.json())
             .then((data: Config) => {
                 setConfig(data);
-                // Use abCheck settings if available, fallback to weeklyCheck
                 const abCfg = data.abCheck;
                 const wcCfg = data.weeklyCheck;
                 setMinTotalUser(abCfg?.minTotalUser ?? wcCfg?.minTotalUser ?? 50);
                 setMinLevel(abCfg?.minLevel ?? wcCfg?.minLevel ?? 0);
                 setMinDaysSinceEvent(abCfg?.minDaysSinceEvent ?? wcCfg?.minDaysSinceEvent ?? 0);
-                if (abCfg?.hideRevision9xx !== undefined) setHideRevision9xx(abCfg.hideRevision9xx);
+                if (abCfg?.showOnly9xx !== undefined) setShowOnly9xx(abCfg.showOnly9xx);
                 setLoadingConfig(false);
             })
             .catch(e => console.error(e));
@@ -176,6 +192,10 @@ export default function ABCheckPage() {
     const availableGames = useMemo(() => {
         return config?.games.filter(g => g.viewMappings?.["Level A-B"]) || [];
     }, [config]);
+
+    const activeMetrics = useMemo(() => {
+        return AB_METRICS.filter(m => visibleMetrics.includes(m.id));
+    }, [visibleMetrics]);
 
     const handleLoad = async () => {
         if (!selectedGameId || !config) return;
@@ -336,17 +356,15 @@ export default function ABCheckPage() {
                 return { level, rowA, rowB };
             })
             .filter(({ level, rowA, rowB }) => {
-                // Min Total User filter (at least one group must pass)
                 const getUserCount = (row: any) => {
                     if (!row) return 0;
-                    const val = findMetricInRow(row, AB_METRICS[0]); // TotalUser
+                    const val = findMetricInRow(row, AB_METRICS[0]);
                     return parseInt(String(val).replace(/[.,]/g, '')) || 0;
                 };
                 const usersA = getUserCount(rowA);
                 const usersB = getUserCount(rowB);
                 if (usersA < minTotalUser && usersB < minTotalUser) return false;
 
-                // Min Days Since Event filter
                 if (minDaysSinceEvent > 0) {
                     const getDate = (row: any) => {
                         if (!row) return null;
@@ -366,7 +384,6 @@ export default function ABCheckPage() {
                     if (daysSince(dateA) < minDaysSinceEvent && daysSince(dateB) < minDaysSinceEvent) return false;
                 }
 
-                // Cluster filter
                 if (finalClusters.length < 5) {
                     const getCluster = (row: any) => {
                         if (!row) return '';
@@ -381,11 +398,12 @@ export default function ABCheckPage() {
                     if (!passesCluster(cluA) && !passesCluster(cluB)) return false;
                 }
 
-                // Revision number filter: hide 3-digit numbers starting with 9
-                if (hideRevision9xx) {
+                // Rev 9xx filter: "Show only 9xx" mode
+                if (showOnly9xx) {
+                    const revMetric = AB_METRICS.find(m => m.id === 'RevisionNumber')!;
                     const getRevision = (row: any) => {
                         if (!row) return '';
-                        return findMetricInRow(row, AB_METRICS.find(m => m.id === 'RevisionNumber')!);
+                        return findMetricInRow(row, revMetric);
                     };
                     const revA = getRevision(rowA);
                     const revB = getRevision(rowB);
@@ -393,15 +411,42 @@ export default function ABCheckPage() {
                         const num = parseInt(r);
                         return !isNaN(num) && num >= 900 && num <= 999;
                     };
-                    if (is9xx(revA) || is9xx(revB)) return false;
+                    // When showOnly9xx is ON, ONLY keep rows where at least one has 9xx
+                    if (!is9xx(revA) && !is9xx(revB)) return false;
                 }
 
                 return true;
             });
-    }, [groupAData, groupBData, minLevel, minTotalUser, minDaysSinceEvent, finalClusters, hideRevision9xx]);
+    }, [groupAData, groupBData, minLevel, minTotalUser, minDaysSinceEvent, finalClusters, showOnly9xx]);
+
+    // Determine which variant is "bigger" for each level
+    const biggerMap = useMemo(() => {
+        if (!biggerMetric) return {};
+        const metric = AB_METRICS.find(m => m.id === biggerMetric);
+        if (!metric) return {};
+
+        const result: Record<number, 'A' | 'B' | null> = {};
+        tableData.forEach(({ level, rowA, rowB }) => {
+            const valA = rowA ? getNumericValue(findMetricInRow(rowA, metric)) : NaN;
+            const valB = rowB ? getNumericValue(findMetricInRow(rowB, metric)) : NaN;
+            if (isNaN(valA) && isNaN(valB)) { result[level] = null; return; }
+            if (isNaN(valA)) { result[level] = 'B'; return; }
+            if (isNaN(valB)) { result[level] = 'A'; return; }
+            if (valA > valB) result[level] = 'A';
+            else if (valB > valA) result[level] = 'B';
+            else result[level] = null;
+        });
+        return result;
+    }, [biggerMetric, tableData]);
 
     if (loadingConfig) return <div className="p-8 animate-pulse text-muted-foreground">Loading configuration...</div>;
     if (!config) return <div className="p-8 text-destructive">Failed to load configuration.</div>;
+
+    const toggleMetric = (metricId: string) => {
+        setVisibleMetrics(prev =>
+            prev.includes(metricId) ? prev.filter(m => m !== metricId) : [...prev, metricId]
+        );
+    };
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -439,7 +484,6 @@ export default function ABCheckPage() {
 
             {/* Controls */}
             <div className="flex flex-wrap items-end gap-4 p-4 bg-muted/40 rounded-xl border shadow-sm">
-                {/* Game Select */}
                 <div className="space-y-1.5 w-full sm:w-[220px]">
                     <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Game</label>
                     <Select value={selectedGameId || ""} onValueChange={setSelectedGameId}>
@@ -457,28 +501,24 @@ export default function ABCheckPage() {
                     </Select>
                 </div>
 
-                {/* Min Users */}
                 <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Min Users</label>
                     <Input type="number" value={minTotalUser} onChange={e => setMinTotalUser(parseInt(e.target.value) || 0)}
                         className="w-[80px] bg-background shadow-sm" />
                 </div>
 
-                {/* Min Level */}
                 <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Min Level</label>
                     <Input type="number" value={minLevel} onChange={e => setMinLevel(parseInt(e.target.value) || 0)}
                         className="w-[80px] bg-background shadow-sm" />
                 </div>
 
-                {/* Min Days Since Event */}
                 <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Min Days</label>
                     <Input type="number" value={minDaysSinceEvent} onChange={e => setMinDaysSinceEvent(parseInt(e.target.value) || 0)}
                         className="w-[80px] bg-background shadow-sm" />
                 </div>
 
-                {/* Cluster Filter */}
                 <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Clusters</label>
                     <div className="flex gap-1">
@@ -498,20 +538,19 @@ export default function ABCheckPage() {
                     </div>
                 </div>
 
-                {/* Revision Filter */}
+                {/* Rev 9xx: Show Only 9xx */}
                 <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Rev 9xx</label>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Only 9xx</label>
                     <Button
-                        variant={hideRevision9xx ? "destructive" : "outline"}
+                        variant={showOnly9xx ? "default" : "outline"}
                         size="sm"
-                        className="h-9"
-                        onClick={() => setHideRevision9xx(!hideRevision9xx)}
+                        className={cn("h-9", showOnly9xx && "bg-violet-600 hover:bg-violet-700")}
+                        onClick={() => setShowOnly9xx(!showOnly9xx)}
                     >
-                        {hideRevision9xx ? "Hidden" : "Shown"}
+                        {showOnly9xx ? "Active" : "Off"}
                     </Button>
                 </div>
 
-                {/* Load Button */}
                 <Button onClick={handleLoad} disabled={loading || !selectedGameId} className="shadow-sm">
                     {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GitCompareArrows className="mr-2 h-4 w-4" />}
                     Load Data
@@ -522,46 +561,128 @@ export default function ABCheckPage() {
                 <div className="p-4 text-sm text-destructive bg-destructive/10 rounded-md border border-destructive/20">{error}</div>
             )}
 
-            {/* Stats */}
+            {/* View mode tabs + Column settings + Bigger function */}
             {(groupAData.length > 0 || groupBData.length > 0) && (
-                <div className="flex items-center gap-4 px-1 text-sm">
-                    <span className="font-medium text-blue-600">{groupALabel}: {groupAData.length} levels</span>
-                    <span className="font-medium text-amber-600">{groupBLabel}: {groupBData.length} levels</span>
-                    <span className="text-muted-foreground">|</span>
-                    <span className="text-muted-foreground">Showing {tableData.length} levels after filters</span>
-                    {groupingColumn && (
-                        <span className="text-xs text-muted-foreground ml-auto">
-                            Grouped by: <span className="font-mono font-medium">{groupingColumn}</span>
-                        </span>
+                <div className="space-y-3">
+                    <div className="flex items-center gap-4 flex-wrap">
+                        {/* Stats */}
+                        <span className="font-medium text-blue-600 text-sm">{groupALabel}: {groupAData.length} levels</span>
+                        <span className="font-medium text-amber-600 text-sm">{groupBLabel}: {groupBData.length} levels</span>
+                        <span className="text-muted-foreground text-sm">|</span>
+                        <span className="text-muted-foreground text-sm">Showing {tableData.length} levels</span>
+
+                        <div className="ml-auto flex items-center gap-2">
+                            {/* Column Settings Toggle */}
+                            <Button
+                                variant={showColumnSettings ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setShowColumnSettings(!showColumnSettings)}
+                                className="gap-1.5"
+                            >
+                                <Settings2 className="h-3.5 w-3.5" />
+                                Columns
+                            </Button>
+
+                            {/* View mode toggle */}
+                            <div className="flex rounded-lg border overflow-hidden">
+                                <button
+                                    className={cn("px-3 py-1.5 text-xs font-medium transition-colors",
+                                        viewMode === 'split' ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted")}
+                                    onClick={() => setViewMode('split')}
+                                >
+                                    Split View
+                                </button>
+                                <button
+                                    className={cn("px-3 py-1.5 text-xs font-medium transition-colors border-l",
+                                        viewMode === 'interleaved' ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted")}
+                                    onClick={() => setViewMode('interleaved')}
+                                >
+                                    A|B View
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Column visibility settings */}
+                    {showColumnSettings && (
+                        <div className="p-3 bg-muted/30 rounded-lg border animate-in slide-in-from-top-2 duration-200">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs font-semibold text-muted-foreground uppercase">Visible Columns</span>
+                                <div className="flex gap-2">
+                                    <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setVisibleMetrics(AB_METRICS.map(m => m.id))}>All</Button>
+                                    <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setVisibleMetrics([])}>None</Button>
+                                </div>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                                {AB_METRICS.map(m => (
+                                    <button
+                                        key={m.id}
+                                        onClick={() => toggleMetric(m.id)}
+                                        className={cn(
+                                            "px-2.5 py-1 rounded-md text-xs font-medium transition-all",
+                                            visibleMetrics.includes(m.id)
+                                                ? "bg-primary text-primary-foreground shadow-sm"
+                                                : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                        )}
+                                    >
+                                        {visibleMetrics.includes(m.id) ? <Eye className="inline h-3 w-3 mr-1" /> : <EyeOff className="inline h-3 w-3 mr-1" />}
+                                        {m.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     )}
+
+                    {/* Bigger function */}
+                    <div className="flex items-center gap-3 flex-wrap">
+                        <div className="flex items-center gap-2">
+                            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-xs font-semibold text-muted-foreground uppercase">Bigger</span>
+                        </div>
+                        <Select value={biggerMetric || "none"} onValueChange={v => setBiggerMetric(v === "none" ? null : v)}>
+                            <SelectTrigger className="w-[200px] h-8 text-xs bg-background shadow-sm">
+                                <SelectValue placeholder="Select Metric..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="none">None (Off)</SelectItem>
+                                {activeMetrics.map(m => (
+                                    <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {biggerMetric && (
+                            <div className="flex items-center gap-3 text-xs">
+                                <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded-sm bg-emerald-500/20 border border-emerald-500"></span> {groupALabel} bigger</span>
+                                <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded-sm bg-red-500/20 border border-red-500"></span> {groupBLabel} bigger</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
 
-            {/* Data Table */}
-            {tableData.length > 0 && (
+            {/* =================== SPLIT VIEW =================== */}
+            {viewMode === 'split' && tableData.length > 0 && (
                 <div className="rounded-xl border shadow-sm bg-card overflow-hidden">
                     <div className="max-h-[600px] overflow-auto">
                         <Table>
                             <TableHeader>
-                                {/* Group header row */}
                                 <TableRow className="bg-muted/50" style={{ position: 'sticky', top: 0, zIndex: 30 }}>
                                     <TableHead rowSpan={2} className="font-bold text-foreground bg-muted/50 border-r"
                                         style={{ position: 'sticky', left: 0, zIndex: 40 }}>Level</TableHead>
-                                    <TableHead colSpan={AB_METRICS.length} className="text-center font-bold bg-blue-50 text-blue-700 border-r">
+                                    <TableHead colSpan={activeMetrics.length} className="text-center font-bold bg-blue-50 text-blue-700 border-r">
                                         {groupALabel}
                                     </TableHead>
-                                    <TableHead colSpan={AB_METRICS.length} className="text-center font-bold bg-amber-50 text-amber-700">
+                                    <TableHead colSpan={activeMetrics.length} className="text-center font-bold bg-amber-50 text-amber-700">
                                         {groupBLabel}
                                     </TableHead>
                                 </TableRow>
-                                {/* Metric header row */}
                                 <TableRow className="bg-muted/30" style={{ position: 'sticky', top: 33, zIndex: 30 }}>
-                                    {AB_METRICS.map(m => (
+                                    {activeMetrics.map(m => (
                                         <TableHead key={`A_${m.id}`} className="font-semibold text-xs whitespace-nowrap bg-blue-50/50 text-blue-600">
                                             {m.label}
                                         </TableHead>
                                     ))}
-                                    {AB_METRICS.map(m => (
+                                    {activeMetrics.map(m => (
                                         <TableHead key={`B_${m.id}`} className="font-semibold text-xs whitespace-nowrap bg-amber-50/50 text-amber-600 first:border-l">
                                             {m.label}
                                         </TableHead>
@@ -569,31 +690,149 @@ export default function ABCheckPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {tableData.map(({ level, rowA, rowB }) => (
-                                    <TableRow key={level} className="hover:bg-muted/30">
-                                        <TableCell className="font-bold bg-card border-r" style={{ position: 'sticky', left: 0, zIndex: 10 }}>
-                                            {level}
-                                        </TableCell>
-                                        {/* A columns */}
-                                        {AB_METRICS.map(m => {
-                                            const val = rowA ? findMetricInRow(rowA, m) : '-';
-                                            return (
-                                                <TableCell key={`A_${m.id}`} className="text-xs font-mono bg-blue-50/10">
-                                                    {formatMetricValue(val, m.id)}
-                                                </TableCell>
-                                            );
-                                        })}
-                                        {/* B columns */}
-                                        {AB_METRICS.map(m => {
-                                            const val = rowB ? findMetricInRow(rowB, m) : '-';
-                                            return (
-                                                <TableCell key={`B_${m.id}`} className="text-xs font-mono bg-amber-50/10 first:border-l">
-                                                    {formatMetricValue(val, m.id)}
-                                                </TableCell>
-                                            );
-                                        })}
-                                    </TableRow>
-                                ))}
+                                {tableData.map(({ level, rowA, rowB }) => {
+                                    const bigger = biggerMetric ? biggerMap[level] : null;
+                                    return (
+                                        <TableRow key={level} className={cn("hover:bg-muted/30",
+                                            bigger === 'A' && "bg-emerald-50/40",
+                                            bigger === 'B' && "bg-red-50/40"
+                                        )}>
+                                            <TableCell className={cn("font-bold bg-card border-r",
+                                                bigger === 'A' && "bg-emerald-50/60",
+                                                bigger === 'B' && "bg-red-50/60"
+                                            )} style={{ position: 'sticky', left: 0, zIndex: 10 }}>
+                                                {level}
+                                                {bigger && (
+                                                    <span className={cn("ml-1.5 text-[10px] font-bold px-1 py-0.5 rounded",
+                                                        bigger === 'A' ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                                                    )}>
+                                                        {bigger === 'A' ? groupALabel : groupBLabel}
+                                                    </span>
+                                                )}
+                                            </TableCell>
+                                            {activeMetrics.map(m => {
+                                                const val = rowA ? findMetricInRow(rowA, m) : '-';
+                                                const isBiggerCol = biggerMetric === m.id;
+                                                return (
+                                                    <TableCell key={`A_${m.id}`} className={cn("text-xs font-mono bg-blue-50/10",
+                                                        isBiggerCol && bigger === 'A' && "bg-emerald-100/50 font-bold text-emerald-800",
+                                                        isBiggerCol && bigger === 'B' && "opacity-60"
+                                                    )}>
+                                                        {formatMetricValue(val, m.id)}
+                                                    </TableCell>
+                                                );
+                                            })}
+                                            {activeMetrics.map(m => {
+                                                const val = rowB ? findMetricInRow(rowB, m) : '-';
+                                                const isBiggerCol = biggerMetric === m.id;
+                                                return (
+                                                    <TableCell key={`B_${m.id}`} className={cn("text-xs font-mono bg-amber-50/10 first:border-l",
+                                                        isBiggerCol && bigger === 'B' && "bg-red-100/50 font-bold text-red-800",
+                                                        isBiggerCol && bigger === 'A' && "opacity-60"
+                                                    )}>
+                                                        {formatMetricValue(val, m.id)}
+                                                    </TableCell>
+                                                );
+                                            })}
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </div>
+            )}
+
+            {/* =================== INTERLEAVED A|B VIEW =================== */}
+            {viewMode === 'interleaved' && tableData.length > 0 && (
+                <div className="rounded-xl border shadow-sm bg-card overflow-hidden">
+                    <div className="max-h-[600px] overflow-auto">
+                        <Table>
+                            <TableHeader>
+                                {/* Metric group headers */}
+                                <TableRow className="bg-muted/50" style={{ position: 'sticky', top: 0, zIndex: 30 }}>
+                                    <TableHead rowSpan={2} className="font-bold text-foreground bg-muted/50 border-r"
+                                        style={{ position: 'sticky', left: 0, zIndex: 40 }}>Level</TableHead>
+                                    {activeMetrics.map(m => (
+                                        <TableHead key={m.id} colSpan={2} className={cn(
+                                            "text-center font-bold text-xs border-r",
+                                            biggerMetric === m.id ? "bg-violet-50 text-violet-700" : "bg-muted/30"
+                                        )}>
+                                            {m.label}
+                                        </TableHead>
+                                    ))}
+                                </TableRow>
+                                {/* A/B sub-headers */}
+                                <TableRow className="bg-muted/30" style={{ position: 'sticky', top: 33, zIndex: 30 }}>
+                                    {activeMetrics.map(m => (
+                                        <>
+                                            <TableHead key={`${m.id}_A`} className="font-semibold text-[10px] whitespace-nowrap bg-blue-50/50 text-blue-700 text-center w-[60px]">
+                                                {groupALabel}
+                                            </TableHead>
+                                            <TableHead key={`${m.id}_B`} className="font-semibold text-[10px] whitespace-nowrap bg-amber-50/50 text-amber-700 text-center border-r w-[60px]">
+                                                {groupBLabel}
+                                            </TableHead>
+                                        </>
+                                    ))}
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {tableData.map(({ level, rowA, rowB }) => {
+                                    const bigger = biggerMetric ? biggerMap[level] : null;
+                                    return (
+                                        <TableRow key={level} className={cn("hover:bg-muted/30",
+                                            bigger === 'A' && "bg-emerald-50/30",
+                                            bigger === 'B' && "bg-red-50/30"
+                                        )}>
+                                            <TableCell className={cn("font-bold bg-card border-r",
+                                                bigger === 'A' && "bg-emerald-50/60",
+                                                bigger === 'B' && "bg-red-50/60"
+                                            )} style={{ position: 'sticky', left: 0, zIndex: 10 }}>
+                                                {level}
+                                                {bigger && (
+                                                    <span className={cn("ml-1.5 text-[10px] font-bold px-1 py-0.5 rounded",
+                                                        bigger === 'A' ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                                                    )}>
+                                                        {bigger === 'A' ? groupALabel : groupBLabel}
+                                                    </span>
+                                                )}
+                                            </TableCell>
+                                            {activeMetrics.map(m => {
+                                                const valA = rowA ? findMetricInRow(rowA, m) : '-';
+                                                const valB = rowB ? findMetricInRow(rowB, m) : '-';
+                                                const isBiggerCol = biggerMetric === m.id;
+
+                                                // Per-cell bigger comparison for this specific metric
+                                                const numA = getNumericValue(valA);
+                                                const numB = getNumericValue(valB);
+                                                let cellBigger: 'A' | 'B' | null = null;
+                                                if (!isNaN(numA) && !isNaN(numB)) {
+                                                    if (numA > numB) cellBigger = 'A';
+                                                    else if (numB > numA) cellBigger = 'B';
+                                                }
+
+                                                return (
+                                                    <>
+                                                        <TableCell key={`${m.id}_A_${level}`} className={cn(
+                                                            "text-xs font-mono text-center",
+                                                            isBiggerCol && cellBigger === 'A' && "bg-emerald-100/60 font-bold text-emerald-800",
+                                                            isBiggerCol && cellBigger === 'B' && "opacity-50"
+                                                        )}>
+                                                            {formatMetricValue(valA, m.id)}
+                                                        </TableCell>
+                                                        <TableCell key={`${m.id}_B_${level}`} className={cn(
+                                                            "text-xs font-mono text-center border-r",
+                                                            isBiggerCol && cellBigger === 'B' && "bg-red-100/60 font-bold text-red-800",
+                                                            isBiggerCol && cellBigger === 'A' && "opacity-50"
+                                                        )}>
+                                                            {formatMetricValue(valB, m.id)}
+                                                        </TableCell>
+                                                    </>
+                                                );
+                                            })}
+                                        </TableRow>
+                                    );
+                                })}
                             </TableBody>
                         </Table>
                     </div>
