@@ -341,27 +341,57 @@ export default function ABAnalyzePage() {
         setGroupB([]);
 
         try {
+            // Use AbortController with 60s timeout (Tableau can be slow)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+            console.log(`[A/B Compare] Fetching data for ${game.name} with viewId: ${viewId}`);
+
             const response = await fetch("/api/sync-tableau", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ viewId, tableName: "level_ab_data" }),
+                signal: controller.signal,
             });
 
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                let errorMsg = `Server error (${response.status})`;
+                try {
+                    const result = await response.json();
+                    errorMsg = result.error || errorMsg;
+                } catch { /* ignore json parse error */ }
+                throw new Error(errorMsg);
+            }
+
             const result = await response.json();
-            if (!response.ok) throw new Error(result.error || "Failed to fetch data");
+
+            if (!result.data) {
+                throw new Error("No data returned from Tableau. The view might be empty or inaccessible.");
+            }
 
             // Auto-save to repository
-            if (result.data) {
+            try {
                 const timestamp = format(new Date(), "yyyy-MM-dd HH-mm-ss");
                 const fileName = `${game.name} - Level A-B - ${timestamp}.csv`;
                 await supabase.storage
                     .from('data-repository')
                     .upload(fileName, result.data, { contentType: 'text/csv', upsert: false });
+                console.log(`[A/B Compare] Saved: ${fileName}`);
+            } catch (saveErr) {
+                console.warn("[A/B Compare] Could not save to repository:", saveErr);
             }
 
             processCSVData(result.data);
         } catch (err: any) {
-            setError(err.message);
+            if (err.name === 'AbortError') {
+                setError("Request timed out after 60 seconds. Tableau may be slow. Try again or use cached data.");
+            } else if (err.message === 'Failed to fetch') {
+                setError("Network error: Could not connect to the server. Make sure the dev server is running.");
+            } else {
+                setError(err.message);
+            }
         } finally {
             setLoading(false);
         }
