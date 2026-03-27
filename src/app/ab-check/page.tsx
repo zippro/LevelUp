@@ -168,6 +168,9 @@ export default function ABCheckPage() {
     // Bigger function
     const [biggerMetric, setBiggerMetric] = useState<string | null>(null);
 
+    // Saved level scores (cluster + score per level)
+    const [savedScores, setSavedScores] = useState<Record<number, { cluster: string | null, score: number | null }>>({});
+
     // Cache dialog
     const [showCacheDialog, setShowCacheDialog] = useState(false);
     const [cachedFileName, setCachedFileName] = useState("");
@@ -204,6 +207,23 @@ export default function ABCheckPage() {
 
         setLoading(true);
         setError(null);
+
+        // Fetch saved level scores (cluster + score)
+        try {
+            const savedRes = await fetch(`/api/level-scores?gameId=${selectedGameId}&t=${Date.now()}`);
+            if (savedRes.ok) {
+                const savedData = await savedRes.json();
+                const savedMap: Record<number, { cluster: string | null, score: number | null }> = {};
+                if (Array.isArray(savedData)) {
+                    savedData.forEach((s: any) => {
+                        savedMap[s.level] = { cluster: s.cluster || null, score: s.score !== undefined ? s.score : null };
+                    });
+                }
+                setSavedScores(savedMap);
+            }
+        } catch (e) {
+            console.error('Failed to load saved scores', e);
+        }
 
         const { data: files } = await supabase.storage
             .from('data-repository')
@@ -669,6 +689,8 @@ export default function ABCheckPage() {
                                 <TableRow className="bg-muted/50" style={{ position: 'sticky', top: 0, zIndex: 30 }}>
                                     <TableHead rowSpan={2} className="font-bold text-foreground bg-muted/50 border-r"
                                         style={{ position: 'sticky', left: 0, zIndex: 40 }}>Level</TableHead>
+                                    <TableHead rowSpan={2} className="font-bold text-xs text-foreground bg-muted/50 border-r text-center">Clu</TableHead>
+                                    <TableHead rowSpan={2} className="font-bold text-xs text-foreground bg-muted/50 border-r text-center">Score</TableHead>
                                     <TableHead colSpan={activeMetrics.length} className="text-center font-bold bg-blue-50 text-blue-700 border-r">
                                         {groupALabel}
                                     </TableHead>
@@ -692,6 +714,9 @@ export default function ABCheckPage() {
                             <TableBody>
                                 {tableData.map(({ level, rowA, rowB }) => {
                                     const bigger = biggerMetric ? biggerMap[level] : null;
+                                    const levelScore = savedScores[level];
+                                    const clusterVal = levelScore?.cluster || '-';
+                                    const scoreVal = levelScore?.score != null ? levelScore.score.toFixed(1) : '-';
                                     return (
                                         <TableRow key={level} className={cn("hover:bg-muted/30",
                                             bigger === 'A' && "bg-emerald-50/40",
@@ -710,6 +735,13 @@ export default function ABCheckPage() {
                                                     </span>
                                                 )}
                                             </TableCell>
+                                            <TableCell className={cn("text-xs font-bold text-center border-r",
+                                                clusterVal === '1' && "text-emerald-600",
+                                                clusterVal === '2' && "text-blue-600",
+                                                clusterVal === '3' && "text-amber-600",
+                                                clusterVal === '4' && "text-red-600"
+                                            )}>{clusterVal}</TableCell>
+                                            <TableCell className="text-xs font-mono text-center border-r">{scoreVal}</TableCell>
                                             {activeMetrics.map(m => {
                                                 const val = rowA ? findMetricInRow(rowA, m) : '-';
                                                 const isBiggerCol = biggerMetric === m.id;
@@ -753,6 +785,8 @@ export default function ABCheckPage() {
                                 <TableRow className="bg-muted/50" style={{ position: 'sticky', top: 0, zIndex: 30 }}>
                                     <TableHead rowSpan={2} className="font-bold text-foreground bg-muted/50 border-r"
                                         style={{ position: 'sticky', left: 0, zIndex: 40 }}>Level</TableHead>
+                                    <TableHead rowSpan={2} className="font-bold text-xs text-foreground bg-muted/50 border-r text-center">Clu</TableHead>
+                                    <TableHead rowSpan={2} className="font-bold text-xs text-foreground bg-muted/50 border-r text-center">Score</TableHead>
                                     {activeMetrics.map(m => (
                                         <TableHead key={m.id} colSpan={2} className={cn(
                                             "text-center font-bold text-xs border-r",
@@ -779,6 +813,9 @@ export default function ABCheckPage() {
                             <TableBody>
                                 {tableData.map(({ level, rowA, rowB }) => {
                                     const bigger = biggerMetric ? biggerMap[level] : null;
+                                    const levelScore = savedScores[level];
+                                    const clusterVal = levelScore?.cluster || '-';
+                                    const scoreVal = levelScore?.score != null ? levelScore.score.toFixed(1) : '-';
                                     return (
                                         <TableRow key={level} className={cn("hover:bg-muted/30",
                                             bigger === 'A' && "bg-emerald-50/30",
@@ -797,6 +834,13 @@ export default function ABCheckPage() {
                                                     </span>
                                                 )}
                                             </TableCell>
+                                            <TableCell className={cn("text-xs font-bold text-center border-r",
+                                                clusterVal === '1' && "text-emerald-600",
+                                                clusterVal === '2' && "text-blue-600",
+                                                clusterVal === '3' && "text-amber-600",
+                                                clusterVal === '4' && "text-red-600"
+                                            )}>{clusterVal}</TableCell>
+                                            <TableCell className="text-xs font-mono text-center border-r">{scoreVal}</TableCell>
                                             {activeMetrics.map(m => {
                                                 const valA = rowA ? findMetricInRow(rowA, m) : '-';
                                                 const valB = rowB ? findMetricInRow(rowB, m) : '-';
