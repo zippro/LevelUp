@@ -185,6 +185,8 @@ export default function WeeklyCheckPage() {
 
     // Last 30 Filter
     const [minTotalUserLast30, setMinUsersLast30] = useState<number>(50);
+    const [minMoves, setMinMoves] = useState<number>(0);
+    const [maxMoves, setMaxMoves] = useState<number>(0);
 
     // Raw Data
     const [rawData, setRawData] = useState<any[]>([]);
@@ -301,6 +303,15 @@ export default function WeeklyCheckPage() {
                     if (!clusters.includes(clusterVal)) return false;
                 }
             }
+
+            // Avg Total Moves filter
+            if (minMoves > 0 || maxMoves > 0) {
+                const movesRaw = row['Avg. Total Moves'] || row['Total Move'] || row['TotalMove'] || row['Avg Total Moves'] || '';
+                const movesNum = parseFloat(String(movesRaw).replace(/,/g, '.')) || 0;
+                if (minMoves > 0 && movesNum < minMoves) return false;
+                if (maxMoves > 0 && movesNum > maxMoves) return false;
+            }
+
             return true;
         };
     };
@@ -328,7 +339,7 @@ export default function WeeklyCheckPage() {
             { ...prev[0], data: levelScoreData.slice(0, listSize), headers },
             { ...prev[1], data: churnData.slice(0, listSize), headers },
         ]);
-    }, [rawData, headers, minTotalUser, minLevel, minDaysSinceEvent, finalClusters, listSize]);
+    }, [rawData, headers, minTotalUser, minLevel, minDaysSinceEvent, finalClusters, listSize, minMoves, maxMoves]);
 
     // Process data for Successful tab
     useEffect(() => {
@@ -1996,6 +2007,14 @@ export default function WeeklyCheckPage() {
                         <div className="space-y-1">
                             <label className="text-xs font-semibold text-muted-foreground">Min Days Old</label>
                             <Input type="number" value={minDaysSinceEvent} onChange={(e) => setMinDaysSinceEvent(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Min Moves</label>
+                            <Input type="number" value={minMoves} onChange={(e) => setMinMoves(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Max Moves</label>
+                            <Input type="number" value={maxMoves} onChange={(e) => setMaxMoves(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
                         </div>
                         <div className="space-y-1">
                             <label className="text-xs font-semibold text-muted-foreground">List Size</label>
