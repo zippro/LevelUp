@@ -212,6 +212,67 @@ export default function WeeklyCheckPage() {
         description?: string;
     }
     const [actions, setActions] = useState<Record<string, LevelAction[]>>({});
+
+    // Bulk selection state
+    const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+    const [bulkActionType, setBulkActionType] = useState<'M' | 'R' | 'BR' | 'TR' | 'S' | 'SS' | ''>('');
+    const [bulkMoveValue, setBulkMoveValue] = useState<number>(0);
+    const [bulkDescription, setBulkDescription] = useState<string>('');
+
+    const toggleRowSelection = (key: string) => {
+        setSelectedRows(prev => {
+            const next = new Set(prev);
+            if (next.has(key)) { next.delete(key); } else { next.add(key); }
+            return next;
+        });
+    };
+
+    const toggleAllRowsInSection = (sectionId: string, rows: any[]) => {
+        setSelectedRows(prev => {
+            const next = new Set(prev);
+            const sectionKeys = rows.map(r => `${sectionId}-${r['Level']}`);
+            const allSelected = sectionKeys.every(k => next.has(k));
+            if (allSelected) {
+                sectionKeys.forEach(k => next.delete(k));
+            } else {
+                sectionKeys.forEach(k => next.add(k));
+            }
+            return next;
+        });
+    };
+
+    const applyBulkAction = (sectionId: string) => {
+        if (!bulkActionType) return;
+        setActions(prev => {
+            const updated = { ...prev };
+            selectedRows.forEach(key => {
+                if (!key.startsWith(sectionId + '-')) return;
+                const existing = updated[key] || [{ type: '' }];
+                const newAction: LevelAction = { type: bulkActionType };
+                if (bulkActionType === 'M' && bulkMoveValue) newAction.moveValue = bulkMoveValue;
+                if (bulkDescription) newAction.description = bulkDescription;
+                // Replace the first empty action or add new
+                const emptyIdx = existing.findIndex(a => !a.type);
+                if (emptyIdx >= 0) {
+                    const clone = [...existing];
+                    clone[emptyIdx] = newAction;
+                    updated[key] = clone;
+                } else {
+                    updated[key] = [...existing, newAction];
+                }
+            });
+            return updated;
+        });
+        // Clear selection after applying
+        setSelectedRows(prev => {
+            const next = new Set(prev);
+            prev.forEach(k => { if (k.startsWith(sectionId + '-')) next.delete(k); });
+            return next;
+        });
+        setBulkActionType('');
+        setBulkMoveValue(0);
+        setBulkDescription('');
+    };
     const [showCacheDialog, setShowCacheDialog] = useState(false);
     const [cachedDataInfo, setCachedDataInfo] = useState<{ fileName: string; createdAt: Date } | null>(null);
     const [showExportDialog, setShowExportDialog] = useState(false);
@@ -1393,7 +1454,14 @@ export default function WeeklyCheckPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-muted" style={{ position: 'sticky', top: 0, zIndex: 20 }}>
-                                    <TableHead className="whitespace-nowrap font-bold text-foreground bg-muted" style={{ position: 'sticky', left: 0, zIndex: 30 }}>Action</TableHead>
+                                    <TableHead className="whitespace-nowrap font-bold text-foreground bg-muted w-8 text-center" style={{ position: 'sticky', left: 0, zIndex: 30 }}>
+                                        <Checkbox
+                                            checked={section.data.length > 0 && section.data.every(r => selectedRows.has(`${section.id}-${r['Level']}`))}
+                                            onCheckedChange={() => toggleAllRowsInSection(section.id, section.data)}
+                                            className="h-4 w-4"
+                                        />
+                                    </TableHead>
+                                    <TableHead className="whitespace-nowrap font-bold text-foreground bg-muted" style={{ position: 'sticky', left: 32, zIndex: 30 }}>Action</TableHead>
                                     {section.headers.slice(0, 50).map((header) => (
                                         <TableHead key={header} className="whitespace-nowrap font-bold text-foreground bg-muted">
                                             {getDisplayName(header, config?.weeklyCheck?.columnRenames)}
@@ -1402,13 +1470,94 @@ export default function WeeklyCheckPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
+                                {/* Bulk Action Toolbar */}
+                                {(() => {
+                                    const sectionSelected = section.data.filter(r => selectedRows.has(`${section.id}-${r['Level']}`));
+                                    if (sectionSelected.length === 0) return null;
+                                    return (
+                                        <TableRow className="bg-violet-50 dark:bg-violet-950/30">
+                                            <TableCell colSpan={section.headers.length + 2} className="py-2">
+                                                <div className="flex items-center gap-3 flex-wrap">
+                                                    <span className="text-xs font-bold text-violet-700 dark:text-violet-300">
+                                                        {sectionSelected.length} selected
+                                                    </span>
+                                                    <Select value={bulkActionType || '_clear'} onValueChange={(v) => setBulkActionType(v === '_clear' ? '' : v as any)}>
+                                                        <SelectTrigger className="w-20 h-7 text-xs">
+                                                            <SelectValue placeholder="Action" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="_clear">-</SelectItem>
+                                                            {tabType === 'successful' ? (
+                                                                <>
+                                                                    <SelectItem value="S">S</SelectItem>
+                                                                    <SelectItem value="SS">SS</SelectItem>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <SelectItem value="M">M</SelectItem>
+                                                                    <SelectItem value="R">R</SelectItem>
+                                                                    <SelectItem value="BR">BR</SelectItem>
+                                                                    <SelectItem value="TR">TR</SelectItem>
+                                                                </>
+                                                            )}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    {bulkActionType === 'M' && (
+                                                        <Input
+                                                            type="number"
+                                                            placeholder="Move ±"
+                                                            value={bulkMoveValue || ''}
+                                                            onChange={(e) => setBulkMoveValue(Number(e.target.value))}
+                                                            className="w-20 h-7 text-xs"
+                                                        />
+                                                    )}
+                                                    <Input
+                                                        placeholder="Description (optional)"
+                                                        value={bulkDescription}
+                                                        onChange={(e) => setBulkDescription(e.target.value)}
+                                                        className="w-48 h-7 text-xs"
+                                                    />
+                                                    <Button
+                                                        size="sm"
+                                                        className="h-7 text-xs bg-violet-600 hover:bg-violet-700"
+                                                        onClick={() => applyBulkAction(section.id)}
+                                                        disabled={!bulkActionType}
+                                                    >
+                                                        Apply to {sectionSelected.length}
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-7 text-xs"
+                                                        onClick={() => {
+                                                            setSelectedRows(prev => {
+                                                                const next = new Set(prev);
+                                                                section.data.forEach(r => next.delete(`${section.id}-${r['Level']}`));
+                                                                return next;
+                                                            });
+                                                        }}
+                                                    >
+                                                        Clear
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })()}
                                 {section.data.map((row, i) => {
                                     const level = row['Level'];
                                     const key = `${section.id}-${level}`;
                                     const levelActions = actions[key] || [{ type: '' }];
                                     return (
-                                        <TableRow key={i} className="hover:bg-muted/30">
-                                            <TableCell className="whitespace-nowrap sticky left-0 bg-card z-10 p-2">
+                                        <TableRow key={i} className={cn("hover:bg-muted/30", selectedRows.has(key) && "bg-violet-50/50 dark:bg-violet-950/20")}>
+                                            <TableCell className="whitespace-nowrap sticky left-0 bg-card z-10 p-1 w-8 text-center">
+                                                <Checkbox
+                                                    checked={selectedRows.has(key)}
+                                                    onCheckedChange={() => toggleRowSelection(key)}
+                                                    className="h-4 w-4"
+                                                />
+                                            </TableCell>
+                                            <TableCell className="whitespace-nowrap sticky left-8 bg-card z-10 p-2">
                                                 <div className="flex flex-row items-start gap-1">
                                                     <div className="mt-1 flex-shrink-0">
                                                         {row['Level'] && (() => {
