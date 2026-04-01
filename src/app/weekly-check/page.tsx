@@ -426,7 +426,7 @@ export default function WeeklyCheckPage() {
             { ...prev[0], data: levelScoreData.slice(0, successListSize), headers },
             { ...prev[1], data: churnData.slice(0, successListSize), headers },
         ]);
-    }, [rawData, headers, successMinTotalUser, successMinLevel, successMinDaysSinceEvent, successFinalClusters, successListSize]);
+    }, [rawData, headers, successMinTotalUser, successMinLevel, successMinDaysSinceEvent, successFinalClusters, successListSize, minMoves, maxMoves]);
 
     // Process data for Last 30 tab
     useEffect(() => {
@@ -1488,19 +1488,12 @@ export default function WeeklyCheckPage() {
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             <SelectItem value="_clear">-</SelectItem>
-                                                            {tabType === 'successful' ? (
-                                                                <>
-                                                                    <SelectItem value="S">S</SelectItem>
-                                                                    <SelectItem value="SS">SS</SelectItem>
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <SelectItem value="M">M</SelectItem>
-                                                                    <SelectItem value="R">R</SelectItem>
-                                                                    <SelectItem value="BR">BR</SelectItem>
-                                                                    <SelectItem value="TR">TR</SelectItem>
-                                                                </>
-                                                            )}
+                                                            <SelectItem value="M">M</SelectItem>
+                                                            <SelectItem value="R">R</SelectItem>
+                                                            <SelectItem value="BR">BR</SelectItem>
+                                                            <SelectItem value="TR">TR</SelectItem>
+                                                            <SelectItem value="S">S</SelectItem>
+                                                            <SelectItem value="SS">SS</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                     {bulkActionType === 'M' && (
@@ -1691,6 +1684,10 @@ export default function WeeklyCheckPage() {
                                                                             <>
                                                                                 <SelectItem value="S">S</SelectItem>
                                                                                 <SelectItem value="SS">SS</SelectItem>
+                                                                                <SelectItem value="M">M</SelectItem>
+                                                                                <SelectItem value="R">R</SelectItem>
+                                                                                <SelectItem value="BR">BR</SelectItem>
+                                                                                <SelectItem value="TR">TR</SelectItem>
                                                                             </>
                                                                         ) : (
                                                                             <>
@@ -1698,6 +1695,8 @@ export default function WeeklyCheckPage() {
                                                                                 <SelectItem value="R">R</SelectItem>
                                                                                 <SelectItem value="BR">BR</SelectItem>
                                                                                 <SelectItem value="TR">TR</SelectItem>
+                                                                                <SelectItem value="S">S</SelectItem>
+                                                                                <SelectItem value="SS">SS</SelectItem>
                                                                             </>
                                                                         )}
                                                                     </SelectContent>
@@ -2213,6 +2212,14 @@ export default function WeeklyCheckPage() {
                         <div className="space-y-1">
                             <label className="text-xs font-semibold text-muted-foreground">Min Days Old</label>
                             <Input type="number" value={successMinDaysSinceEvent} onChange={(e) => setSuccessMinDaysSinceEvent(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Min Moves</label>
+                            <Input type="number" value={minMoves} onChange={(e) => setMinMoves(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Max Moves</label>
+                            <Input type="number" value={maxMoves} onChange={(e) => setMaxMoves(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
                         </div>
                         <div className="space-y-1">
                             <label className="text-xs font-semibold text-muted-foreground">List Size</label>
