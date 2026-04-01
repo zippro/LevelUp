@@ -12,7 +12,7 @@ interface ABCheckConfig {
     minTotalUser: number;
     minLevel: number;
     minDaysSinceEvent: number;
-    showOnly9xx: boolean;
+    revisionFilter: 'none' | 'odd' | 'even';
 }
 
 interface AppConfig {
@@ -29,7 +29,7 @@ export default function ABCheckSettingsPage() {
     const [minTotalUser, setMinTotalUser] = useState(50);
     const [minLevel, setMinLevel] = useState(0);
     const [minDaysSinceEvent, setMinDaysSinceEvent] = useState(0);
-    const [showOnly9xx, setShowOnly9xx] = useState(false);
+    const [revisionFilter, setRevisionFilter] = useState<'none' | 'odd' | 'even'>('none');
 
     useEffect(() => {
         fetch("/api/config")
@@ -40,7 +40,7 @@ export default function ABCheckSettingsPage() {
                     if (data.abCheck.minTotalUser !== undefined) setMinTotalUser(data.abCheck.minTotalUser);
                     if (data.abCheck.minLevel !== undefined) setMinLevel(data.abCheck.minLevel);
                     if (data.abCheck.minDaysSinceEvent !== undefined) setMinDaysSinceEvent(data.abCheck.minDaysSinceEvent);
-                    if (data.abCheck.showOnly9xx !== undefined) setShowOnly9xx(data.abCheck.showOnly9xx);
+                    if (data.abCheck.revisionFilter) setRevisionFilter(data.abCheck.revisionFilter);
                 }
                 setLoading(false);
             })
@@ -57,7 +57,7 @@ export default function ABCheckSettingsPage() {
                 minTotalUser,
                 minLevel,
                 minDaysSinceEvent,
-                showOnly9xx,
+                revisionFilter,
             }
         };
 
@@ -148,17 +148,25 @@ export default function ABCheckSettingsPage() {
                         </div>
 
                         <div className="max-w-sm">
-                            <label className="text-sm font-medium mb-1.5 block">Revision 9xx Filter</label>
+                            <label className="text-sm font-medium mb-1.5 block">Default Revision Filter</label>
                             <div className="flex gap-2">
                                 <Button
-                                    variant={showOnly9xx ? "default" : "outline"}
-                                    onClick={() => setShowOnly9xx(!showOnly9xx)}
-                                >
-                                    {showOnly9xx ? "Show Only 9xx by Default" : "Show All by Default"}
-                                </Button>
+                                    variant={revisionFilter === 'none' ? "default" : "outline"}
+                                    onClick={() => setRevisionFilter('none')}
+                                >All</Button>
+                                <Button
+                                    variant={revisionFilter === 'odd' ? "default" : "outline"}
+                                    onClick={() => setRevisionFilter('odd')}
+                                    className={revisionFilter === 'odd' ? "bg-violet-600 hover:bg-violet-700" : ""}
+                                >Odd</Button>
+                                <Button
+                                    variant={revisionFilter === 'even' ? "default" : "outline"}
+                                    onClick={() => setRevisionFilter('even')}
+                                    className={revisionFilter === 'even' ? "bg-violet-600 hover:bg-violet-700" : ""}
+                                >Even</Button>
                             </div>
                             <p className="text-xs text-muted-foreground mt-2">
-                                When enabled, the AB Check page will default to showing only levels with 3-digit revision numbers starting with 9 (900-999).
+                                Filter levels by revision number parity. Odd shows only odd-numbered revisions, Even shows only even-numbered revisions.
                             </p>
                         </div>
                     </CardContent>

@@ -12,9 +12,25 @@ import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
+interface ScoreMultipliers {
+    cluster1?: { monetization: number; engagement: number; satisfaction: number };
+    cluster2?: { monetization: number; engagement: number; satisfaction: number };
+    cluster3?: { monetization: number; engagement: number; satisfaction: number };
+    cluster4?: { monetization: number; engagement: number; satisfaction: number };
+    default?: { monetization: number; engagement: number; satisfaction: number };
+}
+
+const DEFAULT_MULTIPLIERS: ScoreMultipliers = {
+    cluster1: { monetization: 0.20, engagement: 0.20, satisfaction: 0.60 },
+    cluster2: { monetization: 0.25, engagement: 0.25, satisfaction: 0.50 },
+    cluster3: { monetization: 0.30, engagement: 0.35, satisfaction: 0.35 },
+    cluster4: { monetization: 0.35, engagement: 0.35, satisfaction: 0.30 },
+    default: { monetization: 0.30, engagement: 0.30, satisfaction: 0.40 },
+};
+
 interface Config {
     variables: string[];
-    games: { id: string; name: string; viewMappings: Record<string, string> }[];
+    games: { id: string; name: string; viewMappings: Record<string, string>; scoreMultipliers?: ScoreMultipliers }[];
     weeklyCheck?: {
         minTotalUser?: number;
         minLevel?: number;
@@ -24,11 +40,13 @@ interface Config {
         minTotalUser?: number;
         minLevel?: number;
         minDaysSinceEvent?: number;
-        showOnly9xx?: boolean;
+        revisionFilter?: 'none' | 'odd' | 'even';
         columnOrder?: string[];
         hiddenColumns?: string[];
     };
 }
+
+type RevisionFilter = 'none' | 'odd' | 'even';
 
 const normalizeHeader = (h: string) => h.toLowerCase().trim();
 
@@ -159,7 +177,7 @@ export default function ABCheckPage() {
     const [minLevel, setMinLevel] = useState(0);
     const [minDaysSinceEvent, setMinDaysSinceEvent] = useState(0);
     const [finalClusters, setFinalClusters] = useState<string[]>(['1', '2', '3', '4', 'None']);
-    const [showOnly9xx, setShowOnly9xx] = useState(false);
+    const [revisionFilter, setRevisionFilter] = useState<RevisionFilter>('none');
 
     // Column customization
     const [visibleMetrics, setVisibleMetrics] = useState<string[]>(AB_METRICS.map(m => m.id));
@@ -186,7 +204,7 @@ export default function ABCheckPage() {
                 setMinTotalUser(abCfg?.minTotalUser ?? wcCfg?.minTotalUser ?? 50);
                 setMinLevel(abCfg?.minLevel ?? wcCfg?.minLevel ?? 0);
                 setMinDaysSinceEvent(abCfg?.minDaysSinceEvent ?? wcCfg?.minDaysSinceEvent ?? 0);
-                if (abCfg?.showOnly9xx !== undefined) setShowOnly9xx(abCfg.showOnly9xx);
+                if (abCfg?.revisionFilter) setRevisionFilter(abCfg.revisionFilter);
                 setLoadingConfig(false);
             })
             .catch(e => console.error(e));
@@ -418,26 +436,26 @@ export default function ABCheckPage() {
                     if (!passesCluster(cluA) && !passesCluster(cluB)) return false;
                 }
 
-                // Rev 9xx filter: "Show only 9xx" mode
-                if (showOnly9xx) {
+                // Odd/Even revision filter
+                if (revisionFilter !== 'none') {
                     const revMetric = AB_METRICS.find(m => m.id === 'RevisionNumber')!;
                     const getRevision = (row: any) => {
-                        if (!row) return '';
-                        return findMetricInRow(row, revMetric);
+                        if (!row) return NaN;
+                        const val = findMetricInRow(row, revMetric);
+                        return parseInt(val);
                     };
                     const revA = getRevision(rowA);
                     const revB = getRevision(rowB);
-                    const is9xx = (r: string) => {
-                        const num = parseInt(r);
-                        return !isNaN(num) && num >= 900 && num <= 999;
-                    };
-                    // When showOnly9xx is ON, ONLY keep rows where at least one has 9xx
-                    if (!is9xx(revA) && !is9xx(revB)) return false;
+                    // Use whichever revision we can get
+                    const rev = !isNaN(revA) ? revA : revB;
+                    if (isNaN(rev)) return false;
+                    if (revisionFilter === 'odd' && rev % 2 === 0) return false;
+                    if (revisionFilter === 'even' && rev % 2 !== 0) return false;
                 }
 
                 return true;
             });
-    }, [groupAData, groupBData, minLevel, minTotalUser, minDaysSinceEvent, finalClusters, showOnly9xx]);
+    }, [groupAData, groupBData, minLevel, minTotalUser, minDaysSinceEvent, finalClusters, revisionFilter]);
 
     // Determine which variant is "bigger" for each level
     const biggerMap = useMemo(() => {
@@ -558,17 +576,26 @@ export default function ABCheckPage() {
                     </div>
                 </div>
 
-                {/* Rev 9xx: Show Only 9xx */}
+                {/* Revision Filter: Odd/Even/None */}
                 <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Only 9xx</label>
-                    <Button
-                        variant={showOnly9xx ? "default" : "outline"}
-                        size="sm"
-                        className={cn("h-9", showOnly9xx && "bg-violet-600 hover:bg-violet-700")}
-                        onClick={() => setShowOnly9xx(!showOnly9xx)}
-                    >
-                        {showOnly9xx ? "Active" : "Off"}
-                    </Button>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Revision</label>
+                    <div className="flex rounded-lg border overflow-hidden h-9">
+                        <button
+                            className={cn("px-3 text-xs font-medium transition-colors",
+                                revisionFilter === 'none' ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted")}
+                            onClick={() => setRevisionFilter('none')}
+                        >All</button>
+                        <button
+                            className={cn("px-3 text-xs font-medium transition-colors border-l",
+                                revisionFilter === 'odd' ? "bg-violet-600 text-white" : "bg-background hover:bg-muted")}
+                            onClick={() => setRevisionFilter('odd')}
+                        >Odd</button>
+                        <button
+                            className={cn("px-3 text-xs font-medium transition-colors border-l",
+                                revisionFilter === 'even' ? "bg-violet-600 text-white" : "bg-background hover:bg-muted")}
+                            onClick={() => setRevisionFilter('even')}
+                        >Even</button>
+                    </div>
                 </div>
 
                 <Button onClick={handleLoad} disabled={loading || !selectedGameId} className="shadow-sm">
@@ -714,9 +741,31 @@ export default function ABCheckPage() {
                             <TableBody>
                                 {tableData.map(({ level, rowA, rowB }) => {
                                     const bigger = biggerMetric ? biggerMap[level] : null;
-                                    const levelScore = savedScores[level];
-                                    const clusterVal = levelScore?.cluster || '-';
-                                    const scoreVal = levelScore?.score != null ? levelScore.score.toFixed(1) : '-';
+                                    // Calculate score from Tableau data
+                                    const engMetric = AB_METRICS.find(m => m.id === 'Engagement Score')!;
+                                    const monMetric = AB_METRICS.find(m => m.id === 'Monetization Score')!;
+                                    const satMetric = AB_METRICS.find(m => m.id === 'Satisfaction Score')!;
+                                    const row = rowA || rowB;
+                                    const engVal = row ? getNumericValue(findMetricInRow(row, engMetric)) : 0;
+                                    const monVal = row ? getNumericValue(findMetricInRow(row, monMetric)) : 0;
+                                    const satVal = row ? getNumericValue(findMetricInRow(row, satMetric)) : 0;
+                                    const savedLevel = savedScores[level];
+                                    const clusterVal = savedLevel?.cluster || '-';
+                                    // Calculate score using multipliers
+                                    let scoreVal = '-';
+                                    if (clusterVal !== '-' && config) {
+                                        const game = config.games.find(g => g.id === selectedGameId);
+                                        const multipliers = game?.scoreMultipliers || DEFAULT_MULTIPLIERS;
+                                        const mult = clusterVal === '1' ? (multipliers.cluster1 || DEFAULT_MULTIPLIERS.cluster1!) :
+                                                     clusterVal === '2' ? (multipliers.cluster2 || DEFAULT_MULTIPLIERS.cluster2!) :
+                                                     clusterVal === '3' ? (multipliers.cluster3 || DEFAULT_MULTIPLIERS.cluster3!) :
+                                                     clusterVal === '4' ? (multipliers.cluster4 || DEFAULT_MULTIPLIERS.cluster4!) :
+                                                     (multipliers.default || DEFAULT_MULTIPLIERS.default!);
+                                        const calculatedScore = (monVal * mult.monetization) + (engVal * mult.engagement) + (satVal * mult.satisfaction);
+                                        scoreVal = calculatedScore > 0 ? calculatedScore.toFixed(1) : (savedLevel?.score != null ? savedLevel.score.toFixed(1) : '-');
+                                    } else if (savedLevel?.score != null) {
+                                        scoreVal = savedLevel.score.toFixed(1);
+                                    }
                                     return (
                                         <TableRow key={level} className={cn("hover:bg-muted/30",
                                             bigger === 'A' && "bg-emerald-50/40",
@@ -813,9 +862,29 @@ export default function ABCheckPage() {
                             <TableBody>
                                 {tableData.map(({ level, rowA, rowB }) => {
                                     const bigger = biggerMetric ? biggerMap[level] : null;
-                                    const levelScore = savedScores[level];
-                                    const clusterVal = levelScore?.cluster || '-';
-                                    const scoreVal = levelScore?.score != null ? levelScore.score.toFixed(1) : '-';
+                                    const engMetric = AB_METRICS.find(m => m.id === 'Engagement Score')!;
+                                    const monMetric = AB_METRICS.find(m => m.id === 'Monetization Score')!;
+                                    const satMetric = AB_METRICS.find(m => m.id === 'Satisfaction Score')!;
+                                    const row = rowA || rowB;
+                                    const engVal = row ? getNumericValue(findMetricInRow(row, engMetric)) : 0;
+                                    const monVal = row ? getNumericValue(findMetricInRow(row, monMetric)) : 0;
+                                    const satVal = row ? getNumericValue(findMetricInRow(row, satMetric)) : 0;
+                                    const savedLevel = savedScores[level];
+                                    const clusterVal = savedLevel?.cluster || '-';
+                                    let scoreVal = '-';
+                                    if (clusterVal !== '-' && config) {
+                                        const game = config.games.find(g => g.id === selectedGameId);
+                                        const multipliers = game?.scoreMultipliers || DEFAULT_MULTIPLIERS;
+                                        const mult = clusterVal === '1' ? (multipliers.cluster1 || DEFAULT_MULTIPLIERS.cluster1!) :
+                                                     clusterVal === '2' ? (multipliers.cluster2 || DEFAULT_MULTIPLIERS.cluster2!) :
+                                                     clusterVal === '3' ? (multipliers.cluster3 || DEFAULT_MULTIPLIERS.cluster3!) :
+                                                     clusterVal === '4' ? (multipliers.cluster4 || DEFAULT_MULTIPLIERS.cluster4!) :
+                                                     (multipliers.default || DEFAULT_MULTIPLIERS.default!);
+                                        const calculatedScore = (monVal * mult.monetization) + (engVal * mult.engagement) + (satVal * mult.satisfaction);
+                                        scoreVal = calculatedScore > 0 ? calculatedScore.toFixed(1) : (savedLevel?.score != null ? savedLevel.score.toFixed(1) : '-');
+                                    } else if (savedLevel?.score != null) {
+                                        scoreVal = savedLevel.score.toFixed(1);
+                                    }
                                     return (
                                         <TableRow key={level} className={cn("hover:bg-muted/30",
                                             bigger === 'A' && "bg-emerald-50/30",
