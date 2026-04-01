@@ -1455,19 +1455,19 @@ export default function WeeklyCheckPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-muted" style={{ position: 'sticky', top: 0, zIndex: 20 }}>
-                                    <TableHead className="whitespace-nowrap font-bold text-foreground bg-muted w-8 text-center" style={{ position: 'sticky', left: 0, zIndex: 30 }}>
-                                        <Checkbox
-                                            checked={section.data.length > 0 && section.data.every(r => selectedRows.has(`${section.id}-${r['Level']}`))}
-                                            onCheckedChange={() => toggleAllRowsInSection(section.id, section.data)}
-                                            className="h-4 w-4"
-                                        />
-                                    </TableHead>
-                                    <TableHead className="whitespace-nowrap font-bold text-foreground bg-muted" style={{ position: 'sticky', left: 32, zIndex: 30 }}>Action</TableHead>
+                                    <TableHead className="whitespace-nowrap font-bold text-foreground bg-muted" style={{ position: 'sticky', left: 0, zIndex: 30 }}>Action</TableHead>
                                     {section.headers.slice(0, 50).map((header) => (
                                         <TableHead key={header} className="whitespace-nowrap font-bold text-foreground bg-muted">
                                             {getDisplayName(header, config?.weeklyCheck?.columnRenames)}
                                         </TableHead>
                                     ))}
+                                    <TableHead className="whitespace-nowrap font-bold text-foreground bg-muted w-8 text-center" style={{ position: 'sticky', right: 0, zIndex: 30 }}>
+                                        <Checkbox
+                                            checked={section.data.length > 0 && section.data.every(r => selectedRows.has(`${section.id}-${r['Level']}`))}
+                                            onChange={() => toggleAllRowsInSection(section.id, section.data)}
+                                            className="h-4 w-4"
+                                        />
+                                    </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -1551,14 +1551,7 @@ export default function WeeklyCheckPage() {
                                     const levelActions = actions[key] || [{ type: '' }];
                                     return (
                                         <TableRow key={i} className={cn("hover:bg-muted/30", selectedRows.has(key) && "bg-violet-50/50 dark:bg-violet-950/20")}>
-                                            <TableCell className="whitespace-nowrap sticky left-0 bg-card z-10 p-1 w-8 text-center">
-                                                <Checkbox
-                                                    checked={selectedRows.has(key)}
-                                                    onCheckedChange={() => toggleRowSelection(key)}
-                                                    className="h-4 w-4"
-                                                />
-                                            </TableCell>
-                                            <TableCell className="whitespace-nowrap sticky left-8 bg-card z-10 p-2">
+                                            <TableCell className="whitespace-nowrap sticky left-0 bg-card z-10 p-2">
                                                 <div className="flex flex-row items-start gap-1">
                                                     <div className="mt-1 flex-shrink-0">
                                                         {row['Level'] && (() => {
@@ -1806,6 +1799,13 @@ export default function WeeklyCheckPage() {
                                                     </TableCell>
                                                 );
                                             })}
+                                            <TableCell className="whitespace-nowrap sticky right-0 bg-card z-10 p-1 w-8 text-center">
+                                                <Checkbox
+                                                    checked={selectedRows.has(key)}
+                                                    onChange={() => toggleRowSelection(key)}
+                                                    className="h-4 w-4"
+                                                />
+                                            </TableCell>
                                         </TableRow>
                                     );
                                 })}
