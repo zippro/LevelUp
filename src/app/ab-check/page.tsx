@@ -40,6 +40,7 @@ interface Config {
         minTotalUser?: number;
         minLevel?: number;
         minDaysSinceEvent?: number;
+        minRevision?: number;
         revisionFilter?: 'none' | 'odd' | 'even';
         columnOrder?: string[];
         hiddenColumns?: string[];
@@ -178,6 +179,7 @@ export default function ABCheckPage() {
     const [minDaysSinceEvent, setMinDaysSinceEvent] = useState(0);
     const [finalClusters, setFinalClusters] = useState<string[]>(['1', '2', '3', '4', 'None']);
     const [revisionFilter, setRevisionFilter] = useState<RevisionFilter>('none');
+    const [minRevision, setMinRevision] = useState(0);
 
     // Column customization
     const [visibleMetrics, setVisibleMetrics] = useState<string[]>(AB_METRICS.map(m => m.id));
@@ -205,6 +207,7 @@ export default function ABCheckPage() {
                 setMinLevel(abCfg?.minLevel ?? wcCfg?.minLevel ?? 0);
                 setMinDaysSinceEvent(abCfg?.minDaysSinceEvent ?? wcCfg?.minDaysSinceEvent ?? 0);
                 if (abCfg?.revisionFilter) setRevisionFilter(abCfg.revisionFilter);
+                if (abCfg?.minRevision !== undefined) setMinRevision(abCfg.minRevision);
                 setLoadingConfig(false);
             })
             .catch(e => console.error(e));
@@ -453,9 +456,22 @@ export default function ABCheckPage() {
                     if (revisionFilter === 'even' && rev % 2 !== 0) return false;
                 }
 
+                // Min revision filter
+                if (minRevision > 0) {
+                    const revMetric = AB_METRICS.find(m => m.id === 'RevisionNumber')!;
+                    const getRevNum = (row: any) => {
+                        if (!row) return NaN;
+                        return parseInt(findMetricInRow(row, revMetric));
+                    };
+                    const revA = getRevNum(rowA);
+                    const revB = getRevNum(rowB);
+                    const rev = !isNaN(revA) ? revA : revB;
+                    if (!isNaN(rev) && rev < minRevision) return false;
+                }
+
                 return true;
             });
-    }, [groupAData, groupBData, minLevel, minTotalUser, minDaysSinceEvent, finalClusters, revisionFilter]);
+    }, [groupAData, groupBData, minLevel, minTotalUser, minDaysSinceEvent, finalClusters, revisionFilter, minRevision]);
 
     // Determine which variant is "bigger" for each level
     const biggerMap = useMemo(() => {
@@ -596,6 +612,18 @@ export default function ABCheckPage() {
                             onClick={() => setRevisionFilter('even')}
                         >Even</button>
                     </div>
+                </div>
+
+                {/* Min Revision */}
+                <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Min Rev</label>
+                    <Input
+                        type="number"
+                        value={minRevision}
+                        onChange={(e) => setMinRevision(Number(e.target.value))}
+                        className="w-[80px] h-9 bg-background shadow-sm"
+                        min={0}
+                    />
                 </div>
 
                 <Button onClick={handleLoad} disabled={loading || !selectedGameId} className="shadow-sm">

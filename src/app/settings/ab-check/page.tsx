@@ -12,6 +12,7 @@ interface ABCheckConfig {
     minTotalUser: number;
     minLevel: number;
     minDaysSinceEvent: number;
+    minRevision: number;
     revisionFilter: 'none' | 'odd' | 'even';
 }
 
@@ -29,6 +30,7 @@ export default function ABCheckSettingsPage() {
     const [minTotalUser, setMinTotalUser] = useState(50);
     const [minLevel, setMinLevel] = useState(0);
     const [minDaysSinceEvent, setMinDaysSinceEvent] = useState(0);
+    const [minRevision, setMinRevision] = useState(0);
     const [revisionFilter, setRevisionFilter] = useState<'none' | 'odd' | 'even'>('none');
 
     useEffect(() => {
@@ -40,6 +42,7 @@ export default function ABCheckSettingsPage() {
                     if (data.abCheck.minTotalUser !== undefined) setMinTotalUser(data.abCheck.minTotalUser);
                     if (data.abCheck.minLevel !== undefined) setMinLevel(data.abCheck.minLevel);
                     if (data.abCheck.minDaysSinceEvent !== undefined) setMinDaysSinceEvent(data.abCheck.minDaysSinceEvent);
+                    if (data.abCheck.minRevision !== undefined) setMinRevision(data.abCheck.minRevision);
                     if (data.abCheck.revisionFilter) setRevisionFilter(data.abCheck.revisionFilter);
                 }
                 setLoading(false);
@@ -57,6 +60,7 @@ export default function ABCheckSettingsPage() {
                 minTotalUser,
                 minLevel,
                 minDaysSinceEvent,
+                minRevision,
                 revisionFilter,
             }
         };
@@ -144,6 +148,20 @@ export default function ABCheckSettingsPage() {
                             />
                             <p className="text-xs text-muted-foreground mt-2">
                                 Exclude levels from the last N days (based on Min. Time Event date).
+                            </p>
+                        </div>
+
+                        <div className="max-w-sm">
+                            <label className="text-sm font-medium mb-1.5 block">Minimum Revision Number</label>
+                            <Input
+                                type="number"
+                                value={minRevision}
+                                onChange={(e) => setMinRevision(Number(e.target.value))}
+                                className="w-full"
+                                min={0}
+                            />
+                            <p className="text-xs text-muted-foreground mt-2">
+                                Only show levels with revision numbers greater than or equal to this value.
                             </p>
                         </div>
 
