@@ -723,49 +723,13 @@ export default function WeeklyCheckPage() {
     };
 
     const exportActions = (section: TableSection, isSuccessfulTab: boolean = false) => {
-        if (isSuccessfulTab) {
-            const grouped: Record<string, { level: number; description: string }[]> = {
-                'Select': [],
-                'Super Select': []
-            };
-
-            section.data.forEach(row => {
-                const level = row['Level'];
-                if (level === undefined) return;
-                const key = `${section.id}-${level}`;
-                const levelActions = actions[key] || [];
-
-                levelActions.forEach(action => {
-                    if (!action?.type) return;
-                    if (action.type === 'S') {
-                        grouped['Select'].push({ level, description: action.description || '-' });
-                    } else if (action.type === 'SS') {
-                        grouped['Super Select'].push({ level, description: action.description || '-' });
-                    }
-                });
-            });
-
-            // Build table string for successful tab
-            let output = '';
-            for (const [actionName, items] of Object.entries(grouped)) {
-                if (items.length === 0) continue;
-                items.forEach((item, idx) => {
-                    output += `${idx === 0 ? actionName : ''}\t${item.level}\t${item.description}\n`;
-                });
-            }
-
-            if (!output.trim()) { alert('No actions entered.'); return; }
-            setExportData(output);
-            setExportHeaders(['Action', 'Level', 'Description']);
-            setShowExportDialog(true);
-            return;
-        }
-
         const grouped: Record<string, { level: number; revisionNumber: number; newMove: string; description: string; totalMove: number }[]> = {
             'Revise': [],
             'Big Revise': [],
             'Time Revise': [],
-            'Move Change': []
+            'Move Change': [],
+            'Select': [],
+            'Super Select': []
         };
 
         section.data.forEach(row => {
@@ -788,9 +752,14 @@ export default function WeeklyCheckPage() {
                 } else if (action.type === 'M') {
                     const mv = action.moveValue || 0;
                     grouped['Move Change'].push({ level, revisionNumber: currentRevision + 1, newMove: String(totalMove + mv), description: '-', totalMove });
+                } else if (action.type === 'S') {
+                    grouped['Select'].push({ level, revisionNumber: 0, newMove: '-', description: action.description || '-', totalMove: 0 });
+                } else if (action.type === 'SS') {
+                    grouped['Super Select'].push({ level, revisionNumber: 0, newMove: '-', description: action.description || '-', totalMove: 0 });
                 }
             });
         });
+
 
         // Build table string
         let output = '';
@@ -954,158 +923,129 @@ export default function WeeklyCheckPage() {
         URL.revokeObjectURL(url);
     };
 
-    // Combine Actions - adds current section to weekly report
     const combineActions = (section: TableSection, isSuccessfulTab: boolean = false) => {
         let content = '';
         let headers: string[] = [];
         let summary = '';
         let actionedLevels: { level: number; actionType: string; row: Record<string, any> }[] = [];
 
-        if (isSuccessfulTab) {
-            const grouped: Record<string, { level: number; description: string }[]> = {
-                'Select': [],
-                'Super Select': []
-            };
+        const grouped: Record<string, { level: number; revisionNumber: number; newMove: string; description: string; totalMove: number }[]> = {
+            'Revise': [],
+            'Big Revise': [],
+            'Time Revise': [],
+            'Move Change': [],
+            'Select': [],
+            'Super Select': []
+        };
 
-            section.data.forEach(row => {
-                const level = row['Level'];
-                if (level === undefined) return;
-                const key = `${section.id}-${level}`;
-                const levelActions = actions[key] || [];
+        section.data.forEach(row => {
+            const level = row['Level'];
+            if (level === undefined) return;
+            const key = `${section.id}-${level}`;
+            const levelActions = actions[key] || [];
 
-                levelActions.forEach(action => {
-                    if (!action?.type) return;
-                    if (action.type === 'S') {
-                        grouped['Select'].push({ level, description: action.description || '-' });
-                    } else if (action.type === 'SS') {
-                        grouped['Super Select'].push({ level, description: action.description || '-' });
-                    }
-                });
+            const currentRevision = parseInt(row['RevisionNumber'] || row['Revision Number'] || '0') || 0;
+            const totalMove = Math.round(parseFloat(row['Total Move'] || row['Avg. Total Moves'] || row['TotalMove'] || '0') || 0);
+
+            levelActions.forEach(action => {
+                if (!action?.type) return;
+                if (action.type === 'R') {
+                    grouped['Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
+                } else if (action.type === 'BR') {
+                    grouped['Big Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
+                } else if (action.type === 'TR') {
+                    grouped['Time Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
+                } else if (action.type === 'M') {
+                    const mv = action.moveValue || 0;
+                    grouped['Move Change'].push({ level, revisionNumber: currentRevision + 1, newMove: String(totalMove + mv), description: '-', totalMove });
+                } else if (action.type === 'S') {
+                    grouped['Select'].push({ level, revisionNumber: 0, newMove: '-', description: action.description || '-', totalMove: 0 });
+                } else if (action.type === 'SS') {
+                    grouped['Super Select'].push({ level, revisionNumber: 0, newMove: '-', description: action.description || '-', totalMove: 0 });
+                }
             });
+        });
 
-            headers = ['Action', 'Level', 'Description'];
-            for (const [actionName, items] of Object.entries(grouped)) {
-                if (items.length === 0) continue;
-                items.forEach((item, idx) => {
-                    content += `${idx === 0 ? actionName : ''}\t${item.level}\t${item.description}\n`;
-                });
-            }
+        headers = ['Action', 'Level', 'Revision Number', 'New Move', 'Description'];
+        for (const [actionName, items] of Object.entries(grouped)) {
+            if (items.length === 0) continue;
+            items.forEach((item, idx) => {
+                content += `${idx === 0 ? actionName : ''}\t${item.level}\t${item.revisionNumber}\t${item.newMove}\t${item.description}\n`;
+            });
         }
-        else {
-            const grouped: Record<string, { level: number; revisionNumber: number; newMove: string; description: string; totalMove: number }[]> = {
-                'Revise': [],
-                'Big Revise': [],
-                'Time Revise': [],
-                'Move Change': []
-            };
 
-            section.data.forEach(row => {
-                const level = row['Level'];
-                if (level === undefined) return;
-                const key = `${section.id}-${level}`;
-                const levelActions = actions[key] || [];
-
-                const currentRevision = parseInt(row['RevisionNumber'] || row['Revision Number'] || '0') || 0;
-                const totalMove = Math.round(parseFloat(row['Total Move'] || row['Avg. Total Moves'] || row['TotalMove'] || '0') || 0);
-
-                levelActions.forEach(action => {
-                    if (!action?.type) return;
-                    if (action.type === 'R') {
-                        grouped['Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
-                    } else if (action.type === 'BR') {
-                        grouped['Big Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
-                    } else if (action.type === 'TR') {
-                        grouped['Time Revise'].push({ level, revisionNumber: currentRevision + 1, newMove: '-', description: action.description || '-', totalMove });
-                    } else if (action.type === 'M') {
-                        const mv = action.moveValue || 0;
-                        grouped['Move Change'].push({ level, revisionNumber: currentRevision + 1, newMove: String(totalMove + mv), description: '-', totalMove });
-                    }
-                });
+        // Move Summary
+        const moveSummaryGroups: Record<number, number[]> = {};
+        section.data.forEach(row => {
+            const level = row['Level'];
+            if (level === undefined) return;
+            const key = `${section.id}-${level}`;
+            const levelActions = actions[key] || [];
+            levelActions.forEach(action => {
+                if (action?.type === 'M' && action.moveValue !== undefined) {
+                    const mv = action.moveValue;
+                    if (!moveSummaryGroups[mv]) moveSummaryGroups[mv] = [];
+                    moveSummaryGroups[mv].push(level);
+                }
             });
+        });
 
-            headers = ['Action', 'Level', 'Revision Number', 'New Move', 'Description'];
-            for (const [actionName, items] of Object.entries(grouped)) {
-                if (items.length === 0) continue;
-                items.forEach((item, idx) => {
-                    content += `${idx === 0 ? actionName : ''}\t${item.level}\t${item.revisionNumber}\t${item.newMove}\t${item.description}\n`;
-                });
-            }
-
-            // Move Summary
-            const moveSummaryGroups: Record<number, number[]> = {};
-            section.data.forEach(row => {
-                const level = row['Level'];
-                if (level === undefined) return;
-                const key = `${section.id}-${level}`;
-                const levelActions = actions[key] || [];
-                levelActions.forEach(action => {
-                    if (action?.type === 'M' && action.moveValue !== undefined) {
-                        const mv = action.moveValue;
-                        if (!moveSummaryGroups[mv]) moveSummaryGroups[mv] = [];
-                        moveSummaryGroups[mv].push(level);
-                    }
-                });
+        if (Object.keys(moveSummaryGroups).length > 0) {
+            summary = 'Moves Summary: ';
+            Object.keys(moveSummaryGroups).sort((a, b) => Number(a) - Number(b)).forEach(mvStr => {
+                const mv = Number(mvStr);
+                const levels = moveSummaryGroups[mv].sort((a, b) => a - b);
+                summary += `${mv} move: ${levels.join(' ')}  `;
             });
+        }
 
-            if (Object.keys(moveSummaryGroups).length > 0) {
-                summary = 'Moves Summary: ';
-                Object.keys(moveSummaryGroups).sort((a, b) => Number(a) - Number(b)).forEach(mvStr => {
-                    const mv = Number(mvStr);
-                    const levels = moveSummaryGroups[mv].sort((a, b) => a - b);
-                    summary += `${mv} move: ${levels.join(' ')}  `;
-                });
-            }
+        // Build Level Details Table for all actioned levels
+        actionedLevels.push(...section.data.map(row => {
+            const level = row['Level'];
+            if (level === undefined) return null;
+            const key = `${section.id}-${level}`;
+            const levelActions = actions[key] || [];
+            let actionType = '';
+            levelActions.forEach(action => {
+                if (action?.type && action.type !== 'M') {
+                    actionType = action.type;
+                }
+            });
+            if (!actionType) return null;
+            return { level, actionType, row };
+        }).filter((x): x is { level: number; actionType: string; row: Record<string, any> } => x !== null));
 
-            // Build Level Details Table for all actioned levels
-            actionedLevels.push(...section.data.map(row => {
-                const level = row['Level'];
-                if (level === undefined) return null;
-                const key = `${section.id}-${level}`;
-                const levelActions = actions[key] || [];
-                let actionType = '';
-                levelActions.forEach(action => {
-                    if (action?.type && action.type !== 'M') {
-                        actionType = action.type === 'R' ? 'R' : action.type === 'BR' ? 'BR' : action.type === 'TR' ? 'TR' : action.type;
-                    }
-                });
-                if (!actionType) return null;
-                return { level, actionType, row };
-            }).filter((x): x is { level: number; actionType: string; row: Record<string, any> } => x !== null));
+        // Sort by level ascending
+        actionedLevels.sort((a, b) => a.level - b.level);
 
-            // Sort by level ascending
-            actionedLevels.sort((a, b) => a.level - b.level);
+        if (actionedLevels.length > 0) {
+            summary += '\n\nRevise Levels Details:\nLevel\tAction\t3 Day Churn\tRepeat\tPlayon per User\tTotal Moves\tLevel Play Time\tAvg First Try Win\tRemaining Move\n';
+            actionedLevels.forEach(item => {
+                const r = item.row;
+                const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
+                const repeat = getCol(r, 'Avg. Repeat Ratio (birleşik)', 'Avg. Repeat Rate', 'Repeat', 'Repeat Rate', 'rep', 'birleşik', 'birlesik');
+                const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
+                const totalMoves = r['Avg. Total Moves'] || r['Total Move'] || r['TotalMove'] || '-';
+                const playTime = r['Avg. Level Play'] || r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || '-';
+                const firstTryWin = r['Avg. FirstTryWin'] || r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || '-';
+                const remaining = getCol(r, 'RM Total', 'Avg. RM Fixed', 'Average remaining move', 'avg remaining move', 'remaining moves', 'Rem', 'RM', 'Avg. RM', 'Avg RM', 'Moves Left', 'remaining');
 
-            if (actionedLevels.length > 0) {
-                summary += '\n\nRevise Levels Details:\nLevel\tAction\t3 Day Churn\tRepeat\tPlayon per User\tTotal Moves\tLevel Play Time\tAvg First Try Win\tRemaining Move\n';
-                actionedLevels.forEach(item => {
-                    const r = item.row;
-                    const churn3d = r['3 Days Churn'] || r['3 Day Churn'] || r['3DaysChurn'] || '-';
-                    const repeat = getCol(r, 'Avg. Repeat Ratio (birleşik)', 'Avg. Repeat Rate', 'Repeat', 'Repeat Rate', 'rep', 'birleşik', 'birlesik');
-                    const playon = r['Playon per User'] || r['Playon Per User'] || r['PlayonPerUser'] || '-';
-                    const totalMoves = r['Avg. Total Moves'] || r['Total Move'] || r['TotalMove'] || '-';
-                    const playTime = r['Avg. Level Play'] || r['Avg. Level Play Time'] || r['Level Play Time'] || r['LevelPlayTime'] || '-';
-                    const firstTryWin = r['Avg. FirstTryWin'] || r['Avg. FirstTryWinPercent'] || r['Avg First Try Win'] || r['First Try Win'] || '-';
-                    const remaining = getCol(r, 'RM Total', 'Avg. RM Fixed', 'Average remaining move', 'avg remaining move', 'remaining moves', 'Rem', 'RM', 'Avg. RM', 'Avg RM', 'Moves Left', 'remaining');
+                const formatVal = (v: any) => {
+                    if (v === '-' || v === undefined || v === null) return '-';
+                    const num = parseFloat(v);
+                    if (isNaN(num)) return String(v);
+                    return num.toFixed(2);
+                };
 
-                    const formatVal = (v: any) => {
-                        if (v === '-' || v === undefined || v === null) return '-';
-                        const num = parseFloat(v);
-                        if (isNaN(num)) return String(v);
-                        return num.toFixed(2);
-                    };
+                const formatPercent = (v: any) => {
+                    if (v === '-' || v === undefined || v === null) return '-';
+                    const num = parseFloat(v);
+                    if (isNaN(num)) return String(v);
+                    return (num * 100).toFixed(2) + '%';
+                };
 
-                    const formatPercent = (v: any) => {
-                        if (v === '-' || v === undefined || v === null) return '-';
-                        const num = parseFloat(v);
-                        if (isNaN(num)) return String(v);
-                        return (num * 100).toFixed(2) + '%';
-                    };
-
-                    summary += `${item.level}\t${item.actionType}\t${formatPercent(churn3d)}\t${formatVal(repeat)}\t${formatVal(playon)}\t${formatVal(totalMoves)}\t${formatVal(playTime)}\t${formatPercent(firstTryWin)}\t${formatVal(remaining)}\n`;
-                });
-            }
-
-
+                summary += `${item.level}\t${item.actionType}\t${formatPercent(churn3d)}\t${formatVal(repeat)}\t${formatVal(playon)}\t${formatVal(totalMoves)}\t${formatVal(playTime)}\t${formatPercent(firstTryWin)}\t${formatVal(remaining)}\n`;
+            });
         }
 
         if (!content.trim()) {
