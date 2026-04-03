@@ -175,11 +175,16 @@ export default function ABCheckPage() {
 
     // Filters
     const [minTotalUser, setMinTotalUser] = useState(50);
+    const [maxTotalUser, setMaxTotalUser] = useState(0);
     const [minLevel, setMinLevel] = useState(0);
+    const [maxLevel, setMaxLevel] = useState(0);
     const [minDaysSinceEvent, setMinDaysSinceEvent] = useState(0);
     const [finalClusters, setFinalClusters] = useState<string[]>(['1', '2', '3', '4', 'None']);
     const [revisionFilter, setRevisionFilter] = useState<RevisionFilter>('none');
     const [minRevision, setMinRevision] = useState(0);
+
+    // Export dialog
+    const [showExportDialog, setShowExportDialog] = useState(false);
 
     // Column customization
     const [visibleMetrics, setVisibleMetrics] = useState<string[]>(AB_METRICS.map(m => m.id));
@@ -390,7 +395,7 @@ export default function ABCheckPage() {
 
         return Array.from(allLevels)
             .sort((a, b) => a - b)
-            .filter(level => level >= minLevel)
+            .filter(level => level >= minLevel && (maxLevel === 0 || level <= maxLevel))
             .map(level => {
                 const rowA = groupAData.find(r => r.Level === level);
                 const rowB = groupBData.find(r => r.Level === level);
@@ -405,6 +410,7 @@ export default function ABCheckPage() {
                 const usersA = getUserCount(rowA);
                 const usersB = getUserCount(rowB);
                 if (usersA < minTotalUser && usersB < minTotalUser) return false;
+                if (maxTotalUser > 0 && usersA > maxTotalUser && usersB > maxTotalUser) return false;
 
                 if (minDaysSinceEvent > 0) {
                     const getDate = (row: any) => {
@@ -471,18 +477,48 @@ export default function ABCheckPage() {
 
                 return true;
             });
-    }, [groupAData, groupBData, minLevel, minTotalUser, minDaysSinceEvent, finalClusters, revisionFilter, minRevision]);
+    }, [groupAData, groupBData, minLevel, maxLevel, minTotalUser, maxTotalUser, minDaysSinceEvent, finalClusters, revisionFilter, minRevision]);
 
     // Determine which variant is "bigger" for each level
+    // Helper to calculate level score for a row
+    const calcLevelScore = (row: any): number => {
+        if (!row || !config) return NaN;
+        const engMetric = AB_METRICS.find(m => m.id === 'Engagement Score')!;
+        const monMetric = AB_METRICS.find(m => m.id === 'Monetization Score')!;
+        const satMetric = AB_METRICS.find(m => m.id === 'Satisfaction Score')!;
+        const engVal = getNumericValue(findMetricInRow(row, engMetric));
+        const monVal = getNumericValue(findMetricInRow(row, monMetric));
+        const satVal = getNumericValue(findMetricInRow(row, satMetric));
+        if (isNaN(engVal) && isNaN(monVal) && isNaN(satVal)) return NaN;
+        const savedLevel = savedScores[row.Level];
+        const clusterVal = savedLevel?.cluster || '-';
+        if (clusterVal === '-') return NaN;
+        const game = config.games.find(g => g.id === selectedGameId);
+        const multipliers = game?.scoreMultipliers || DEFAULT_MULTIPLIERS;
+        const mult = clusterVal === '1' ? (multipliers.cluster1 || DEFAULT_MULTIPLIERS.cluster1!) :
+                     clusterVal === '2' ? (multipliers.cluster2 || DEFAULT_MULTIPLIERS.cluster2!) :
+                     clusterVal === '3' ? (multipliers.cluster3 || DEFAULT_MULTIPLIERS.cluster3!) :
+                     clusterVal === '4' ? (multipliers.cluster4 || DEFAULT_MULTIPLIERS.cluster4!) :
+                     (multipliers.default || DEFAULT_MULTIPLIERS.default!);
+        return ((isNaN(monVal) ? 0 : monVal) * mult.monetization) + ((isNaN(engVal) ? 0 : engVal) * mult.engagement) + ((isNaN(satVal) ? 0 : satVal) * mult.satisfaction);
+    };
+
     const biggerMap = useMemo(() => {
         if (!biggerMetric) return {};
-        const metric = AB_METRICS.find(m => m.id === biggerMetric);
-        if (!metric) return {};
+        const isLevelScore = biggerMetric === 'LevelScore';
+        const metric = isLevelScore ? null : AB_METRICS.find(m => m.id === biggerMetric);
+        if (!isLevelScore && !metric) return {};
 
         const result: Record<number, 'A' | 'B' | null> = {};
         tableData.forEach(({ level, rowA, rowB }) => {
-            const valA = rowA ? getNumericValue(findMetricInRow(rowA, metric)) : NaN;
-            const valB = rowB ? getNumericValue(findMetricInRow(rowB, metric)) : NaN;
+            let valA: number, valB: number;
+            if (isLevelScore) {
+                valA = rowA ? calcLevelScore(rowA) : NaN;
+                valB = rowB ? calcLevelScore(rowB) : NaN;
+            } else {
+                valA = rowA ? getNumericValue(findMetricInRow(rowA, metric!)) : NaN;
+                valB = rowB ? getNumericValue(findMetricInRow(rowB, metric!)) : NaN;
+            }
             if (isNaN(valA) && isNaN(valB)) { result[level] = null; return; }
             if (isNaN(valA)) { result[level] = 'B'; return; }
             if (isNaN(valB)) { result[level] = 'A'; return; }
@@ -491,7 +527,7 @@ export default function ABCheckPage() {
             else result[level] = null;
         });
         return result;
-    }, [biggerMetric, tableData]);
+    }, [biggerMetric, tableData, savedScores, config, selectedGameId]);
 
     if (loadingConfig) return <div className="p-8 animate-pulse text-muted-foreground">Loading configuration...</div>;
     if (!config) return <div className="p-8 text-destructive">Failed to load configuration.</div>;
@@ -500,6 +536,36 @@ export default function ABCheckPage() {
         setVisibleMetrics(prev =>
             prev.includes(metricId) ? prev.filter(m => m !== metricId) : [...prev, metricId]
         );
+    };
+
+    // Export: build A list, B list, and changed levels
+    const getExportData = () => {
+        const aLevels: number[] = [];
+        const bLevels: number[] = [];
+        const changedLevels: { level: number; from: string; to: string }[] = [];
+
+        tableData.forEach(({ level, rowA, rowB }) => {
+            const bigger = biggerMetric ? biggerMap[level] : null;
+            if (rowA) aLevels.push(level);
+            if (rowB) bLevels.push(level);
+
+            // Detect "changed" levels: revision numbers differ between A and B
+            if (rowA && rowB) {
+                const revMetric = AB_METRICS.find(m => m.id === 'RevisionNumber')!;
+                const revA = parseInt(findMetricInRow(rowA, revMetric));
+                const revB = parseInt(findMetricInRow(rowB, revMetric));
+                if (!isNaN(revA) && !isNaN(revB) && revA !== revB) {
+                    changedLevels.push({ level, from: String(revA), to: String(revB) });
+                }
+            }
+        });
+
+        return {
+            aList: aLevels.sort((a, b) => a - b).join('\n'),
+            bList: bLevels.sort((a, b) => a - b).join('\n'),
+            changedList: changedLevels.sort((a, b) => a.level - b.level).map(c => `${c.level}\t${c.from}\t${c.to}`).join('\n'),
+            changedLevels
+        };
     };
 
     return (
@@ -562,9 +628,21 @@ export default function ABCheckPage() {
                 </div>
 
                 <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Max Users</label>
+                    <Input type="number" value={maxTotalUser} onChange={e => setMaxTotalUser(parseInt(e.target.value) || 0)}
+                        className="w-[80px] bg-background shadow-sm" placeholder="0=off" />
+                </div>
+
+                <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Min Level</label>
                     <Input type="number" value={minLevel} onChange={e => setMinLevel(parseInt(e.target.value) || 0)}
                         className="w-[80px] bg-background shadow-sm" />
+                </div>
+
+                <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Max Level</label>
+                    <Input type="number" value={maxLevel} onChange={e => setMaxLevel(parseInt(e.target.value) || 0)}
+                        className="w-[80px] bg-background shadow-sm" placeholder="0=off" />
                 </div>
 
                 <div className="space-y-1.5">
@@ -720,6 +798,7 @@ export default function ABCheckPage() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="none">None (Off)</SelectItem>
+                                <SelectItem value="LevelScore">Level Score</SelectItem>
                                 {activeMetrics.map(m => (
                                     <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
                                 ))}
@@ -732,6 +811,9 @@ export default function ABCheckPage() {
                             </div>
                         )}
                     </div>
+                    <Button variant="outline" size="sm" className="gap-2 h-8" onClick={() => setShowExportDialog(true)}>
+                        <Download className="h-4 w-4" /> Export Lists
+                    </Button>
                 </div>
             )}
 
@@ -992,6 +1074,56 @@ export default function ABCheckPage() {
                     )}
                 </div>
             )}
+            {/* Export Lists Dialog */}
+            {showExportDialog && (() => {
+                const exportData = getExportData();
+                return (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-in fade-in duration-200">
+                        <div className="bg-card rounded-xl shadow-2xl border p-6 max-w-4xl w-full mx-4 animate-in zoom-in-95 duration-200 max-h-[80vh] overflow-auto">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold">Export Level Lists</h3>
+                                <Button variant="ghost" size="sm" onClick={() => setShowExportDialog(false)}>✕</Button>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                                {/* A List */}
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="font-semibold text-sm text-blue-700">{groupALabel} Levels ({exportData.aList.split('\n').filter(Boolean).length})</h4>
+                                        <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => { navigator.clipboard.writeText(exportData.aList); }}>
+                                            Copy
+                                        </Button>
+                                    </div>
+                                    <textarea readOnly value={exportData.aList} className="w-full h-[300px] rounded-md border bg-muted/30 p-2 font-mono text-xs resize-none" />
+                                </div>
+                                {/* B List */}
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="font-semibold text-sm text-amber-700">{groupBLabel} Levels ({exportData.bList.split('\n').filter(Boolean).length})</h4>
+                                        <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => { navigator.clipboard.writeText(exportData.bList); }}>
+                                            Copy
+                                        </Button>
+                                    </div>
+                                    <textarea readOnly value={exportData.bList} className="w-full h-[300px] rounded-md border bg-muted/30 p-2 font-mono text-xs resize-none" />
+                                </div>
+                                {/* Changed Levels */}
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="font-semibold text-sm text-violet-700">Changed ({exportData.changedLevels.length})</h4>
+                                        <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => { navigator.clipboard.writeText(`Level\t${groupALabel} Rev\t${groupBLabel} Rev\n` + exportData.changedList); }}>
+                                            Copy
+                                        </Button>
+                                    </div>
+                                    <div className="text-[10px] text-muted-foreground font-mono mb-1">Level / {groupALabel} Rev / {groupBLabel} Rev</div>
+                                    <textarea readOnly value={exportData.changedList} className="w-full h-[275px] rounded-md border bg-muted/30 p-2 font-mono text-xs resize-none" />
+                                </div>
+                            </div>
+                            <div className="mt-4 flex justify-end">
+                                <Button variant="outline" onClick={() => setShowExportDialog(false)}>Close</Button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
         </div>
     );
 }
