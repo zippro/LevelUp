@@ -624,9 +624,11 @@ export default function ABCheckPage() {
                 if (levelActs.length === 0) aWins.noAction.push(level);
                 else levelActs.forEach(a => {
                     if (a.type === 'M') {
-                        const mv = a.moveValue || 0;
-                        const key = `M${mv > 0 ? '+' : ''}${mv}`;
-                        if (aWins.byAction[key]) aWins.byAction[key].push(level);
+                        const mv = a.moveValue;
+                        if (mv && mv !== 0) {
+                            const key = `M${mv > 0 ? '+' : ''}${mv}`;
+                            if (aWins.byAction[key]) aWins.byAction[key].push(level);
+                        }
                     } else if (a.type) {
                         aWins.byAction[a.type]?.push(level);
                     }
@@ -635,9 +637,11 @@ export default function ABCheckPage() {
                 if (levelActs.length === 0) bWins.noAction.push(level);
                 else levelActs.forEach(a => {
                     if (a.type === 'M') {
-                        const mv = a.moveValue || 0;
-                        const key = `M${mv > 0 ? '+' : ''}${mv}`;
-                        if (bWins.byAction[key]) bWins.byAction[key].push(level);
+                        const mv = a.moveValue;
+                        if (mv && mv !== 0) {
+                            const key = `M${mv > 0 ? '+' : ''}${mv}`;
+                            if (bWins.byAction[key]) bWins.byAction[key].push(level);
+                        }
                     } else if (a.type) {
                         bWins.byAction[a.type]?.push(level);
                     }
@@ -1036,7 +1040,7 @@ export default function ABCheckPage() {
                                                             </Select>
                                                             {action.type === 'M' && (
                                                                 <Select value={action.moveValue !== undefined ? String(action.moveValue) : ''} onValueChange={v => handleABMoveChange(level, parseInt(v), ai)}>
-                                                                    <SelectTrigger className="w-16 h-7 text-xs"><SelectValue placeholder="0" /></SelectTrigger>
+                                                                    <SelectTrigger className="w-20 h-7 text-xs"><SelectValue placeholder="0" /></SelectTrigger>
                                                                     <SelectContent>
                                                                         <SelectItem value="-3">-3</SelectItem><SelectItem value="-2">-2</SelectItem><SelectItem value="-1">-1</SelectItem>
                                                                         <SelectItem value="1">+1</SelectItem><SelectItem value="2">+2</SelectItem><SelectItem value="3">+3</SelectItem>
@@ -1195,7 +1199,7 @@ export default function ABCheckPage() {
                                                             </Select>
                                                             {action.type === 'M' && (
                                                                 <Select value={action.moveValue !== undefined ? String(action.moveValue) : ''} onValueChange={v => handleABMoveChange(level, parseInt(v), ai)}>
-                                                                    <SelectTrigger className="w-12 h-7 text-xs"><SelectValue placeholder="0" /></SelectTrigger>
+                                                                    <SelectTrigger className="w-20 h-7 text-xs"><SelectValue placeholder="0" /></SelectTrigger>
                                                                     <SelectContent>
                                                                         <SelectItem value="-3">-3</SelectItem><SelectItem value="-2">-2</SelectItem><SelectItem value="-1">-1</SelectItem>
                                                                         <SelectItem value="1">+1</SelectItem><SelectItem value="2">+2</SelectItem><SelectItem value="3">+3</SelectItem>
