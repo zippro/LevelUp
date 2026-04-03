@@ -1012,31 +1012,7 @@ export default function ABCheckPage() {
                                                 isScoreBigger && bigger === 'B' && "bg-red-100/50 font-bold text-red-800",
                                                 isScoreBigger && bigger === 'A' && "opacity-60"
                                             )}>{scoreBVal}</TableCell>
-                                            {activeMetrics.map(m => {
-                                                const val = rowA ? findMetricInRow(rowA, m) : '-';
-                                                const isBiggerCol = biggerMetric === m.id;
-                                                return (
-                                                    <TableCell key={`A_${m.id}`} className={cn("text-xs font-mono bg-blue-50/10",
-                                                        isBiggerCol && bigger === 'A' && "bg-emerald-100/50 font-bold text-emerald-800",
-                                                        isBiggerCol && bigger === 'B' && "opacity-60"
-                                                    )}>
-                                                        {formatMetricValue(val, m.id)}
-                                                    </TableCell>
-                                                );
-                                            })}
-                                            {activeMetrics.map(m => {
-                                                const val = rowB ? findMetricInRow(rowB, m) : '-';
-                                                const isBiggerCol = biggerMetric === m.id;
-                                                return (
-                                                    <TableCell key={`B_${m.id}`} className={cn("text-xs font-mono bg-amber-50/10 first:border-l",
-                                                        isBiggerCol && bigger === 'B' && "bg-red-100/50 font-bold text-red-800",
-                                                        isBiggerCol && bigger === 'A' && "opacity-60"
-                                                    )}>
-                                                        {formatMetricValue(val, m.id)}
-                                                    </TableCell>
-                                                );
-                                            })}
-                                            <TableCell className="border-l p-1">
+                                            <TableCell className="border-r p-1">
                                                 <div className="flex flex-col gap-1">
                                                     {(abActions[level] || [{ type: '' }]).map((action: any, ai: number) => (
                                                         <div key={ai} className="flex gap-1 items-center">
@@ -1072,6 +1048,30 @@ export default function ABCheckPage() {
                                                     ))}
                                                 </div>
                                             </TableCell>
+                                            {activeMetrics.map(m => {
+                                                const val = rowA ? findMetricInRow(rowA, m) : '-';
+                                                const isBiggerCol = biggerMetric === m.id;
+                                                return (
+                                                    <TableCell key={`A_${m.id}`} className={cn("text-xs font-mono bg-blue-50/10",
+                                                        isBiggerCol && bigger === 'A' && "bg-emerald-100/50 font-bold text-emerald-800",
+                                                        isBiggerCol && bigger === 'B' && "opacity-60"
+                                                    )}>
+                                                        {formatMetricValue(val, m.id)}
+                                                    </TableCell>
+                                                );
+                                            })}
+                                            {activeMetrics.map(m => {
+                                                const val = rowB ? findMetricInRow(rowB, m) : '-';
+                                                const isBiggerCol = biggerMetric === m.id;
+                                                return (
+                                                    <TableCell key={`B_${m.id}`} className={cn("text-xs font-mono bg-amber-50/10 first:border-l",
+                                                        isBiggerCol && bigger === 'B' && "bg-red-100/50 font-bold text-red-800",
+                                                        isBiggerCol && bigger === 'A' && "opacity-60"
+                                                    )}>
+                                                        {formatMetricValue(val, m.id)}
+                                                    </TableCell>
+                                                );
+                                            })}
                                         </TableRow>
                                     );
                                 })}
@@ -1171,40 +1171,7 @@ export default function ABCheckPage() {
                                                 isScoreBigger && bigger === 'B' && "bg-red-100/50 font-bold text-red-800",
                                                 isScoreBigger && bigger === 'A' && "opacity-60"
                                             )}>{scoreBVal}</TableCell>
-                                            {activeMetrics.map(m => {
-                                                const valA = rowA ? findMetricInRow(rowA, m) : '-';
-                                                const valB = rowB ? findMetricInRow(rowB, m) : '-';
-                                                const isBiggerCol = biggerMetric === m.id;
-
-                                                // Per-cell bigger comparison for this specific metric
-                                                const numA = getNumericValue(valA);
-                                                const numB = getNumericValue(valB);
-                                                let cellBigger: 'A' | 'B' | null = null;
-                                                if (!isNaN(numA) && !isNaN(numB)) {
-                                                    if (numA > numB) cellBigger = 'A';
-                                                    else if (numB > numA) cellBigger = 'B';
-                                                }
-
-                                                return (
-                                                    <>
-                                                        <TableCell key={`${m.id}_A_${level}`} className={cn(
-                                                            "text-xs font-mono text-center",
-                                                            isBiggerCol && cellBigger === 'A' && "bg-emerald-100/60 font-bold text-emerald-800",
-                                                            isBiggerCol && cellBigger === 'B' && "opacity-50"
-                                                        )}>
-                                                            {formatMetricValue(valA, m.id)}
-                                                        </TableCell>
-                                                        <TableCell key={`${m.id}_B_${level}`} className={cn(
-                                                            "text-xs font-mono text-center border-r",
-                                                            isBiggerCol && cellBigger === 'B' && "bg-red-100/60 font-bold text-red-800",
-                                                            isBiggerCol && cellBigger === 'A' && "opacity-50"
-                                                        )}>
-                                                            {formatMetricValue(valB, m.id)}
-                                                        </TableCell>
-                                                    </>
-                                                );
-                                            })}
-                                            <TableCell className="border-l p-1">
+                                            <TableCell className="border-r p-1">
                                                 <div className="flex flex-col gap-1">
                                                     {(abActions[level] || [{ type: '' }]).map((action: any, ai: number) => (
                                                         <div key={ai} className="flex gap-1 items-center">
@@ -1240,6 +1207,39 @@ export default function ABCheckPage() {
                                                     ))}
                                                 </div>
                                             </TableCell>
+                                            {activeMetrics.map(m => {
+                                                const valA = rowA ? findMetricInRow(rowA, m) : '-';
+                                                const valB = rowB ? findMetricInRow(rowB, m) : '-';
+                                                const isBiggerCol = biggerMetric === m.id;
+
+                                                // Per-cell bigger comparison for this specific metric
+                                                const numA = getNumericValue(valA);
+                                                const numB = getNumericValue(valB);
+                                                let cellBigger: 'A' | 'B' | null = null;
+                                                if (!isNaN(numA) && !isNaN(numB)) {
+                                                    if (numA > numB) cellBigger = 'A';
+                                                    else if (numB > numA) cellBigger = 'B';
+                                                }
+
+                                                return (
+                                                    <>
+                                                        <TableCell key={`${m.id}_A_${level}`} className={cn(
+                                                            "text-xs font-mono text-center",
+                                                            isBiggerCol && cellBigger === 'A' && "bg-emerald-100/60 font-bold text-emerald-800",
+                                                            isBiggerCol && cellBigger === 'B' && "opacity-50"
+                                                        )}>
+                                                            {formatMetricValue(valA, m.id)}
+                                                        </TableCell>
+                                                        <TableCell key={`${m.id}_B_${level}`} className={cn(
+                                                            "text-xs font-mono text-center border-r",
+                                                            isBiggerCol && cellBigger === 'B' && "bg-red-100/60 font-bold text-red-800",
+                                                            isBiggerCol && cellBigger === 'A' && "opacity-50"
+                                                        )}>
+                                                            {formatMetricValue(valB, m.id)}
+                                                        </TableCell>
+                                                    </>
+                                                );
+                                            })}
                                         </TableRow>
                                     );
                                 })}
