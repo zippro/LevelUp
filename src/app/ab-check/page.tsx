@@ -432,12 +432,16 @@ export default function ABCheckPage() {
                 }
 
                 if (finalClusters.length < 5) {
-                    const getCluster = (row: any) => {
+                    const getCluster = (row: any, lvl: number) => {
                         if (!row) return '';
+                        // First check savedScores (from level-scores API)
+                        const saved = savedScores[lvl];
+                        if (saved?.cluster) return saved.cluster;
+                        // Fallback to raw data columns
                         return String(getCol(row, 'Final Cluster', 'FinalCluster', 'Clu', 'cluster') || '').trim();
                     };
-                    const cluA = getCluster(rowA);
-                    const cluB = getCluster(rowB);
+                    const cluA = getCluster(rowA, level);
+                    const cluB = getCluster(rowB, level);
                     const passesCluster = (c: string) => {
                         if (!c) return finalClusters.includes('None');
                         return finalClusters.includes(c);
@@ -477,7 +481,7 @@ export default function ABCheckPage() {
 
                 return true;
             });
-    }, [groupAData, groupBData, minLevel, maxLevel, minTotalUser, maxTotalUser, minDaysSinceEvent, finalClusters, revisionFilter, minRevision]);
+    }, [groupAData, groupBData, minLevel, maxLevel, minTotalUser, maxTotalUser, minDaysSinceEvent, finalClusters, revisionFilter, minRevision, savedScores]);
 
     // Determine which variant is "bigger" for each level
     // Helper to calculate level score for a row
