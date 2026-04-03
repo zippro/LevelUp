@@ -831,7 +831,8 @@ export default function ABCheckPage() {
                                     <TableHead rowSpan={2} className="font-bold text-foreground bg-muted/50 border-r"
                                         style={{ position: 'sticky', left: 0, zIndex: 40 }}>Level</TableHead>
                                     <TableHead rowSpan={2} className="font-bold text-xs text-foreground bg-muted/50 border-r text-center">Clu</TableHead>
-                                    <TableHead rowSpan={2} className="font-bold text-xs text-foreground bg-muted/50 border-r text-center">Score</TableHead>
+                                    <TableHead rowSpan={2} className="font-bold text-xs text-blue-700 bg-blue-50/50 border-r text-center">Score A</TableHead>
+                                    <TableHead rowSpan={2} className="font-bold text-xs text-amber-700 bg-amber-50/50 border-r text-center">Score B</TableHead>
                                     <TableHead colSpan={activeMetrics.length} className="text-center font-bold bg-blue-50 text-blue-700 border-r">
                                         {groupALabel}
                                     </TableHead>
@@ -855,31 +856,14 @@ export default function ABCheckPage() {
                             <TableBody>
                                 {tableData.map(({ level, rowA, rowB }) => {
                                     const bigger = biggerMetric ? biggerMap[level] : null;
-                                    // Calculate score from Tableau data
-                                    const engMetric = AB_METRICS.find(m => m.id === 'Engagement Score')!;
-                                    const monMetric = AB_METRICS.find(m => m.id === 'Monetization Score')!;
-                                    const satMetric = AB_METRICS.find(m => m.id === 'Satisfaction Score')!;
-                                    const row = rowA || rowB;
-                                    const engVal = row ? getNumericValue(findMetricInRow(row, engMetric)) : 0;
-                                    const monVal = row ? getNumericValue(findMetricInRow(row, monMetric)) : 0;
-                                    const satVal = row ? getNumericValue(findMetricInRow(row, satMetric)) : 0;
                                     const savedLevel = savedScores[level];
                                     const clusterVal = savedLevel?.cluster || '-';
-                                    // Calculate score using multipliers
-                                    let scoreVal = '-';
-                                    if (clusterVal !== '-' && config) {
-                                        const game = config.games.find(g => g.id === selectedGameId);
-                                        const multipliers = game?.scoreMultipliers || DEFAULT_MULTIPLIERS;
-                                        const mult = clusterVal === '1' ? (multipliers.cluster1 || DEFAULT_MULTIPLIERS.cluster1!) :
-                                                     clusterVal === '2' ? (multipliers.cluster2 || DEFAULT_MULTIPLIERS.cluster2!) :
-                                                     clusterVal === '3' ? (multipliers.cluster3 || DEFAULT_MULTIPLIERS.cluster3!) :
-                                                     clusterVal === '4' ? (multipliers.cluster4 || DEFAULT_MULTIPLIERS.cluster4!) :
-                                                     (multipliers.default || DEFAULT_MULTIPLIERS.default!);
-                                        const calculatedScore = (monVal * mult.monetization) + (engVal * mult.engagement) + (satVal * mult.satisfaction);
-                                        scoreVal = calculatedScore > 0 ? calculatedScore.toFixed(1) : (savedLevel?.score != null ? savedLevel.score.toFixed(1) : '-');
-                                    } else if (savedLevel?.score != null) {
-                                        scoreVal = savedLevel.score.toFixed(1);
-                                    }
+                                    // Calculate separate scores for A and B
+                                    const scoreA = rowA ? calcLevelScore(rowA) : NaN;
+                                    const scoreB = rowB ? calcLevelScore(rowB) : NaN;
+                                    const scoreAVal = !isNaN(scoreA) && scoreA > 0 ? scoreA.toFixed(1) : '-';
+                                    const scoreBVal = !isNaN(scoreB) && scoreB > 0 ? scoreB.toFixed(1) : '-';
+                                    const isScoreBigger = biggerMetric === 'LevelScore';
                                     return (
                                         <TableRow key={level} className={cn("hover:bg-muted/30",
                                             bigger === 'A' && "bg-emerald-50/40",
@@ -904,7 +888,14 @@ export default function ABCheckPage() {
                                                 clusterVal === '3' && "text-amber-600",
                                                 clusterVal === '4' && "text-red-600"
                                             )}>{clusterVal}</TableCell>
-                                            <TableCell className="text-xs font-mono text-center border-r">{scoreVal}</TableCell>
+                                            <TableCell className={cn("text-xs font-mono text-center border-r bg-blue-50/10",
+                                                isScoreBigger && bigger === 'A' && "bg-emerald-100/50 font-bold text-emerald-800",
+                                                isScoreBigger && bigger === 'B' && "opacity-60"
+                                            )}>{scoreAVal}</TableCell>
+                                            <TableCell className={cn("text-xs font-mono text-center border-r bg-amber-50/10",
+                                                isScoreBigger && bigger === 'B' && "bg-red-100/50 font-bold text-red-800",
+                                                isScoreBigger && bigger === 'A' && "opacity-60"
+                                            )}>{scoreBVal}</TableCell>
                                             {activeMetrics.map(m => {
                                                 const val = rowA ? findMetricInRow(rowA, m) : '-';
                                                 const isBiggerCol = biggerMetric === m.id;
@@ -949,7 +940,8 @@ export default function ABCheckPage() {
                                     <TableHead rowSpan={2} className="font-bold text-foreground bg-muted/50 border-r"
                                         style={{ position: 'sticky', left: 0, zIndex: 40 }}>Level</TableHead>
                                     <TableHead rowSpan={2} className="font-bold text-xs text-foreground bg-muted/50 border-r text-center">Clu</TableHead>
-                                    <TableHead rowSpan={2} className="font-bold text-xs text-foreground bg-muted/50 border-r text-center">Score</TableHead>
+                                    <TableHead rowSpan={2} className="font-bold text-xs text-blue-700 bg-blue-50/50 border-r text-center">Score A</TableHead>
+                                    <TableHead rowSpan={2} className="font-bold text-xs text-amber-700 bg-amber-50/50 border-r text-center">Score B</TableHead>
                                     {activeMetrics.map(m => (
                                         <TableHead key={m.id} colSpan={2} className={cn(
                                             "text-center font-bold text-xs border-r",
@@ -976,29 +968,13 @@ export default function ABCheckPage() {
                             <TableBody>
                                 {tableData.map(({ level, rowA, rowB }) => {
                                     const bigger = biggerMetric ? biggerMap[level] : null;
-                                    const engMetric = AB_METRICS.find(m => m.id === 'Engagement Score')!;
-                                    const monMetric = AB_METRICS.find(m => m.id === 'Monetization Score')!;
-                                    const satMetric = AB_METRICS.find(m => m.id === 'Satisfaction Score')!;
-                                    const row = rowA || rowB;
-                                    const engVal = row ? getNumericValue(findMetricInRow(row, engMetric)) : 0;
-                                    const monVal = row ? getNumericValue(findMetricInRow(row, monMetric)) : 0;
-                                    const satVal = row ? getNumericValue(findMetricInRow(row, satMetric)) : 0;
                                     const savedLevel = savedScores[level];
                                     const clusterVal = savedLevel?.cluster || '-';
-                                    let scoreVal = '-';
-                                    if (clusterVal !== '-' && config) {
-                                        const game = config.games.find(g => g.id === selectedGameId);
-                                        const multipliers = game?.scoreMultipliers || DEFAULT_MULTIPLIERS;
-                                        const mult = clusterVal === '1' ? (multipliers.cluster1 || DEFAULT_MULTIPLIERS.cluster1!) :
-                                                     clusterVal === '2' ? (multipliers.cluster2 || DEFAULT_MULTIPLIERS.cluster2!) :
-                                                     clusterVal === '3' ? (multipliers.cluster3 || DEFAULT_MULTIPLIERS.cluster3!) :
-                                                     clusterVal === '4' ? (multipliers.cluster4 || DEFAULT_MULTIPLIERS.cluster4!) :
-                                                     (multipliers.default || DEFAULT_MULTIPLIERS.default!);
-                                        const calculatedScore = (monVal * mult.monetization) + (engVal * mult.engagement) + (satVal * mult.satisfaction);
-                                        scoreVal = calculatedScore > 0 ? calculatedScore.toFixed(1) : (savedLevel?.score != null ? savedLevel.score.toFixed(1) : '-');
-                                    } else if (savedLevel?.score != null) {
-                                        scoreVal = savedLevel.score.toFixed(1);
-                                    }
+                                    const scoreA = rowA ? calcLevelScore(rowA) : NaN;
+                                    const scoreB = rowB ? calcLevelScore(rowB) : NaN;
+                                    const scoreAVal = !isNaN(scoreA) && scoreA > 0 ? scoreA.toFixed(1) : '-';
+                                    const scoreBVal = !isNaN(scoreB) && scoreB > 0 ? scoreB.toFixed(1) : '-';
+                                    const isScoreBigger = biggerMetric === 'LevelScore';
                                     return (
                                         <TableRow key={level} className={cn("hover:bg-muted/30",
                                             bigger === 'A' && "bg-emerald-50/30",
@@ -1023,7 +999,14 @@ export default function ABCheckPage() {
                                                 clusterVal === '3' && "text-amber-600",
                                                 clusterVal === '4' && "text-red-600"
                                             )}>{clusterVal}</TableCell>
-                                            <TableCell className="text-xs font-mono text-center border-r">{scoreVal}</TableCell>
+                                            <TableCell className={cn("text-xs font-mono text-center border-r bg-blue-50/10",
+                                                isScoreBigger && bigger === 'A' && "bg-emerald-100/50 font-bold text-emerald-800",
+                                                isScoreBigger && bigger === 'B' && "opacity-60"
+                                            )}>{scoreAVal}</TableCell>
+                                            <TableCell className={cn("text-xs font-mono text-center border-r bg-amber-50/10",
+                                                isScoreBigger && bigger === 'B' && "bg-red-100/50 font-bold text-red-800",
+                                                isScoreBigger && bigger === 'A' && "opacity-60"
+                                            )}>{scoreBVal}</TableCell>
                                             {activeMetrics.map(m => {
                                                 const valA = rowA ? findMetricInRow(rowA, m) : '-';
                                                 const valB = rowB ? findMetricInRow(rowB, m) : '-';
