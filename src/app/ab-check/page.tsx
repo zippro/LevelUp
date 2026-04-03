@@ -171,7 +171,7 @@ export default function ABCheckPage() {
     const [groupingColumn, setGroupingColumn] = useState<string | null>(null);
 
     // View mode
-    const [viewMode, setViewMode] = useState<ViewMode>('split');
+    const [viewMode, setViewMode] = useState<ViewMode>('interleaved');
 
     // Filters
     const [minTotalUser, setMinTotalUser] = useState(50);
@@ -542,16 +542,16 @@ export default function ABCheckPage() {
         );
     };
 
-    // Export: build A list, B list, and changed levels
+    // Export: build A wins list, B wins list, and changed levels
     const getExportData = () => {
-        const aLevels: number[] = [];
-        const bLevels: number[] = [];
+        const aWins: number[] = [];
+        const bWins: number[] = [];
         const changedLevels: { level: number; from: string; to: string }[] = [];
 
         tableData.forEach(({ level, rowA, rowB }) => {
             const bigger = biggerMetric ? biggerMap[level] : null;
-            if (rowA) aLevels.push(level);
-            if (rowB) bLevels.push(level);
+            if (bigger === 'A') aWins.push(level);
+            else if (bigger === 'B') bWins.push(level);
 
             // Detect "changed" levels: revision numbers differ between A and B
             if (rowA && rowB) {
@@ -565,10 +565,12 @@ export default function ABCheckPage() {
         });
 
         return {
-            aList: aLevels.sort((a, b) => a - b).join('\n'),
-            bList: bLevels.sort((a, b) => a - b).join('\n'),
+            aList: aWins.sort((a, b) => a - b).join('\n'),
+            bList: bWins.sort((a, b) => a - b).join('\n'),
             changedList: changedLevels.sort((a, b) => a.level - b.level).map(c => `${c.level}\t${c.from}\t${c.to}`).join('\n'),
-            changedLevels
+            changedLevels,
+            aCount: aWins.length,
+            bCount: bWins.length
         };
     };
 
@@ -1064,28 +1066,37 @@ export default function ABCheckPage() {
             {/* Export Lists Dialog */}
             {showExportDialog && (() => {
                 const exportData = getExportData();
+                const biggerLabel = biggerMetric === 'LevelScore' ? 'Level Score' : (AB_METRICS.find(m => m.id === biggerMetric)?.label || '');
                 return (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-in fade-in duration-200">
                         <div className="bg-card rounded-xl shadow-2xl border p-6 max-w-4xl w-full mx-4 animate-in zoom-in-95 duration-200 max-h-[80vh] overflow-auto">
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-semibold">Export Level Lists</h3>
+                                <div>
+                                    <h3 className="text-lg font-semibold">Export Level Lists</h3>
+                                    {biggerMetric && <p className="text-xs text-muted-foreground">Based on: <span className="font-semibold">{biggerLabel}</span></p>}
+                                </div>
                                 <Button variant="ghost" size="sm" onClick={() => setShowExportDialog(false)}>✕</Button>
                             </div>
+                            {!biggerMetric && (
+                                <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                                    ⚠️ Select a <strong>Bigger</strong> metric first to determine which levels belong to A vs B.
+                                </div>
+                            )}
                             <div className="grid grid-cols-3 gap-4">
-                                {/* A List */}
+                                {/* A Wins */}
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
-                                        <h4 className="font-semibold text-sm text-blue-700">{groupALabel} Levels ({exportData.aList.split('\n').filter(Boolean).length})</h4>
+                                        <h4 className="font-semibold text-sm text-emerald-700">{groupALabel} Wins ({exportData.aCount})</h4>
                                         <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => { navigator.clipboard.writeText(exportData.aList); }}>
                                             Copy
                                         </Button>
                                     </div>
                                     <textarea readOnly value={exportData.aList} className="w-full h-[300px] rounded-md border bg-muted/30 p-2 font-mono text-xs resize-none" />
                                 </div>
-                                {/* B List */}
+                                {/* B Wins */}
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
-                                        <h4 className="font-semibold text-sm text-amber-700">{groupBLabel} Levels ({exportData.bList.split('\n').filter(Boolean).length})</h4>
+                                        <h4 className="font-semibold text-sm text-red-700">{groupBLabel} Wins ({exportData.bCount})</h4>
                                         <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => { navigator.clipboard.writeText(exportData.bList); }}>
                                             Copy
                                         </Button>
