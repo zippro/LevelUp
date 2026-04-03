@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Upload, Download, Lock, Unlock, FileText, File, Trash2, ArrowRightLeft, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -121,12 +121,12 @@ function detectOperation(fileName: string): "encode" | "decode" {
 // ─── Page ───
 
 export default function DecoderPage() {
-    const [key, setKey] = useState(() => {
-        if (typeof window !== "undefined") {
-            return localStorage.getItem("nar-decoder-key") || "";
-        }
-        return "";
-    });
+    const [key, setKey] = useState("");
+
+    useEffect(() => {
+        const saved = localStorage.getItem("nar-decoder-key");
+        if (saved) setKey(saved);
+    }, []);
     const [showKey, setShowKey] = useState(false);
     const [files, setFiles] = useState<ProcessedFile[]>([]);
     const [processing, setProcessing] = useState(false);
@@ -279,8 +279,7 @@ export default function DecoderPage() {
             <div
                 className={cn(
                     "rounded-xl border-2 border-dashed p-10 text-center transition-all duration-200 cursor-pointer",
-                    dragOver ? "border-violet-500 bg-violet-50/50 scale-[1.01]" : "border-muted hover:border-violet-300 hover:bg-muted/30",
-                    key.length !== 32 && "opacity-50 pointer-events-none"
+                    dragOver ? "border-violet-500 bg-violet-50/50 scale-[1.01]" : "border-muted hover:border-violet-300 hover:bg-muted/30"
                 )}
                 onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                 onDragLeave={() => setDragOver(false)}
