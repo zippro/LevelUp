@@ -186,6 +186,42 @@ export default function ABCheckPage() {
     // Export dialog
     const [showExportDialog, setShowExportDialog] = useState(false);
 
+    // Actions state: key = level number, value = array of actions
+    interface ABAction {
+        type: 'M' | 'R' | 'BR' | 'TR' | 'S' | 'SS' | '';
+        moveValue?: number;
+        description?: string;
+    }
+    const [abActions, setAbActions] = useState<Record<number, ABAction[]>>({});
+
+    const handleABActionTypeChange = (level: number, type: string, actionIndex: number = 0) => {
+        setAbActions(prev => {
+            const acts = [...(prev[level] || [{ type: '' }])];
+            acts[actionIndex] = { ...acts[actionIndex], type: type as any, moveValue: undefined, description: undefined };
+            return { ...prev, [level]: acts };
+        });
+    };
+    const handleABMoveChange = (level: number, moveValue: number, actionIndex: number = 0) => {
+        setAbActions(prev => {
+            const acts = [...(prev[level] || [{ type: '' }])];
+            acts[actionIndex] = { ...acts[actionIndex], moveValue };
+            return { ...prev, [level]: acts };
+        });
+    };
+    const handleABDescChange = (level: number, description: string, actionIndex: number = 0) => {
+        setAbActions(prev => {
+            const acts = [...(prev[level] || [{ type: '' }])];
+            acts[actionIndex] = { ...acts[actionIndex], description };
+            return { ...prev, [level]: acts };
+        });
+    };
+    const addABAction = (level: number) => {
+        setAbActions(prev => {
+            const acts = [...(prev[level] || [{ type: '' }]), { type: '' as any }];
+            return { ...prev, [level]: acts };
+        });
+    };
+
     // Column customization
     const [visibleMetrics, setVisibleMetrics] = useState<string[]>(AB_METRICS.map(m => m.id));
     const [showColumnSettings, setShowColumnSettings] = useState(false);
@@ -560,44 +596,84 @@ export default function ABCheckPage() {
             if (!current) next[level] = 'A';
             else if (current === 'A') next[level] = 'B';
             else if (current === 'B') next[level] = 'N';
-            else delete next[level]; // N → back to auto
+            else delete next[level];
             return next;
         });
     };
 
-    // Export: build A wins list, B wins list, and changed levels
+    // Build export data grouped by winner and action type
     const getExportData = () => {
-        const aWins: number[] = [];
-        const bWins: number[] = [];
+        const actionTypes = ['M', 'R', 'BR', 'TR', 'S', 'SS'] as const;
+        const actionLabels: Record<string, string> = { M: 'Move Change', R: 'Revise', BR: 'Big Revise', TR: 'Time Revise', S: 'Select', SS: 'Super Select' };
+        type WinGroup = { noAction: number[]; byAction: Record<string, number[]> };
+        const aWins: WinGroup = { noAction: [], byAction: {} };
+        const bWins: WinGroup = { noAction: [], byAction: {} };
         const nLevels: number[] = [];
-        const changedLevels: { level: number; from: string; to: string }[] = [];
+        actionTypes.forEach(t => { aWins.byAction[t] = []; bWins.byAction[t] = []; });
 
-        tableData.forEach(({ level, rowA, rowB }) => {
+        tableData.forEach(({ level }) => {
             const winner = getEffectiveWinner(level);
-            if (winner === 'A') aWins.push(level);
-            else if (winner === 'B') bWins.push(level);
-            else if (winner === 'N') nLevels.push(level);
-
-            // Detect "changed" levels: revision numbers differ between A and B
-            if (rowA && rowB) {
-                const revMetric = AB_METRICS.find(m => m.id === 'RevisionNumber')!;
-                const revA = parseInt(findMetricInRow(rowA, revMetric));
-                const revB = parseInt(findMetricInRow(rowB, revMetric));
-                if (!isNaN(revA) && !isNaN(revB) && revA !== revB) {
-                    changedLevels.push({ level, from: String(revA), to: String(revB) });
-                }
+            const levelActs = (abActions[level] || []).filter(a => a.type);
+            if (winner === 'A') {
+                if (levelActs.length === 0) aWins.noAction.push(level);
+                else levelActs.forEach(a => { if (a.type) aWins.byAction[a.type]?.push(level); });
+            } else if (winner === 'B') {
+                if (levelActs.length === 0) bWins.noAction.push(level);
+                else levelActs.forEach(a => { if (a.type) bWins.byAction[a.type]?.push(level); });
+            } else if (winner === 'N') {
+                nLevels.push(level);
             }
         });
 
+        // Build text for each group
+        const buildGroupText = (group: WinGroup) => {
+            let text = '';
+            for (const t of actionTypes) {
+                const levels = group.byAction[t];
+                if (levels.length > 0) {
+                    text += `${actionLabels[t]}:\n${levels.sort((a,b)=>a-b).join('\n')}\n\n`;
+                }
+            }
+            if (group.noAction.length > 0) {
+                text += `No Action:\n${group.noAction.sort((a,b)=>a-b).join('\n')}\n`;
+            }
+            return text.trim();
+        };
+
+        // One-line summary
+        const buildOneLine = (group: WinGroup, label: string) => {
+            const parts: string[] = [];
+            for (const t of actionTypes) {
+                const levels = group.byAction[t];
+                if (levels.length > 0) {
+                    parts.push(`${actionLabels[t]}: ${levels.sort((a,b)=>a-b).join(' ')}`);
+                }
+            }
+            if (group.noAction.length > 0) {
+                parts.push(`No Action: ${group.noAction.sort((a,b)=>a-b).join(' ')}`);
+            }
+            return parts.length > 0 ? `${label}: ${parts.join(' | ')}` : '';
+        };
+
+        const allACount = Object.values(aWins.byAction).reduce((s, l) => s + l.length, 0) + aWins.noAction.length;
+        const allBCount = Object.values(bWins.byAction).reduce((s, l) => s + l.length, 0) + bWins.noAction.length;
+
+        const oneLineA = buildOneLine(aWins, groupALabel);
+        const oneLineB = buildOneLine(bWins, groupBLabel);
+        const oneLineN = nLevels.length > 0 ? `None: ${nLevels.sort((a,b)=>a-b).join(' ')}` : '';
+        const oneLine = [oneLineA, oneLineB, oneLineN].filter(Boolean).join('\n');
+
         return {
-            aList: aWins.sort((a, b) => a - b).join('\n'),
-            bList: bWins.sort((a, b) => a - b).join('\n'),
+            aText: buildGroupText(aWins),
+            bText: buildGroupText(bWins),
             nList: nLevels.sort((a, b) => a - b).join('\n'),
-            changedList: changedLevels.sort((a, b) => a.level - b.level).map(c => `${c.level}\t${c.from}\t${c.to}`).join('\n'),
-            changedLevels,
-            aCount: aWins.length,
-            bCount: bWins.length,
-            nCount: nLevels.length
+            aCount: allACount,
+            bCount: allBCount,
+            nCount: nLevels.length,
+            oneLine,
+            actionLabels,
+            aWins,
+            bWins
         };
     };
 
@@ -863,6 +939,7 @@ export default function ABCheckPage() {
                                     <TableHead rowSpan={2} className="font-bold text-xs text-foreground bg-muted/50 border-r text-center">Clu</TableHead>
                                     <TableHead rowSpan={2} className="font-bold text-xs text-blue-700 bg-blue-50/50 border-r text-center">Score A</TableHead>
                                     <TableHead rowSpan={2} className="font-bold text-xs text-amber-700 bg-amber-50/50 border-r text-center">Score B</TableHead>
+                                    <TableHead rowSpan={2} className="font-bold text-xs text-foreground bg-muted/50 border-r text-center">Action</TableHead>
                                     <TableHead colSpan={activeMetrics.length} className="text-center font-bold bg-blue-50 text-blue-700 border-r">
                                         {groupALabel}
                                     </TableHead>
@@ -959,6 +1036,42 @@ export default function ABCheckPage() {
                                                     </TableCell>
                                                 );
                                             })}
+                                            <TableCell className="border-l p-1">
+                                                <div className="flex flex-col gap-1">
+                                                    {(abActions[level] || [{ type: '' }]).map((action: any, ai: number) => (
+                                                        <div key={ai} className="flex gap-1 items-center">
+                                                            <Select value={action.type || '_clear'} onValueChange={v => handleABActionTypeChange(level, v === '_clear' ? '' : v, ai)}>
+                                                                <SelectTrigger className="w-14 h-7 text-xs"><SelectValue placeholder="-" /></SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="_clear">-</SelectItem>
+                                                                    <SelectItem value="M">M</SelectItem>
+                                                                    <SelectItem value="R">R</SelectItem>
+                                                                    <SelectItem value="BR">BR</SelectItem>
+                                                                    <SelectItem value="TR">TR</SelectItem>
+                                                                    <SelectItem value="S">S</SelectItem>
+                                                                    <SelectItem value="SS">SS</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                            {action.type === 'M' && (
+                                                                <Select value={action.moveValue !== undefined ? String(action.moveValue) : ''} onValueChange={v => handleABMoveChange(level, parseInt(v), ai)}>
+                                                                    <SelectTrigger className="w-12 h-7 text-xs"><SelectValue placeholder="0" /></SelectTrigger>
+                                                                    <SelectContent>
+                                                                        <SelectItem value="-3">-3</SelectItem><SelectItem value="-2">-2</SelectItem><SelectItem value="-1">-1</SelectItem>
+                                                                        <SelectItem value="1">+1</SelectItem><SelectItem value="2">+2</SelectItem><SelectItem value="3">+3</SelectItem>
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                            {(action.type === 'R' || action.type === 'BR' || action.type === 'TR' || action.type === 'S' || action.type === 'SS') && (
+                                                                <Input type="text" className="w-24 h-7 text-xs" value={action.description || ''}
+                                                                    onChange={e => handleABDescChange(level, e.target.value, ai)} placeholder="Desc..." />
+                                                            )}
+                                                            {ai === (abActions[level] || [{ type: '' }]).length - 1 && action.type && (
+                                                                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => addABAction(level)}>+</Button>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </TableCell>
                                         </TableRow>
                                     );
                                 })}
@@ -982,6 +1095,7 @@ export default function ABCheckPage() {
                                     <TableHead rowSpan={2} className="font-bold text-xs text-foreground bg-muted/50 border-r text-center">Clu</TableHead>
                                     <TableHead rowSpan={2} className="font-bold text-xs text-blue-700 bg-blue-50/50 border-r text-center">Score A</TableHead>
                                     <TableHead rowSpan={2} className="font-bold text-xs text-amber-700 bg-amber-50/50 border-r text-center">Score B</TableHead>
+                                    <TableHead rowSpan={2} className="font-bold text-xs text-foreground bg-muted/50 border-r text-center">Action</TableHead>
                                     {activeMetrics.map(m => (
                                         <TableHead key={m.id} colSpan={2} className={cn(
                                             "text-center font-bold text-xs border-r",
@@ -1090,6 +1204,42 @@ export default function ABCheckPage() {
                                                     </>
                                                 );
                                             })}
+                                            <TableCell className="border-l p-1">
+                                                <div className="flex flex-col gap-1">
+                                                    {(abActions[level] || [{ type: '' }]).map((action: any, ai: number) => (
+                                                        <div key={ai} className="flex gap-1 items-center">
+                                                            <Select value={action.type || '_clear'} onValueChange={v => handleABActionTypeChange(level, v === '_clear' ? '' : v, ai)}>
+                                                                <SelectTrigger className="w-14 h-7 text-xs"><SelectValue placeholder="-" /></SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="_clear">-</SelectItem>
+                                                                    <SelectItem value="M">M</SelectItem>
+                                                                    <SelectItem value="R">R</SelectItem>
+                                                                    <SelectItem value="BR">BR</SelectItem>
+                                                                    <SelectItem value="TR">TR</SelectItem>
+                                                                    <SelectItem value="S">S</SelectItem>
+                                                                    <SelectItem value="SS">SS</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                            {action.type === 'M' && (
+                                                                <Select value={action.moveValue !== undefined ? String(action.moveValue) : ''} onValueChange={v => handleABMoveChange(level, parseInt(v), ai)}>
+                                                                    <SelectTrigger className="w-12 h-7 text-xs"><SelectValue placeholder="0" /></SelectTrigger>
+                                                                    <SelectContent>
+                                                                        <SelectItem value="-3">-3</SelectItem><SelectItem value="-2">-2</SelectItem><SelectItem value="-1">-1</SelectItem>
+                                                                        <SelectItem value="1">+1</SelectItem><SelectItem value="2">+2</SelectItem><SelectItem value="3">+3</SelectItem>
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                            {(action.type === 'R' || action.type === 'BR' || action.type === 'TR' || action.type === 'S' || action.type === 'SS') && (
+                                                                <Input type="text" className="w-24 h-7 text-xs" value={action.description || ''}
+                                                                    onChange={e => handleABDescChange(level, e.target.value, ai)} placeholder="Desc..." />
+                                                            )}
+                                                            {ai === (abActions[level] || [{ type: '' }]).length - 1 && action.type && (
+                                                                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => addABAction(level)}>+</Button>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </TableCell>
                                         </TableRow>
                                     );
                                 })}
@@ -1115,9 +1265,42 @@ export default function ABCheckPage() {
             {showExportDialog && (() => {
                 const exportData = getExportData();
                 const biggerLabel = biggerMetric === 'LevelScore' ? 'Level Score' : (AB_METRICS.find(m => m.id === biggerMetric)?.label || '');
+                const actionTypes = ['M', 'R', 'BR', 'TR', 'S', 'SS'] as const;
+                const renderGroupBoxes = (group: typeof exportData.aWins, label: string, color: string) => {
+                    const boxes: React.ReactElement[] = [];
+                    for (const t of actionTypes) {
+                        const levels = group.byAction[t] || [];
+                        if (levels.length > 0) {
+                            const text = levels.sort((a,b) => a-b).join('\n');
+                            boxes.push(
+                                <div key={`${label}_${t}`} className="space-y-1">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className={`font-semibold text-xs ${color}`}>{label} - {exportData.actionLabels[t]} ({levels.length})</h4>
+                                        <Button variant="outline" size="sm" className="h-6 text-[10px]" onClick={() => navigator.clipboard.writeText(text)}>Copy</Button>
+                                    </div>
+                                    <textarea readOnly value={text} className="w-full h-[180px] rounded-md border bg-muted/30 p-2 font-mono text-xs resize-none" />
+                                </div>
+                            );
+                        }
+                    }
+                    if (group.noAction.length > 0) {
+                        const text = group.noAction.sort((a,b) => a-b).join('\n');
+                        boxes.push(
+                            <div key={`${label}_noaction`} className="space-y-1">
+                                <div className="flex items-center justify-between">
+                                    <h4 className={`font-semibold text-xs ${color}`}>{label} - No Action ({group.noAction.length})</h4>
+                                    <Button variant="outline" size="sm" className="h-6 text-[10px]" onClick={() => navigator.clipboard.writeText(text)}>Copy</Button>
+                                </div>
+                                <textarea readOnly value={text} className="w-full h-[180px] rounded-md border bg-muted/30 p-2 font-mono text-xs resize-none" />
+                            </div>
+                        );
+                    }
+                    return boxes;
+                };
+
                 return (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-in fade-in duration-200">
-                        <div className="bg-card rounded-xl shadow-2xl border p-6 max-w-4xl w-full mx-4 animate-in zoom-in-95 duration-200 max-h-[80vh] overflow-auto">
+                        <div className="bg-card rounded-xl shadow-2xl border p-6 max-w-6xl w-full mx-4 animate-in zoom-in-95 duration-200 max-h-[85vh] overflow-auto">
                             <div className="flex items-center justify-between mb-4">
                                 <div>
                                     <h3 className="text-lg font-semibold">Export Level Lists</h3>
@@ -1130,49 +1313,52 @@ export default function ABCheckPage() {
                                     ⚠️ Select a <strong>Bigger</strong> metric or manually set <strong>Win</strong> values to populate the lists.
                                 </div>
                             )}
-                            <div className="grid grid-cols-4 gap-3">
-                                {/* A Wins */}
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <h4 className="font-semibold text-sm text-emerald-700">{groupALabel} Wins ({exportData.aCount})</h4>
-                                        <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => { navigator.clipboard.writeText(exportData.aList); }}>
-                                            Copy
-                                        </Button>
+
+                            {/* A Wins Section */}
+                            {exportData.aCount > 0 && (
+                                <div className="mb-4">
+                                    <h3 className="font-bold text-sm text-emerald-700 mb-2 border-b pb-1">{groupALabel} Wins ({exportData.aCount})</h3>
+                                    <div className="grid grid-cols-4 gap-3">
+                                        {renderGroupBoxes(exportData.aWins, groupALabel, 'text-emerald-700')}
                                     </div>
-                                    <textarea readOnly value={exportData.aList} className="w-full h-[300px] rounded-md border bg-muted/30 p-2 font-mono text-xs resize-none" />
                                 </div>
-                                {/* B Wins */}
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <h4 className="font-semibold text-sm text-red-700">{groupBLabel} Wins ({exportData.bCount})</h4>
-                                        <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => { navigator.clipboard.writeText(exportData.bList); }}>
-                                            Copy
-                                        </Button>
+                            )}
+
+                            {/* B Wins Section */}
+                            {exportData.bCount > 0 && (
+                                <div className="mb-4">
+                                    <h3 className="font-bold text-sm text-red-700 mb-2 border-b pb-1">{groupBLabel} Wins ({exportData.bCount})</h3>
+                                    <div className="grid grid-cols-4 gap-3">
+                                        {renderGroupBoxes(exportData.bWins, groupBLabel, 'text-red-700')}
                                     </div>
-                                    <textarea readOnly value={exportData.bList} className="w-full h-[300px] rounded-md border bg-muted/30 p-2 font-mono text-xs resize-none" />
                                 </div>
-                                {/* N (None) */}
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <h4 className="font-semibold text-sm text-gray-600">None ({exportData.nCount})</h4>
-                                        <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => { navigator.clipboard.writeText(exportData.nList); }}>
-                                            Copy
-                                        </Button>
+                            )}
+
+                            {/* None */}
+                            {exportData.nCount > 0 && (
+                                <div className="mb-4">
+                                    <h3 className="font-bold text-sm text-gray-600 mb-2 border-b pb-1">None ({exportData.nCount})</h3>
+                                    <div className="grid grid-cols-4 gap-3">
+                                        <div className="space-y-1">
+                                            <div className="flex items-center justify-between">
+                                                <h4 className="font-semibold text-xs text-gray-600">Levels</h4>
+                                                <Button variant="outline" size="sm" className="h-6 text-[10px]" onClick={() => navigator.clipboard.writeText(exportData.nList)}>Copy</Button>
+                                            </div>
+                                            <textarea readOnly value={exportData.nList} className="w-full h-[180px] rounded-md border bg-muted/30 p-2 font-mono text-xs resize-none" />
+                                        </div>
                                     </div>
-                                    <textarea readOnly value={exportData.nList} className="w-full h-[300px] rounded-md border bg-muted/30 p-2 font-mono text-xs resize-none" />
                                 </div>
-                                {/* Changed Levels */}
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <h4 className="font-semibold text-sm text-violet-700">Changed ({exportData.changedLevels.length})</h4>
-                                        <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => { navigator.clipboard.writeText(`Level\t${groupALabel} Rev\t${groupBLabel} Rev\n` + exportData.changedList); }}>
-                                            Copy
-                                        </Button>
-                                    </div>
-                                    <div className="text-[10px] text-muted-foreground font-mono mb-1">Level / {groupALabel} Rev / {groupBLabel} Rev</div>
-                                    <textarea readOnly value={exportData.changedList} className="w-full h-[275px] rounded-md border bg-muted/30 p-2 font-mono text-xs resize-none" />
+                            )}
+
+                            {/* One-line summary at bottom */}
+                            <div className="mt-4 border-t pt-3">
+                                <div className="flex items-center justify-between mb-1">
+                                    <h4 className="font-semibold text-xs text-muted-foreground uppercase">Summary (one line)</h4>
+                                    <Button variant="outline" size="sm" className="h-6 text-[10px]" onClick={() => navigator.clipboard.writeText(exportData.oneLine)}>Copy Summary</Button>
                                 </div>
+                                <textarea readOnly value={exportData.oneLine} className="w-full h-[60px] rounded-md border bg-muted/30 p-2 font-mono text-[10px] resize-none" />
                             </div>
+
                             <div className="mt-4 flex justify-end">
                                 <Button variant="outline" onClick={() => setShowExportDialog(false)}>Close</Button>
                             </div>
