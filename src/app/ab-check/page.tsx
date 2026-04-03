@@ -1057,13 +1057,19 @@ export default function ABCheckPage() {
                                                                 </SelectContent>
                                                             </Select>
                                                             {action.type === 'M' && (
-                                                                <Select value={action.moveValue !== undefined ? String(action.moveValue) : ''} onValueChange={v => handleABMoveChange(level, parseInt(v), ai)}>
-                                                                    <SelectTrigger className="w-20 h-7 text-xs"><SelectValue placeholder="0" /></SelectTrigger>
-                                                                    <SelectContent>
-                                                                        <SelectItem value="-3">-3</SelectItem><SelectItem value="-2">-2</SelectItem><SelectItem value="-1">-1</SelectItem>
-                                                                        <SelectItem value="1">+1</SelectItem><SelectItem value="2">+2</SelectItem><SelectItem value="3">+3</SelectItem>
-                                                                    </SelectContent>
-                                                                </Select>
+                                                                <select
+                                                                    className="h-7 w-16 rounded-md border border-input bg-background px-1.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-ring"
+                                                                    value={action.moveValue !== undefined ? String(action.moveValue) : ''}
+                                                                    onChange={e => handleABMoveChange(level, parseInt(e.target.value), ai)}
+                                                                >
+                                                                    <option value="" disabled>±</option>
+                                                                    <option value="-3">-3</option>
+                                                                    <option value="-2">-2</option>
+                                                                    <option value="-1">-1</option>
+                                                                    <option value="1">+1</option>
+                                                                    <option value="2">+2</option>
+                                                                    <option value="3">+3</option>
+                                                                </select>
                                                             )}
                                                             {(action.type === 'R' || action.type === 'BR' || action.type === 'TR' || action.type === 'S' || action.type === 'SS') && (
                                                                 <Input type="text" className="w-24 h-7 text-xs" value={action.description || ''}
@@ -1216,13 +1222,19 @@ export default function ABCheckPage() {
                                                                 </SelectContent>
                                                             </Select>
                                                             {action.type === 'M' && (
-                                                                <Select value={action.moveValue !== undefined ? String(action.moveValue) : ''} onValueChange={v => handleABMoveChange(level, parseInt(v), ai)}>
-                                                                    <SelectTrigger className="w-20 h-7 text-xs"><SelectValue placeholder="0" /></SelectTrigger>
-                                                                    <SelectContent>
-                                                                        <SelectItem value="-3">-3</SelectItem><SelectItem value="-2">-2</SelectItem><SelectItem value="-1">-1</SelectItem>
-                                                                        <SelectItem value="1">+1</SelectItem><SelectItem value="2">+2</SelectItem><SelectItem value="3">+3</SelectItem>
-                                                                    </SelectContent>
-                                                                </Select>
+                                                                <select
+                                                                    className="h-7 w-16 rounded-md border border-input bg-background px-1.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-ring"
+                                                                    value={action.moveValue !== undefined ? String(action.moveValue) : ''}
+                                                                    onChange={e => handleABMoveChange(level, parseInt(e.target.value), ai)}
+                                                                >
+                                                                    <option value="" disabled>±</option>
+                                                                    <option value="-3">-3</option>
+                                                                    <option value="-2">-2</option>
+                                                                    <option value="-1">-1</option>
+                                                                    <option value="1">+1</option>
+                                                                    <option value="2">+2</option>
+                                                                    <option value="3">+3</option>
+                                                                </select>
                                                             )}
                                                             {(action.type === 'R' || action.type === 'BR' || action.type === 'TR' || action.type === 'S' || action.type === 'SS') && (
                                                                 <Input type="text" className="w-24 h-7 text-xs" value={action.description || ''}
