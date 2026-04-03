@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, createContext, useContext } from "react";
 import { cn } from "@/lib/utils";
-import { Database, Settings, Table, FolderOpen, BarChart3, CalendarCheck, Menu, X, LogOut, ChevronLeft, ChevronRight, TrendingUp, FileText, ClipboardList, GitCompareArrows, ArrowRightLeft } from "lucide-react";
+import { Database, Settings, Table, FolderOpen, BarChart3, CalendarCheck, Menu, X, LogOut, ChevronLeft, ChevronRight, TrendingUp, FileText, ClipboardList, GitCompareArrows, ArrowRightLeft, HardDrive } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 const navItems = [
@@ -16,6 +16,7 @@ const navItems = [
     { href: "/weekly-reports", label: "Weekly Reports", icon: FileText },
     { href: "/level-score", label: "Level Score", icon: TrendingUp },
     { href: "/repository", label: "Data Repository", icon: FolderOpen },
+    { href: "/server", label: "Server", icon: HardDrive },
     { href: "/planner", label: "Planner", icon: ClipboardList },
     { href: "/", label: "Pull Data", icon: Database },
     { href: "/settings", label: "Settings", icon: Settings },

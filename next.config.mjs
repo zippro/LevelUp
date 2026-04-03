@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
+  serverExternalPackages: ['ssh2', 'ssh2-sftp-client'],
 };
 
 export default nextConfig;
