@@ -193,6 +193,9 @@ export default function ABCheckPage() {
     // Bigger function
     const [biggerMetric, setBiggerMetric] = useState<string | null>(null);
 
+    // Manual winner overrides per level: A, B, N (none), or undefined (auto from bigger)
+    const [winnerOverrides, setWinnerOverrides] = useState<Record<number, 'A' | 'B' | 'N'>>({});
+
     // Saved level scores (cluster + score per level)
     const [savedScores, setSavedScores] = useState<Record<number, { cluster: string | null, score: number | null }>>({});
 
@@ -542,16 +545,38 @@ export default function ABCheckPage() {
         );
     };
 
+    // Get effective winner for a level: manual override > bigger function
+    const getEffectiveWinner = (level: number): 'A' | 'B' | 'N' | null => {
+        if (winnerOverrides[level]) return winnerOverrides[level];
+        const bigger = biggerMetric ? biggerMap[level] : null;
+        return bigger || null;
+    };
+
+    // Cycle winner: auto → A → B → N → auto
+    const cycleWinner = (level: number) => {
+        const current = winnerOverrides[level];
+        setWinnerOverrides(prev => {
+            const next = { ...prev };
+            if (!current) next[level] = 'A';
+            else if (current === 'A') next[level] = 'B';
+            else if (current === 'B') next[level] = 'N';
+            else delete next[level]; // N → back to auto
+            return next;
+        });
+    };
+
     // Export: build A wins list, B wins list, and changed levels
     const getExportData = () => {
         const aWins: number[] = [];
         const bWins: number[] = [];
+        const nLevels: number[] = [];
         const changedLevels: { level: number; from: string; to: string }[] = [];
 
         tableData.forEach(({ level, rowA, rowB }) => {
-            const bigger = biggerMetric ? biggerMap[level] : null;
-            if (bigger === 'A') aWins.push(level);
-            else if (bigger === 'B') bWins.push(level);
+            const winner = getEffectiveWinner(level);
+            if (winner === 'A') aWins.push(level);
+            else if (winner === 'B') bWins.push(level);
+            else if (winner === 'N') nLevels.push(level);
 
             // Detect "changed" levels: revision numbers differ between A and B
             if (rowA && rowB) {
@@ -567,10 +592,12 @@ export default function ABCheckPage() {
         return {
             aList: aWins.sort((a, b) => a - b).join('\n'),
             bList: bWins.sort((a, b) => a - b).join('\n'),
+            nList: nLevels.sort((a, b) => a - b).join('\n'),
             changedList: changedLevels.sort((a, b) => a.level - b.level).map(c => `${c.level}\t${c.from}\t${c.to}`).join('\n'),
             changedLevels,
             aCount: aWins.length,
-            bCount: bWins.length
+            bCount: bWins.length,
+            nCount: nLevels.length
         };
     };
 
@@ -832,6 +859,7 @@ export default function ABCheckPage() {
                                 <TableRow className="bg-muted/50" style={{ position: 'sticky', top: 0, zIndex: 30 }}>
                                     <TableHead rowSpan={2} className="font-bold text-foreground bg-muted/50 border-r"
                                         style={{ position: 'sticky', left: 0, zIndex: 40 }}>Level</TableHead>
+                                    <TableHead rowSpan={2} className="font-bold text-xs text-foreground bg-muted/50 border-r text-center w-[40px]">Win</TableHead>
                                     <TableHead rowSpan={2} className="font-bold text-xs text-foreground bg-muted/50 border-r text-center">Clu</TableHead>
                                     <TableHead rowSpan={2} className="font-bold text-xs text-blue-700 bg-blue-50/50 border-r text-center">Score A</TableHead>
                                     <TableHead rowSpan={2} className="font-bold text-xs text-amber-700 bg-amber-50/50 border-r text-center">Score B</TableHead>
@@ -858,9 +886,10 @@ export default function ABCheckPage() {
                             <TableBody>
                                 {tableData.map(({ level, rowA, rowB }) => {
                                     const bigger = biggerMetric ? biggerMap[level] : null;
+                                    const effectiveWinner = getEffectiveWinner(level);
+                                    const isManual = !!winnerOverrides[level];
                                     const savedLevel = savedScores[level];
                                     const clusterVal = savedLevel?.cluster || '-';
-                                    // Calculate separate scores for A and B
                                     const scoreA = rowA ? calcLevelScore(rowA) : NaN;
                                     const scoreB = rowB ? calcLevelScore(rowB) : NaN;
                                     const scoreAVal = !isNaN(scoreA) && scoreA > 0 ? scoreA.toFixed(1) : '-';
@@ -868,21 +897,29 @@ export default function ABCheckPage() {
                                     const isScoreBigger = biggerMetric === 'LevelScore';
                                     return (
                                         <TableRow key={level} className={cn("hover:bg-muted/30",
-                                            bigger === 'A' && "bg-emerald-50/40",
-                                            bigger === 'B' && "bg-red-50/40"
+                                            effectiveWinner === 'A' && "bg-emerald-50/40",
+                                            effectiveWinner === 'B' && "bg-red-50/40"
                                         )}>
                                             <TableCell className={cn("font-bold bg-card border-r",
-                                                bigger === 'A' && "bg-emerald-50/60",
-                                                bigger === 'B' && "bg-red-50/60"
+                                                effectiveWinner === 'A' && "bg-emerald-50/60",
+                                                effectiveWinner === 'B' && "bg-red-50/60"
                                             )} style={{ position: 'sticky', left: 0, zIndex: 10 }}>
                                                 {level}
-                                                {bigger && (
-                                                    <span className={cn("ml-1.5 text-[10px] font-bold px-1 py-0.5 rounded",
-                                                        bigger === 'A' ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
-                                                    )}>
-                                                        {bigger === 'A' ? groupALabel : groupBLabel}
-                                                    </span>
-                                                )}
+                                            </TableCell>
+                                            <TableCell className="text-center border-r p-0">
+                                                <button
+                                                    onClick={() => cycleWinner(level)}
+                                                    className={cn("w-full h-full px-1.5 py-1 text-[11px] font-bold cursor-pointer transition-colors",
+                                                        effectiveWinner === 'A' && "bg-emerald-100 text-emerald-800",
+                                                        effectiveWinner === 'B' && "bg-red-100 text-red-800",
+                                                        effectiveWinner === 'N' && "bg-gray-100 text-gray-500",
+                                                        !effectiveWinner && "text-muted-foreground/40",
+                                                        isManual && "underline decoration-2"
+                                                    )}
+                                                    title={isManual ? 'Manual override (click to cycle A→B→N→auto)' : 'Auto from Bigger (click to override)'}
+                                                >
+                                                    {effectiveWinner || '-'}
+                                                </button>
                                             </TableCell>
                                             <TableCell className={cn("text-xs font-bold text-center border-r",
                                                 clusterVal === '1' && "text-emerald-600",
@@ -941,6 +978,7 @@ export default function ABCheckPage() {
                                 <TableRow className="bg-muted/50" style={{ position: 'sticky', top: 0, zIndex: 30 }}>
                                     <TableHead rowSpan={2} className="font-bold text-foreground bg-muted/50 border-r"
                                         style={{ position: 'sticky', left: 0, zIndex: 40 }}>Level</TableHead>
+                                    <TableHead rowSpan={2} className="font-bold text-xs text-foreground bg-muted/50 border-r text-center w-[40px]">Win</TableHead>
                                     <TableHead rowSpan={2} className="font-bold text-xs text-foreground bg-muted/50 border-r text-center">Clu</TableHead>
                                     <TableHead rowSpan={2} className="font-bold text-xs text-blue-700 bg-blue-50/50 border-r text-center">Score A</TableHead>
                                     <TableHead rowSpan={2} className="font-bold text-xs text-amber-700 bg-amber-50/50 border-r text-center">Score B</TableHead>
@@ -970,6 +1008,8 @@ export default function ABCheckPage() {
                             <TableBody>
                                 {tableData.map(({ level, rowA, rowB }) => {
                                     const bigger = biggerMetric ? biggerMap[level] : null;
+                                    const effectiveWinner = getEffectiveWinner(level);
+                                    const isManual = !!winnerOverrides[level];
                                     const savedLevel = savedScores[level];
                                     const clusterVal = savedLevel?.cluster || '-';
                                     const scoreA = rowA ? calcLevelScore(rowA) : NaN;
@@ -979,21 +1019,29 @@ export default function ABCheckPage() {
                                     const isScoreBigger = biggerMetric === 'LevelScore';
                                     return (
                                         <TableRow key={level} className={cn("hover:bg-muted/30",
-                                            bigger === 'A' && "bg-emerald-50/30",
-                                            bigger === 'B' && "bg-red-50/30"
+                                            effectiveWinner === 'A' && "bg-emerald-50/30",
+                                            effectiveWinner === 'B' && "bg-red-50/30"
                                         )}>
                                             <TableCell className={cn("font-bold bg-card border-r",
-                                                bigger === 'A' && "bg-emerald-50/60",
-                                                bigger === 'B' && "bg-red-50/60"
+                                                effectiveWinner === 'A' && "bg-emerald-50/60",
+                                                effectiveWinner === 'B' && "bg-red-50/60"
                                             )} style={{ position: 'sticky', left: 0, zIndex: 10 }}>
                                                 {level}
-                                                {bigger && (
-                                                    <span className={cn("ml-1.5 text-[10px] font-bold px-1 py-0.5 rounded",
-                                                        bigger === 'A' ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
-                                                    )}>
-                                                        {bigger === 'A' ? groupALabel : groupBLabel}
-                                                    </span>
-                                                )}
+                                            </TableCell>
+                                            <TableCell className="text-center border-r p-0">
+                                                <button
+                                                    onClick={() => cycleWinner(level)}
+                                                    className={cn("w-full h-full px-1.5 py-1 text-[11px] font-bold cursor-pointer transition-colors",
+                                                        effectiveWinner === 'A' && "bg-emerald-100 text-emerald-800",
+                                                        effectiveWinner === 'B' && "bg-red-100 text-red-800",
+                                                        effectiveWinner === 'N' && "bg-gray-100 text-gray-500",
+                                                        !effectiveWinner && "text-muted-foreground/40",
+                                                        isManual && "underline decoration-2"
+                                                    )}
+                                                    title={isManual ? 'Manual override (click to cycle A→B→N→auto)' : 'Auto from Bigger (click to override)'}
+                                                >
+                                                    {effectiveWinner || '-'}
+                                                </button>
                                             </TableCell>
                                             <TableCell className={cn("text-xs font-bold text-center border-r",
                                                 clusterVal === '1' && "text-emerald-600",
@@ -1077,12 +1125,12 @@ export default function ABCheckPage() {
                                 </div>
                                 <Button variant="ghost" size="sm" onClick={() => setShowExportDialog(false)}>✕</Button>
                             </div>
-                            {!biggerMetric && (
+                            {!biggerMetric && Object.keys(winnerOverrides).length === 0 && (
                                 <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
-                                    ⚠️ Select a <strong>Bigger</strong> metric first to determine which levels belong to A vs B.
+                                    ⚠️ Select a <strong>Bigger</strong> metric or manually set <strong>Win</strong> values to populate the lists.
                                 </div>
                             )}
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-4 gap-3">
                                 {/* A Wins */}
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
@@ -1102,6 +1150,16 @@ export default function ABCheckPage() {
                                         </Button>
                                     </div>
                                     <textarea readOnly value={exportData.bList} className="w-full h-[300px] rounded-md border bg-muted/30 p-2 font-mono text-xs resize-none" />
+                                </div>
+                                {/* N (None) */}
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="font-semibold text-sm text-gray-600">None ({exportData.nCount})</h4>
+                                        <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => { navigator.clipboard.writeText(exportData.nList); }}>
+                                            Copy
+                                        </Button>
+                                    </div>
+                                    <textarea readOnly value={exportData.nList} className="w-full h-[300px] rounded-md border bg-muted/30 p-2 font-mono text-xs resize-none" />
                                 </div>
                                 {/* Changed Levels */}
                                 <div className="space-y-2">
