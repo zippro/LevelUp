@@ -1058,7 +1058,7 @@ export default function ABCheckPage() {
                                                             </Select>
                                                             {action.type === 'M' && (
                                                                 <Select value={action.moveValue !== undefined ? String(action.moveValue) : ''} onValueChange={v => handleABMoveChange(level, parseInt(v), ai)}>
-                                                                    <SelectTrigger className="w-16 h-7 text-xs"><SelectValue placeholder="0" /></SelectTrigger>
+                                                                    <SelectTrigger className="w-20 h-7 text-xs"><SelectValue placeholder="0" /></SelectTrigger>
                                                                     <SelectContent>
                                                                         <SelectItem value="-3">-3</SelectItem><SelectItem value="-2">-2</SelectItem><SelectItem value="-1">-1</SelectItem>
                                                                         <SelectItem value="1">+1</SelectItem><SelectItem value="2">+2</SelectItem><SelectItem value="3">+3</SelectItem>
@@ -1217,7 +1217,7 @@ export default function ABCheckPage() {
                                                             </Select>
                                                             {action.type === 'M' && (
                                                                 <Select value={action.moveValue !== undefined ? String(action.moveValue) : ''} onValueChange={v => handleABMoveChange(level, parseInt(v), ai)}>
-                                                                    <SelectTrigger className="w-16 h-7 text-xs"><SelectValue placeholder="0" /></SelectTrigger>
+                                                                    <SelectTrigger className="w-20 h-7 text-xs"><SelectValue placeholder="0" /></SelectTrigger>
                                                                     <SelectContent>
                                                                         <SelectItem value="-3">-3</SelectItem><SelectItem value="-2">-2</SelectItem><SelectItem value="-1">-1</SelectItem>
                                                                         <SelectItem value="1">+1</SelectItem><SelectItem value="2">+2</SelectItem><SelectItem value="3">+3</SelectItem>
