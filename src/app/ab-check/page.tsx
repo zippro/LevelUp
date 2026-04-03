@@ -603,50 +603,57 @@ export default function ABCheckPage() {
 
     // Build export data grouped by winner and action type
     const getExportData = () => {
-        const actionTypes = ['M', 'R', 'BR', 'TR', 'S', 'SS'] as const;
         const actionLabels: Record<string, string> = { M: 'Move Change', R: 'Revise', BR: 'Big Revise', TR: 'Time Revise', S: 'Select', SS: 'Super Select' };
+        const moveValues = [-3, -2, -1, 1, 2, 3];
+        // Export keys: M-3, M-2, M-1, M+1, M+2, M+3, R, BR, TR, S, SS
+        const allExportKeys = [...moveValues.map(v => `M${v > 0 ? '+' : ''}${v}`), 'R', 'BR', 'TR', 'S', 'SS'];
+        const exportLabels: Record<string, string> = {
+            ...Object.fromEntries(moveValues.map(v => [`M${v > 0 ? '+' : ''}${v}`, `Move ${v > 0 ? '+' : ''}${v}`])),
+            R: 'Revise', BR: 'Big Revise', TR: 'Time Revise', S: 'Select', SS: 'Super Select'
+        };
         type WinGroup = { noAction: number[]; byAction: Record<string, number[]> };
         const aWins: WinGroup = { noAction: [], byAction: {} };
         const bWins: WinGroup = { noAction: [], byAction: {} };
         const nLevels: number[] = [];
-        actionTypes.forEach(t => { aWins.byAction[t] = []; bWins.byAction[t] = []; });
+        allExportKeys.forEach(k => { aWins.byAction[k] = []; bWins.byAction[k] = []; });
 
         tableData.forEach(({ level }) => {
             const winner = getEffectiveWinner(level);
             const levelActs = (abActions[level] || []).filter(a => a.type);
             if (winner === 'A') {
                 if (levelActs.length === 0) aWins.noAction.push(level);
-                else levelActs.forEach(a => { if (a.type) aWins.byAction[a.type]?.push(level); });
+                else levelActs.forEach(a => {
+                    if (a.type === 'M') {
+                        const mv = a.moveValue || 0;
+                        const key = `M${mv > 0 ? '+' : ''}${mv}`;
+                        if (aWins.byAction[key]) aWins.byAction[key].push(level);
+                    } else if (a.type) {
+                        aWins.byAction[a.type]?.push(level);
+                    }
+                });
             } else if (winner === 'B') {
                 if (levelActs.length === 0) bWins.noAction.push(level);
-                else levelActs.forEach(a => { if (a.type) bWins.byAction[a.type]?.push(level); });
+                else levelActs.forEach(a => {
+                    if (a.type === 'M') {
+                        const mv = a.moveValue || 0;
+                        const key = `M${mv > 0 ? '+' : ''}${mv}`;
+                        if (bWins.byAction[key]) bWins.byAction[key].push(level);
+                    } else if (a.type) {
+                        bWins.byAction[a.type]?.push(level);
+                    }
+                });
             } else if (winner === 'N') {
                 nLevels.push(level);
             }
         });
 
-        // Build text for each group
-        const buildGroupText = (group: WinGroup) => {
-            let text = '';
-            for (const t of actionTypes) {
-                const levels = group.byAction[t];
-                if (levels.length > 0) {
-                    text += `${actionLabels[t]}:\n${levels.sort((a,b)=>a-b).join('\n')}\n\n`;
-                }
-            }
-            if (group.noAction.length > 0) {
-                text += `No Action:\n${group.noAction.sort((a,b)=>a-b).join('\n')}\n`;
-            }
-            return text.trim();
-        };
-
         // One-line summary
         const buildOneLine = (group: WinGroup, label: string) => {
             const parts: string[] = [];
-            for (const t of actionTypes) {
-                const levels = group.byAction[t];
+            for (const k of allExportKeys) {
+                const levels = group.byAction[k];
                 if (levels.length > 0) {
-                    parts.push(`${actionLabels[t]}: ${levels.sort((a,b)=>a-b).join(' ')}`);
+                    parts.push(`${exportLabels[k]}: ${levels.sort((a,b)=>a-b).join(' ')}`);
                 }
             }
             if (group.noAction.length > 0) {
@@ -664,14 +671,13 @@ export default function ABCheckPage() {
         const oneLine = [oneLineA, oneLineB, oneLineN].filter(Boolean).join('\n');
 
         return {
-            aText: buildGroupText(aWins),
-            bText: buildGroupText(bWins),
             nList: nLevels.sort((a, b) => a - b).join('\n'),
             aCount: allACount,
             bCount: allBCount,
             nCount: nLevels.length,
             oneLine,
-            actionLabels,
+            exportLabels,
+            allExportKeys,
             aWins,
             bWins
         };
@@ -1030,7 +1036,7 @@ export default function ABCheckPage() {
                                                             </Select>
                                                             {action.type === 'M' && (
                                                                 <Select value={action.moveValue !== undefined ? String(action.moveValue) : ''} onValueChange={v => handleABMoveChange(level, parseInt(v), ai)}>
-                                                                    <SelectTrigger className="w-12 h-7 text-xs"><SelectValue placeholder="0" /></SelectTrigger>
+                                                                    <SelectTrigger className="w-16 h-7 text-xs"><SelectValue placeholder="0" /></SelectTrigger>
                                                                     <SelectContent>
                                                                         <SelectItem value="-3">-3</SelectItem><SelectItem value="-2">-2</SelectItem><SelectItem value="-1">-1</SelectItem>
                                                                         <SelectItem value="1">+1</SelectItem><SelectItem value="2">+2</SelectItem><SelectItem value="3">+3</SelectItem>
@@ -1265,17 +1271,16 @@ export default function ABCheckPage() {
             {showExportDialog && (() => {
                 const exportData = getExportData();
                 const biggerLabel = biggerMetric === 'LevelScore' ? 'Level Score' : (AB_METRICS.find(m => m.id === biggerMetric)?.label || '');
-                const actionTypes = ['M', 'R', 'BR', 'TR', 'S', 'SS'] as const;
                 const renderGroupBoxes = (group: typeof exportData.aWins, label: string, color: string) => {
                     const boxes: React.ReactElement[] = [];
-                    for (const t of actionTypes) {
-                        const levels = group.byAction[t] || [];
+                    for (const k of exportData.allExportKeys) {
+                        const levels = group.byAction[k] || [];
                         if (levels.length > 0) {
                             const text = levels.sort((a,b) => a-b).join('\n');
                             boxes.push(
-                                <div key={`${label}_${t}`} className="space-y-1">
+                                <div key={`${label}_${k}`} className="space-y-1">
                                     <div className="flex items-center justify-between">
-                                        <h4 className={`font-semibold text-xs ${color}`}>{label} - {exportData.actionLabels[t]} ({levels.length})</h4>
+                                        <h4 className={`font-semibold text-xs ${color}`}>{label} - {exportData.exportLabels[k]} ({levels.length})</h4>
                                         <Button variant="outline" size="sm" className="h-6 text-[10px]" onClick={() => navigator.clipboard.writeText(text)}>Copy</Button>
                                     </div>
                                     <textarea readOnly value={text} className="w-full h-[180px] rounded-md border bg-muted/30 p-2 font-mono text-xs resize-none" />
