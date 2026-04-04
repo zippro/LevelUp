@@ -193,6 +193,9 @@ export default function ServerPage() {
   // Decode state
   const [decoding, setDecoding] = useState(false);
 
+  // Success toast
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounterRef = useRef(0);
 
@@ -773,8 +776,9 @@ export default function ServerPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      // Brief success indicator
-      setError(null);
+      const fileName = filePath.split("/").pop() || "File";
+      setSuccessMessage(`"${fileName}" copied to ${siblingFolder}`);
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -786,6 +790,7 @@ export default function ServerPage() {
   const copySelectedToSibling = async () => {
     try {
       setLoading(true);
+      const count = selectedItems.size;
       for (const name of selectedItems) {
         const fullPath =
           currentPath === "/" ? `/${name}` : `${currentPath}/${name}`;
@@ -803,6 +808,8 @@ export default function ServerPage() {
         });
       }
       setSelectedItems(new Set());
+      setSuccessMessage(`${count} file(s) copied to ${siblingFolder}`);
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -1156,6 +1163,27 @@ export default function ServerPage() {
           >
             <X className="h-4 w-4" />
           </button>
+        </div>
+      )}
+
+      {/* Success Toast */}
+      {successMessage && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-4 fade-in duration-300">
+          <div className="bg-emerald-600 text-white rounded-xl shadow-2xl shadow-emerald-500/30 px-5 py-3.5 flex items-center gap-3 min-w-[280px]">
+            <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+              <Check className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold">Copied!</p>
+              <p className="text-xs text-emerald-100 mt-0.5">{successMessage}</p>
+            </div>
+            <button
+              onClick={() => setSuccessMessage(null)}
+              className="text-white/60 hover:text-white transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       )}
 
