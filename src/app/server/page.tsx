@@ -196,6 +196,11 @@ export default function ServerPage() {
   // Success toast
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // Asset upload prompt state
+  const [pendingAssetFiles, setPendingAssetFiles] = useState<File[]>([]);
+  const [pendingNonAssetFiles, setPendingNonAssetFiles] = useState<File[]>([]);
+  const [showAssetPrompt, setShowAssetPrompt] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounterRef = useRef(0);
 
@@ -505,14 +510,42 @@ export default function ServerPage() {
   const handleUpload = async (files: FileList) => {
     if (!files.length) return;
 
+    // Check if any .asset files are in the batch
+    const assetFiles: File[] = [];
+    const nonAssetFiles: File[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      if (files[i].name.endsWith(".asset")) {
+        assetFiles.push(files[i]);
+      } else {
+        nonAssetFiles.push(files[i]);
+      }
+    }
+
+    if (assetFiles.length > 0) {
+      // Store pending files and show prompt
+      setPendingAssetFiles(assetFiles);
+      setPendingNonAssetFiles(nonAssetFiles);
+      setShowAssetPrompt(true);
+    } else {
+      // No .asset files, upload directly
+      await doUpload(files);
+    }
+  };
+
+  // Actually upload files (called after prompt decision)
+  const doUpload = async (files: FileList | File[]) => {
+    const fileArr = Array.from(files);
+    if (!fileArr.length) return;
+
     setUploading(true);
-    setUploadProgress(`Uploading ${files.length} file(s)...`);
+    setUploadProgress(`Uploading ${fileArr.length} file(s)...`);
 
     try {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+      for (let i = 0; i < fileArr.length; i++) {
+        const file = fileArr[i];
         setUploadProgress(
-          `Uploading ${file.name} (${i + 1}/${files.length})...`
+          `Uploading ${file.name} (${i + 1}/${fileArr.length})...`
         );
 
         const formData = new FormData();
@@ -535,6 +568,87 @@ export default function ServerPage() {
     } finally {
       setUploading(false);
       setUploadProgress(null);
+    }
+  };
+
+  // Handle asset prompt: Direct Upload
+  const handleAssetDirectUpload = async () => {
+    setShowAssetPrompt(false);
+    const allFiles = [...pendingNonAssetFiles, ...pendingAssetFiles];
+    setPendingAssetFiles([]);
+    setPendingNonAssetFiles([]);
+    await doUpload(allFiles);
+  };
+
+  // Handle asset prompt: Encode & Upload
+  const handleAssetEncodeUpload = async () => {
+    setShowAssetPrompt(false);
+
+    const key = localStorage.getItem("nar-decoder-key");
+    if (!key || key.length !== 32) {
+      setError("Decoder key not set. Go to Decoder page and set your 32-character encryption key first.");
+      setPendingAssetFiles([]);
+      setPendingNonAssetFiles([]);
+      return;
+    }
+
+    setUploading(true);
+    const allFiles = [...pendingNonAssetFiles];
+
+    try {
+      // Encode .asset files to .txt
+      const VERSION_HEADER = new TextEncoder().encode("NARv1");
+      const keyBytes = new TextEncoder().encode(key);
+      const cryptoKey = await crypto.subtle.importKey(
+        "raw", keyBytes, { name: "AES-CBC" }, false, ["encrypt"]
+      );
+
+      for (const assetFile of pendingAssetFiles) {
+        setUploadProgress(`Encoding ${assetFile.name}...`);
+
+        const plainText = await assetFile.text();
+        const iv = crypto.getRandomValues(new Uint8Array(16));
+        const plainBytes = new TextEncoder().encode(plainText);
+        const encrypted = await crypto.subtle.encrypt(
+          { name: "AES-CBC", iv },
+          cryptoKey,
+          plainBytes
+        );
+
+        // Build: VERSION_HEADER + IV + encrypted
+        const encBytes = new Uint8Array(encrypted);
+        const result = new Uint8Array(VERSION_HEADER.length + iv.length + encBytes.length);
+        result.set(VERSION_HEADER, 0);
+        result.set(iv, VERSION_HEADER.length);
+        result.set(encBytes, VERSION_HEADER.length + iv.length);
+
+        // Base64 encode
+        let binary = "";
+        for (let i = 0; i < result.length; i++) binary += String.fromCharCode(result[i]);
+        const base64 = btoa(binary);
+
+        // Create .txt file from encoded content
+        const baseName = assetFile.name.replace(/\.asset$/i, "");
+        const num = baseName.match(/\d+/)?.[0];
+        const txtName = num ? `${num}.txt` : `${baseName}.txt`;
+
+        const blob = new Blob([base64], { type: "text/plain" });
+        const txtFile = new globalThis.File([blob], txtName, { type: "text/plain" });
+        allFiles.push(txtFile);
+      }
+
+      // Upload all (non-asset + encoded)
+      await doUpload(allFiles);
+
+      setSuccessMessage(`${pendingAssetFiles.length} file(s) encoded & uploaded as .txt`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err: any) {
+      setError(`Encode failed: ${err.message}`);
+    } finally {
+      setUploading(false);
+      setUploadProgress(null);
+      setPendingAssetFiles([]);
+      setPendingNonAssetFiles([]);
     }
   };
 
@@ -1614,6 +1728,77 @@ export default function ServerPage() {
           </div>
         </div>
       )}
+      {/* Asset Upload Prompt */}
+      {showAssetPrompt && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-in fade-in duration-150">
+          <div className="bg-white rounded-xl shadow-2xl border p-6 max-w-md w-full mx-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+                <Upload className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  .asset File Detected
+                </h3>
+                <p className="text-xs text-gray-500">
+                  {pendingAssetFiles.length} asset file(s): {pendingAssetFiles.map(f => f.name).join(", ")}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-sm text-gray-600 mb-5">
+              How would you like to upload the .asset file(s)?
+            </p>
+
+            <div className="space-y-3">
+              <button
+                onClick={handleAssetEncodeUpload}
+                className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-violet-200 hover:border-violet-400 hover:bg-violet-50/50 transition-all group text-left"
+              >
+                <div className="h-10 w-10 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0 group-hover:bg-violet-200 transition-colors">
+                  <Unlock className="h-5 w-5 text-violet-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Encode & Upload</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Encrypt .asset → .txt using your decoder key, then upload
+                  </p>
+                </div>
+              </button>
+
+              <button
+                onClick={handleAssetDirectUpload}
+                className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 hover:border-gray-400 hover:bg-gray-50/50 transition-all group text-left"
+              >
+                <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-gray-200 transition-colors">
+                  <Upload className="h-5 w-5 text-gray-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Direct Upload</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Upload the .asset file as-is without encoding
+                  </p>
+                </div>
+              </button>
+            </div>
+
+            <div className="mt-4 flex justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowAssetPrompt(false);
+                  setPendingAssetFiles([]);
+                  setPendingNonAssetFiles([]);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Folder Picker Modal (Move To / Copy To) */}
       {showFolderPicker && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-in fade-in duration-150">
