@@ -731,6 +731,85 @@ export default function ServerPage() {
     0
   );
 
+  // Detect if we're in an A or B folder for quick copy
+  const lastFolder = pathParts[pathParts.length - 1];
+  const isInAFolder = lastFolder === "A";
+  const isInBFolder = lastFolder === "B";
+  const siblingFolder = isInAFolder ? "B" : isInBFolder ? "A" : null;
+
+  // Get the sibling path (swap A↔B)
+  const getSiblingPath = (filePath: string): string | null => {
+    // Find /A/ or /B/ in the path and swap
+    const parts = filePath.split("/");
+    for (let i = parts.length - 1; i >= 0; i--) {
+      if (parts[i] === "A" || parts[i] === "B") {
+        parts[i] = parts[i] === "A" ? "B" : "A";
+        return parts.join("/");
+      }
+    }
+    return null;
+  };
+
+  // Copy file to sibling A/B folder
+  const copyToSibling = async (filePath: string) => {
+    const destPath = getSiblingPath(filePath);
+    if (!destPath) {
+      setError("Cannot determine sibling folder");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await fetch("/api/server", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "copy",
+          path: filePath,
+          newPath: destPath,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      // Brief success indicator
+      setError(null);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Copy all selected files to sibling A/B folder
+  const copySelectedToSibling = async () => {
+    try {
+      setLoading(true);
+      for (const name of selectedItems) {
+        const fullPath =
+          currentPath === "/" ? `/${name}` : `${currentPath}/${name}`;
+        const destPath = getSiblingPath(fullPath);
+        if (!destPath) continue;
+
+        await fetch("/api/server", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "copy",
+            path: fullPath,
+            newPath: destPath,
+          }),
+        });
+      }
+      setSelectedItems(new Set());
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -1037,6 +1116,24 @@ export default function ServerPage() {
           </>
         )}
 
+        {/* Copy to A/B button (visible when in A or B folder with selection) */}
+        {siblingFolder && selectedItems.size > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={copySelectedToSibling}
+            disabled={loading}
+            className="text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300"
+          >
+            {loading ? (
+              <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+            ) : (
+              <FolderSymlink className="h-4 w-4 mr-1.5" />
+            )}
+            Copy to {siblingFolder} ({selectedItems.size})
+          </Button>
+        )}
+
         {uploadProgress && (
           <div className="flex items-center gap-2 text-sm text-blue-600 ml-auto">
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -1282,6 +1379,15 @@ export default function ServerPage() {
                                 title="Decode & Download"
                               >
                                 <Unlock className="h-4 w-4" />
+                              </button>
+                            )}
+                            {item.type !== "directory" && siblingFolder && (
+                              <button
+                                onClick={() => copyToSibling(fullPath)}
+                                className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-emerald-600 transition-colors"
+                                title={`Copy to ${siblingFolder}`}
+                              >
+                                <span className="text-[10px] font-bold">→{siblingFolder}</span>
                               </button>
                             )}
                           </div>
