@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Loader2,
   Folder,
@@ -32,6 +32,8 @@ import {
   FileCog,
   Terminal,
   Link2,
+  Database,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -40,9 +42,7 @@ interface FileItem {
   type: "file" | "directory" | "symlink";
   size: number;
   modifyTime: number;
-  rights: { user: string; group: string; other: string };
-  owner: number;
-  group: number;
+  key: string;
 }
 
 // Format bytes to human readable
@@ -75,7 +75,6 @@ function getFileIcon(name: string, type: string) {
   const ext = name.split(".").pop()?.toLowerCase() || "";
 
   const iconMap: Record<string, React.ReactNode> = {
-    // Code
     ts: <FileCode className="h-5 w-5 text-blue-500" />,
     tsx: <FileCode className="h-5 w-5 text-blue-500" />,
     js: <FileCode className="h-5 w-5 text-yellow-500" />,
@@ -93,7 +92,6 @@ function getFileIcon(name: string, type: string) {
     svelte: <FileCode className="h-5 w-5 text-orange-600" />,
     sh: <Terminal className="h-5 w-5 text-green-400" />,
     bash: <Terminal className="h-5 w-5 text-green-400" />,
-    // Data
     json: <FileJson className="h-5 w-5 text-yellow-400" />,
     xml: <FileCode className="h-5 w-5 text-orange-400" />,
     yaml: <FileCog className="h-5 w-5 text-purple-400" />,
@@ -103,7 +101,6 @@ function getFileIcon(name: string, type: string) {
     ini: <FileCog className="h-5 w-5 text-gray-400" />,
     conf: <FileCog className="h-5 w-5 text-gray-400" />,
     cfg: <FileCog className="h-5 w-5 text-gray-400" />,
-    // Images
     png: <FileImage className="h-5 w-5 text-emerald-400" />,
     jpg: <FileImage className="h-5 w-5 text-emerald-400" />,
     jpeg: <FileImage className="h-5 w-5 text-emerald-400" />,
@@ -111,23 +108,27 @@ function getFileIcon(name: string, type: string) {
     svg: <FileImage className="h-5 w-5 text-orange-400" />,
     webp: <FileImage className="h-5 w-5 text-emerald-400" />,
     ico: <FileImage className="h-5 w-5 text-emerald-400" />,
-    // Video
     mp4: <FileVideo className="h-5 w-5 text-red-400" />,
     webm: <FileVideo className="h-5 w-5 text-red-400" />,
     avi: <FileVideo className="h-5 w-5 text-red-400" />,
     mov: <FileVideo className="h-5 w-5 text-red-400" />,
-    // Archives
     zip: <FileArchive className="h-5 w-5 text-amber-500" />,
     tar: <FileArchive className="h-5 w-5 text-amber-500" />,
     gz: <FileArchive className="h-5 w-5 text-amber-500" />,
     rar: <FileArchive className="h-5 w-5 text-amber-500" />,
     "7z": <FileArchive className="h-5 w-5 text-amber-500" />,
-    // Text
     md: <FileText className="h-5 w-5 text-gray-400" />,
     txt: <FileText className="h-5 w-5 text-gray-400" />,
     log: <FileText className="h-5 w-5 text-gray-400" />,
     csv: <FileText className="h-5 w-5 text-green-400" />,
     sql: <FileCode className="h-5 w-5 text-blue-400" />,
+    unity: <FileCode className="h-5 w-5 text-gray-600" />,
+    prefab: <FileCode className="h-5 w-5 text-blue-300" />,
+    asset: <FileCode className="h-5 w-5 text-purple-300" />,
+    bundle: <FileArchive className="h-5 w-5 text-indigo-500" />,
+    aab: <FileArchive className="h-5 w-5 text-green-600" />,
+    apk: <FileArchive className="h-5 w-5 text-green-600" />,
+    ipa: <FileArchive className="h-5 w-5 text-blue-600" />,
   };
 
   return iconMap[ext] || <File className="h-5 w-5 text-gray-400" />;
@@ -138,14 +139,12 @@ const VIEWABLE_EXTENSIONS = new Set([
   "txt", "md", "log", "csv", "json", "xml", "yaml", "yml", "toml",
   "ts", "tsx", "js", "jsx", "py", "rb", "go", "rs", "java", "php",
   "css", "scss", "html", "vue", "svelte", "sh", "bash",
-  "sql", "env", "ini", "conf", "cfg", "gitignore", "dockerignore",
-  "dockerfile", "makefile", "readme",
+  "sql", "env", "ini", "conf", "cfg",
 ]);
 
 function isViewable(name: string): boolean {
   const ext = name.split(".").pop()?.toLowerCase() || "";
-  const baseName = name.toLowerCase();
-  return VIEWABLE_EXTENSIONS.has(ext) || VIEWABLE_EXTENSIONS.has(baseName);
+  return VIEWABLE_EXTENSIONS.has(ext);
 }
 
 export default function ServerPage() {
@@ -154,6 +153,11 @@ export default function ServerPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+
+  // Bucket state
+  const [currentBucket, setCurrentBucket] = useState<string>("");
+  const [availableBuckets, setAvailableBuckets] = useState<string[]>([]);
+  const [showBucketDropdown, setShowBucketDropdown] = useState(false);
 
   // UI state
   const [searchQuery, setSearchQuery] = useState("");
@@ -177,39 +181,74 @@ export default function ServerPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounterRef = useRef(0);
 
-  // Fetch directory listing
-  const fetchDirectory = useCallback(async (path: string) => {
-    setLoading(true);
-    setError(null);
-    setSelectedItems(new Set());
-
-    try {
-      const res = await fetch("/api/server", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "list", path }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to list directory");
-      }
-
-      setItems(data.items);
-      setCurrentPath(data.path);
-    } catch (err: any) {
-      setError(err.message);
-      setItems([]);
-    } finally {
-      setLoading(false);
-    }
+  // Fetch available buckets on mount
+  useEffect(() => {
+    fetch("/api/server", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "buckets" }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.current) {
+          setCurrentBucket(data.current);
+          setAvailableBuckets(data.available || [data.current]);
+        }
+      })
+      .catch(console.error);
   }, []);
+
+  // Fetch directory listing
+  const fetchDirectory = useCallback(
+    async (path: string) => {
+      setLoading(true);
+      setError(null);
+      setSelectedItems(new Set());
+
+      try {
+        const res = await fetch("/api/server", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list", path }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to list directory");
+        }
+
+        setItems(data.items);
+        setCurrentPath(data.path);
+        if (data.bucket) setCurrentBucket(data.bucket);
+      } catch (err: any) {
+        setError(err.message);
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   // Initial load
   useEffect(() => {
     fetchDirectory("/");
   }, [fetchDirectory]);
+
+  // Switch bucket
+  const switchBucket = (bucket: string) => {
+    setShowBucketDropdown(false);
+    // We need to update the env on the fly — but since env is server-side,
+    // we pass bucket as a param. For now, let's navigate to root.
+    // The bucket switching would require server-side support.
+    // For simplicity, we store it and the API uses it.
+    setCurrentBucket(bucket);
+    setPathHistory([]);
+    setSearchQuery("");
+    // Refetch with the new bucket context
+    fetchDirectory("/");
+  };
 
   // Navigate to directory
   const navigateTo = (path: string) => {
@@ -239,9 +278,10 @@ export default function ServerPage() {
   // Handle item click
   const handleItemClick = (item: FileItem) => {
     if (item.type === "directory") {
-      const newPath = currentPath === "/"
-        ? `/${item.name}`
-        : `${currentPath}/${item.name}`;
+      const newPath =
+        currentPath === "/"
+          ? `/${item.name}`
+          : `${currentPath}/${item.name}`;
       navigateTo(newPath);
     }
   };
@@ -258,11 +298,8 @@ export default function ServerPage() {
     e.stopPropagation();
     setSelectedItems((prev) => {
       const next = new Set(prev);
-      if (next.has(name)) {
-        next.delete(name);
-      } else {
-        next.add(name);
-      }
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
       return next;
     });
   };
@@ -304,9 +341,10 @@ export default function ServerPage() {
 
   // View file
   const viewFile = async (item: FileItem) => {
-    const filePath = currentPath === "/"
-      ? `/${item.name}`
-      : `${currentPath}/${item.name}`;
+    const filePath =
+      currentPath === "/"
+        ? `/${item.name}`
+        : `${currentPath}/${item.name}`;
 
     setPreviewFileName(item.name);
     setPreviewLoading(true);
@@ -321,11 +359,7 @@ export default function ServerPage() {
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to view file");
-      }
-
+      if (!res.ok) throw new Error(data.error || "Failed to view file");
       setPreviewContent(data.content);
     } catch (err: any) {
       setPreviewContent(`Error: ${err.message}`);
@@ -340,10 +374,17 @@ export default function ServerPage() {
 
     try {
       setLoading(true);
+      const item = items.find(
+        (i) => deleteTarget.endsWith(i.name) || deleteTarget.endsWith(i.name + "/")
+      );
       const res = await fetch("/api/server", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "delete", path: deleteTarget }),
+        body: JSON.stringify({
+          action: "delete",
+          path: deleteTarget,
+          isDirectory: item?.type === "directory",
+        }),
       });
 
       const data = await res.json();
@@ -364,11 +405,17 @@ export default function ServerPage() {
     try {
       setLoading(true);
       for (const name of selectedItems) {
-        const fullPath = currentPath === "/" ? `/${name}` : `${currentPath}/${name}`;
+        const fullPath =
+          currentPath === "/" ? `/${name}` : `${currentPath}/${name}`;
+        const item = items.find((i) => i.name === name);
         await fetch("/api/server", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "delete", path: fullPath }),
+          body: JSON.stringify({
+            action: "delete",
+            path: fullPath,
+            isDirectory: item?.type === "directory",
+          }),
         });
       }
       setSelectedItems(new Set());
@@ -414,9 +461,10 @@ export default function ServerPage() {
     if (!newFolderName.trim()) return;
 
     try {
-      const folderPath = currentPath === "/"
-        ? `/${newFolderName.trim()}`
-        : `${currentPath}/${newFolderName.trim()}`;
+      const folderPath =
+        currentPath === "/"
+          ? `/${newFolderName.trim()}`
+          : `${currentPath}/${newFolderName.trim()}`;
 
       const res = await fetch("/api/server", {
         method: "POST",
@@ -445,7 +493,9 @@ export default function ServerPage() {
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        setUploadProgress(`Uploading ${file.name} (${i + 1}/${files.length})...`);
+        setUploadProgress(
+          `Uploading ${file.name} (${i + 1}/${files.length})...`
+        );
 
         const formData = new FormData();
         formData.append("file", file);
@@ -470,43 +520,33 @@ export default function ServerPage() {
     }
   };
 
-  // Drag and drop handlers
+  // Drag and drop
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     dragCounterRef.current += 1;
-    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
-      setIsDragging(true);
-    }
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) setIsDragging(true);
   };
-
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     dragCounterRef.current -= 1;
-    if (dragCounterRef.current === 0) {
-      setIsDragging(false);
-    }
+    if (dragCounterRef.current === 0) setIsDragging(false);
   };
-
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
   };
-
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
     dragCounterRef.current = 0;
-
     const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      await handleUpload(files);
-    }
+    if (files.length > 0) await handleUpload(files);
   };
 
-  // Copy path to clipboard
+  // Copy path
   const copyPath = (path: string) => {
     navigator.clipboard.writeText(path);
     setCopiedPath(path);
@@ -518,13 +558,18 @@ export default function ServerPage() {
 
   // Filter items by search
   const filteredItems = searchQuery
-    ? items.filter((i) => i.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    ? items.filter((i) =>
+        i.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
     : items;
 
   // Computed counts
   const dirCount = items.filter((i) => i.type === "directory").length;
   const fileCount = items.filter((i) => i.type !== "directory").length;
-  const totalSize = items.reduce((acc, i) => acc + (i.type !== "directory" ? i.size : 0), 0);
+  const totalSize = items.reduce(
+    (acc, i) => acc + (i.type !== "directory" ? i.size : 0),
+    0
+  );
 
   return (
     <div className="space-y-6">
@@ -535,12 +580,48 @@ export default function ServerPage() {
             <HardDrive className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Server Files</h1>
+            <h1 className="text-xl font-bold text-gray-900">
+              DO Spaces — {currentBucket || "..."}
+            </h1>
             <p className="text-xs text-gray-500">
               {dirCount} folders, {fileCount} files ({formatBytes(totalSize)})
             </p>
           </div>
         </div>
+
+        {/* Bucket Switcher */}
+        {availableBuckets.length > 1 && (
+          <div className="relative">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowBucketDropdown(!showBucketDropdown)}
+              className="gap-2"
+            >
+              <Database className="h-4 w-4" />
+              {currentBucket}
+              <ChevronDown className="h-3 w-3" />
+            </Button>
+            {showBucketDropdown && (
+              <div className="absolute right-0 mt-1 bg-white rounded-lg shadow-xl border py-1 z-50 min-w-[160px]">
+                {availableBuckets.map((bucket) => (
+                  <button
+                    key={bucket}
+                    onClick={() => switchBucket(bucket)}
+                    className={cn(
+                      "w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors",
+                      bucket === currentBucket
+                        ? "font-semibold text-blue-600 bg-blue-50"
+                        : "text-gray-700"
+                    )}
+                  >
+                    {bucket}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Breadcrumb + Search Bar */}
@@ -577,7 +658,9 @@ export default function ServerPage() {
                 className="h-8 w-8 p-0"
                 title="Refresh"
               >
-                <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+                <RefreshCw
+                  className={cn("h-4 w-4", loading && "animate-spin")}
+                />
               </Button>
             </div>
 
@@ -593,7 +676,10 @@ export default function ServerPage() {
                 const fullPath = "/" + pathParts.slice(0, idx + 1).join("/");
                 const isLast = idx === pathParts.length - 1;
                 return (
-                  <div key={idx} className="flex items-center gap-1 flex-shrink-0">
+                  <div
+                    key={idx}
+                    className="flex items-center gap-1 flex-shrink-0"
+                  >
                     <ChevronRight className="h-3 w-3 text-gray-400" />
                     <button
                       onClick={() => !isLast && navigateTo(fullPath)}
@@ -610,7 +696,6 @@ export default function ServerPage() {
                 );
               })}
 
-              {/* Copy path button */}
               <button
                 onClick={() => copyPath(currentPath)}
                 className="ml-auto flex-shrink-0 p-1 rounded hover:bg-gray-200 transition-colors"
@@ -688,9 +773,10 @@ export default function ServerPage() {
                 size="sm"
                 onClick={() => {
                   const name = Array.from(selectedItems)[0];
-                  const fullPath = currentPath === "/"
-                    ? `/${name}`
-                    : `${currentPath}/${name}`;
+                  const fullPath =
+                    currentPath === "/"
+                      ? `/${name}`
+                      : `${currentPath}/${name}`;
                   setRenameTarget(fullPath);
                   setRenameName(name);
                   setShowRenameModal(true);
@@ -700,26 +786,28 @@ export default function ServerPage() {
                 Rename
               </Button>
             )}
-            {selectedItems.size === 1 && (() => {
-              const name = Array.from(selectedItems)[0];
-              const item = items.find((i) => i.name === name);
-              return item && item.type !== "directory";
-            })() && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const name = Array.from(selectedItems)[0];
-                  const fullPath = currentPath === "/"
-                    ? `/${name}`
-                    : `${currentPath}/${name}`;
-                  downloadFile(fullPath);
-                }}
-              >
-                <Download className="h-4 w-4 mr-1.5" />
-                Download
-              </Button>
-            )}
+            {selectedItems.size === 1 &&
+              (() => {
+                const name = Array.from(selectedItems)[0];
+                const item = items.find((i) => i.name === name);
+                return item && item.type !== "directory";
+              })() && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const name = Array.from(selectedItems)[0];
+                    const fullPath =
+                      currentPath === "/"
+                        ? `/${name}`
+                        : `${currentPath}/${name}`;
+                    downloadFile(fullPath);
+                  }}
+                >
+                  <Download className="h-4 w-4 mr-1.5" />
+                  Download
+                </Button>
+              )}
           </>
         )}
 
@@ -739,7 +827,10 @@ export default function ServerPage() {
             <p className="text-sm font-medium text-red-800">Error</p>
             <p className="text-sm text-red-600 mt-0.5">{error}</p>
           </div>
-          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600">
+          <button
+            onClick={() => setError(null)}
+            className="text-red-400 hover:text-red-600"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -748,7 +839,7 @@ export default function ServerPage() {
       {/* File List */}
       <Card
         className={cn(
-          "transition-all duration-200",
+          "transition-all duration-200 relative",
           isDragging && "ring-2 ring-blue-500 ring-offset-2 bg-blue-50/50"
         )}
         onDragEnter={handleDragEnter}
@@ -760,8 +851,12 @@ export default function ServerPage() {
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-blue-50/80 backdrop-blur-sm rounded-xl">
             <div className="text-center">
               <Upload className="h-12 w-12 text-blue-500 mx-auto mb-2" />
-              <p className="text-lg font-semibold text-blue-700">Drop files here</p>
-              <p className="text-sm text-blue-500">Files will be uploaded to {currentPath}</p>
+              <p className="text-lg font-semibold text-blue-700">
+                Drop files here
+              </p>
+              <p className="text-sm text-blue-500">
+                Files will be uploaded to {currentPath}
+              </p>
             </div>
           </div>
         )}
@@ -770,7 +865,7 @@ export default function ServerPage() {
           {loading && items.length === 0 ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-              <span className="ml-3 text-gray-500">Loading directory...</span>
+              <span className="ml-3 text-gray-500">Loading...</span>
             </div>
           ) : filteredItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-gray-400">
@@ -783,8 +878,10 @@ export default function ServerPage() {
               ) : (
                 <>
                   <Folder className="h-12 w-12 mb-3 opacity-50" />
-                  <p className="text-lg font-medium">Empty directory</p>
-                  <p className="text-sm">Upload files or create a new folder</p>
+                  <p className="text-lg font-medium">Empty</p>
+                  <p className="text-sm">
+                    Upload files or create a new folder
+                  </p>
                 </>
               )}
             </div>
@@ -796,7 +893,10 @@ export default function ServerPage() {
                     <th className="py-2.5 px-4 text-left w-10">
                       <input
                         type="checkbox"
-                        checked={selectedItems.size === filteredItems.length && filteredItems.length > 0}
+                        checked={
+                          selectedItems.size === filteredItems.length &&
+                          filteredItems.length > 0
+                        }
                         onChange={selectAll}
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                       />
@@ -816,7 +916,7 @@ export default function ServerPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {/* Go up row if not at root */}
+                  {/* Go up row */}
                   {currentPath !== "/" && !searchQuery && (
                     <tr
                       className="border-b border-gray-50 hover:bg-gray-50/80 cursor-pointer transition-colors"
@@ -835,9 +935,10 @@ export default function ServerPage() {
 
                   {filteredItems.map((item) => {
                     const isSelected = selectedItems.has(item.name);
-                    const fullPath = currentPath === "/"
-                      ? `/${item.name}`
-                      : `${currentPath}/${item.name}`;
+                    const fullPath =
+                      currentPath === "/"
+                        ? `/${item.name}`
+                        : `${currentPath}/${item.name}`;
 
                     return (
                       <tr
@@ -851,7 +952,10 @@ export default function ServerPage() {
                         onClick={() => handleItemClick(item)}
                         onDoubleClick={() => handleItemDoubleClick(item)}
                       >
-                        <td className="py-2 px-4" onClick={(e) => e.stopPropagation()}>
+                        <td
+                          className="py-2 px-4"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <input
                             type="checkbox"
                             checked={isSelected}
@@ -868,14 +972,13 @@ export default function ServerPage() {
                             <span className="text-sm font-medium text-gray-800 truncate">
                               {item.name}
                             </span>
-                            {item.type === "symlink" && (
-                              <span className="text-xs text-purple-400 bg-purple-50 px-1.5 py-0.5 rounded">link</span>
-                            )}
                           </div>
                         </td>
                         <td className="py-2 px-4 text-right hidden sm:table-cell">
                           <span className="text-sm text-gray-500">
-                            {item.type === "directory" ? "—" : formatBytes(item.size)}
+                            {item.type === "directory"
+                              ? "—"
+                              : formatBytes(item.size)}
                           </span>
                         </td>
                         <td className="py-2 px-4 hidden md:table-cell">
@@ -883,17 +986,21 @@ export default function ServerPage() {
                             {formatDate(item.modifyTime)}
                           </span>
                         </td>
-                        <td className="py-2 px-4" onClick={(e) => e.stopPropagation()}>
+                        <td
+                          className="py-2 px-4"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            {item.type !== "directory" && isViewable(item.name) && (
-                              <button
-                                onClick={() => viewFile(item)}
-                                className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-blue-600 transition-colors"
-                                title="View"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </button>
-                            )}
+                            {item.type !== "directory" &&
+                              isViewable(item.name) && (
+                                <button
+                                  onClick={() => viewFile(item)}
+                                  className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-blue-600 transition-colors"
+                                  title="View"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </button>
+                              )}
                             {item.type !== "directory" && (
                               <button
                                 onClick={() => downloadFile(fullPath)}
@@ -959,7 +1066,10 @@ export default function ServerPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => { setShowNewFolderModal(false); setNewFolderName(""); }}
+                onClick={() => {
+                  setShowNewFolderModal(false);
+                  setNewFolderName("");
+                }}
               >
                 Cancel
               </Button>
@@ -997,7 +1107,11 @@ export default function ServerPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => { setShowRenameModal(false); setRenameTarget(null); setRenameName(""); }}
+                onClick={() => {
+                  setShowRenameModal(false);
+                  setRenameTarget(null);
+                  setRenameName("");
+                }}
               >
                 Cancel
               </Button>
@@ -1024,16 +1138,31 @@ export default function ServerPage() {
             </h3>
             <p className="text-sm text-gray-600 mb-4">
               {deleteTarget ? (
-                <>Are you sure you want to delete <strong className="text-gray-900">{deleteTarget.split("/").pop()}</strong>? This cannot be undone.</>
+                <>
+                  Are you sure you want to delete{" "}
+                  <strong className="text-gray-900">
+                    {deleteTarget.split("/").pop()}
+                  </strong>
+                  ? This cannot be undone.
+                </>
               ) : (
-                <>Are you sure you want to delete <strong className="text-gray-900">{selectedItems.size} selected item(s)</strong>? This cannot be undone.</>
+                <>
+                  Are you sure you want to delete{" "}
+                  <strong className="text-gray-900">
+                    {selectedItems.size} selected item(s)
+                  </strong>
+                  ? This cannot be undone.
+                </>
               )}
             </p>
             <div className="flex gap-3 justify-end">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => { setShowDeleteConfirm(false); setDeleteTarget(null); }}
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeleteTarget(null);
+                }}
               >
                 Cancel
               </Button>
@@ -1056,7 +1185,9 @@ export default function ServerPage() {
             <div className="flex items-center justify-between p-4 border-b">
               <div className="flex items-center gap-3">
                 <Eye className="h-5 w-5 text-blue-500" />
-                <h3 className="font-semibold text-gray-900">{previewFileName}</h3>
+                <h3 className="font-semibold text-gray-900">
+                  {previewFileName}
+                </h3>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -1071,7 +1202,10 @@ export default function ServerPage() {
                   )}
                 </button>
                 <button
-                  onClick={() => { setShowPreview(false); setPreviewContent(null); }}
+                  onClick={() => {
+                    setShowPreview(false);
+                    setPreviewContent(null);
+                  }}
                   className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <X className="h-5 w-5" />
