@@ -271,6 +271,89 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true });
       }
 
+      case "copy": {
+        if (!path || !newPath) {
+          return NextResponse.json(
+            { error: "Both path and newPath are required for copy" },
+            { status: 400 }
+          );
+        }
+
+        const srcKey = path.replace(/^\/+/, "");
+        let destKey = newPath.replace(/^\/+/, "");
+        // If dest is a directory, append the filename
+        if (destKey.endsWith("/")) {
+          destKey += srcKey.split("/").pop();
+        }
+
+        const cpCmd = new CopyObjectCommand({
+          Bucket,
+          CopySource: `${Bucket}/${srcKey}`,
+          Key: destKey,
+        });
+        await s3.send(cpCmd);
+
+        return NextResponse.json({ success: true });
+      }
+
+      case "move": {
+        if (!path || !newPath) {
+          return NextResponse.json(
+            { error: "Both path and newPath are required for move" },
+            { status: 400 }
+          );
+        }
+
+        const moveSrcKey = path.replace(/^\/+/, "");
+        let moveDestKey = newPath.replace(/^\/+/, "");
+        // If dest is a directory, append the filename
+        if (moveDestKey.endsWith("/")) {
+          moveDestKey += moveSrcKey.split("/").pop();
+        }
+
+        // Copy then delete
+        const moveCopyCmd = new CopyObjectCommand({
+          Bucket,
+          CopySource: `${Bucket}/${moveSrcKey}`,
+          Key: moveDestKey,
+        });
+        await s3.send(moveCopyCmd);
+
+        const moveDelCmd = new DeleteObjectCommand({ Bucket, Key: moveSrcKey });
+        await s3.send(moveDelCmd);
+
+        return NextResponse.json({ success: true });
+      }
+
+      case "list-dirs": {
+        // Recursively list all directory prefixes for folder picker
+        const dirs: string[] = ["/"];
+        const queue: string[] = [""];
+
+        while (queue.length > 0) {
+          const currentPrefix = queue.shift()!;
+          const listCmd = new ListObjectsV2Command({
+            Bucket,
+            Prefix: currentPrefix,
+            Delimiter: "/",
+            MaxKeys: 1000,
+          });
+          const listRes = await s3.send(listCmd);
+
+          if (listRes.CommonPrefixes) {
+            for (const cp of listRes.CommonPrefixes) {
+              if (cp.Prefix) {
+                dirs.push("/" + cp.Prefix.replace(/\/$/, ""));
+                queue.push(cp.Prefix);
+              }
+            }
+          }
+        }
+
+        dirs.sort();
+        return NextResponse.json({ dirs });
+      }
+
       case "buckets": {
         // Return which bucket(s) are configured
         return NextResponse.json({

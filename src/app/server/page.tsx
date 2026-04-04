@@ -34,6 +34,9 @@ import {
   Link2,
   Database,
   ChevronDown,
+  FolderInput,
+  FolderSymlink,
+  Unlock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -177,6 +180,18 @@ export default function ServerPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [copiedPath, setCopiedPath] = useState<string | null>(null);
   const [pathHistory, setPathHistory] = useState<string[]>([]);
+
+  // Move/Copy state
+  const [showFolderPicker, setShowFolderPicker] = useState(false);
+  const [folderPickerMode, setFolderPickerMode] = useState<"move" | "copy">("move");
+  const [folderPickerTarget, setFolderPickerTarget] = useState<string | null>(null);
+  const [allDirs, setAllDirs] = useState<string[]>([]);
+  const [dirsLoading, setDirsLoading] = useState(false);
+  const [dirSearchQuery, setDirSearchQuery] = useState("");
+  const [selectedDir, setSelectedDir] = useState<string | null>(null);
+
+  // Decode state
+  const [decoding, setDecoding] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounterRef = useRef(0);
@@ -553,6 +568,151 @@ export default function ServerPage() {
     setTimeout(() => setCopiedPath(null), 2000);
   };
 
+  // Load all directories for folder picker
+  const loadDirs = async () => {
+    setDirsLoading(true);
+    try {
+      const res = await fetch("/api/server", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "list-dirs" }),
+      });
+      const data = await res.json();
+      if (res.ok && data.dirs) {
+        setAllDirs(data.dirs);
+      }
+    } catch (err: any) {
+      console.error("Failed to load dirs", err);
+    } finally {
+      setDirsLoading(false);
+    }
+  };
+
+  // Open folder picker for move/copy
+  const openFolderPicker = (mode: "move" | "copy", filePath: string) => {
+    setFolderPickerMode(mode);
+    setFolderPickerTarget(filePath);
+    setSelectedDir(null);
+    setDirSearchQuery("");
+    setShowFolderPicker(true);
+    loadDirs();
+  };
+
+  // Execute move/copy
+  const handleMoveOrCopy = async () => {
+    if (!folderPickerTarget || selectedDir === null) return;
+
+    try {
+      setLoading(true);
+      let destPath = selectedDir;
+      if (!destPath.endsWith("/")) destPath += "/";
+
+      const res = await fetch("/api/server", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: folderPickerMode,
+          path: folderPickerTarget,
+          newPath: destPath,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      setShowFolderPicker(false);
+      setFolderPickerTarget(null);
+      fetchDirectory(currentPath);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Decode & Download — uses NarEncryptor decryption client-side
+  const decodeAndDownload = async (filePath: string) => {
+    const key = localStorage.getItem("nar-decoder-key");
+    if (!key || key.length !== 32) {
+      setError("Decoder key not set. Go to Decoder page and set your 32-character encryption key first.");
+      return;
+    }
+
+    setDecoding(true);
+    try {
+      // 1. Fetch the raw file content
+      const res = await fetch("/api/server", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "view", path: filePath }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to fetch file");
+
+      const encryptedText = data.content.trim();
+
+      // 2. Decrypt using NarEncryptor (same logic as decoder page)
+      const VERSION_HEADER = new TextEncoder().encode("NARv1");
+      const keyBytes = new TextEncoder().encode(key);
+      const cryptoKey = await crypto.subtle.importKey(
+        "raw", keyBytes, { name: "AES-CBC" }, false, ["decrypt"]
+      );
+
+      // Base64 decode
+      const binary = atob(encryptedText);
+      const encryptedBytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) encryptedBytes[i] = binary.charCodeAt(i);
+
+      let iv: Uint8Array;
+      let cipherData: Uint8Array;
+
+      // Check for version header
+      const hasHeader = encryptedBytes.length >= VERSION_HEADER.length + 16 &&
+        VERSION_HEADER.every((b, i) => encryptedBytes[i] === b);
+
+      if (hasHeader) {
+        const headerLen = VERSION_HEADER.length;
+        iv = encryptedBytes.slice(headerLen, headerLen + 16);
+        cipherData = encryptedBytes.slice(headerLen + 16);
+      } else {
+        iv = new Uint8Array(16);
+        cipherData = encryptedBytes;
+      }
+
+      const decrypted = await crypto.subtle.decrypt(
+        { name: "AES-CBC", iv: iv as unknown as ArrayBuffer },
+        cryptoKey,
+        cipherData as unknown as ArrayBuffer
+      );
+
+      // Skip BOM
+      let decryptedBytes = new Uint8Array(decrypted);
+      if (decryptedBytes.length >= 3 && decryptedBytes[0] === 0xEF && decryptedBytes[1] === 0xBB && decryptedBytes[2] === 0xBF) {
+        decryptedBytes = decryptedBytes.slice(3);
+      }
+
+      const plainText = new TextDecoder("utf-8").decode(decryptedBytes);
+
+      // 3. Download as .asset file
+      const fileName = filePath.split("/").pop() || "file";
+      const baseName = fileName.replace(/\.txt$/i, "");
+      const num = baseName.match(/\d+/)?.[0];
+      const outputName = num ? `Level_${num}.asset` : `${baseName}.asset`;
+
+      const blob = new Blob([plainText], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = outputName;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      setError(`Decode failed: ${err.message}`);
+    } finally {
+      setDecoding(false);
+    }
+  };
+
   // Build breadcrumb
   const pathParts = currentPath.split("/").filter(Boolean);
 
@@ -808,6 +968,72 @@ export default function ServerPage() {
                   Download
                 </Button>
               )}
+            {selectedItems.size === 1 &&
+              (() => {
+                const name = Array.from(selectedItems)[0];
+                const item = items.find((i) => i.name === name);
+                return item && item.type !== "directory";
+              })() && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const name = Array.from(selectedItems)[0];
+                      const fullPath =
+                        currentPath === "/"
+                          ? `/${name}`
+                          : `${currentPath}/${name}`;
+                      openFolderPicker("move", fullPath);
+                    }}
+                  >
+                    <FolderInput className="h-4 w-4 mr-1.5" />
+                    Move To
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const name = Array.from(selectedItems)[0];
+                      const fullPath =
+                        currentPath === "/"
+                          ? `/${name}`
+                          : `${currentPath}/${name}`;
+                      openFolderPicker("copy", fullPath);
+                    }}
+                  >
+                    <FolderSymlink className="h-4 w-4 mr-1.5" />
+                    Copy To
+                  </Button>
+                </>
+              )}
+            {selectedItems.size === 1 &&
+              (() => {
+                const name = Array.from(selectedItems)[0];
+                return name.endsWith(".txt");
+              })() && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={decoding}
+                  className="text-violet-600 border-violet-200 hover:bg-violet-50 hover:border-violet-300"
+                  onClick={() => {
+                    const name = Array.from(selectedItems)[0];
+                    const fullPath =
+                      currentPath === "/"
+                        ? `/${name}`
+                        : `${currentPath}/${name}`;
+                    decodeAndDownload(fullPath);
+                  }}
+                >
+                  {decoding ? (
+                    <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                  ) : (
+                    <Unlock className="h-4 w-4 mr-1.5" />
+                  )}
+                  Decode & Download
+                </Button>
+              )}
           </>
         )}
 
@@ -1031,6 +1257,33 @@ export default function ServerPage() {
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
+                            {item.type !== "directory" && (
+                              <>
+                                <button
+                                  onClick={() => openFolderPicker("move", fullPath)}
+                                  className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-blue-600 transition-colors"
+                                  title="Move To"
+                                >
+                                  <FolderInput className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => openFolderPicker("copy", fullPath)}
+                                  className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-green-600 transition-colors"
+                                  title="Copy To"
+                                >
+                                  <FolderSymlink className="h-4 w-4" />
+                                </button>
+                              </>
+                            )}
+                            {item.type !== "directory" && item.name.endsWith(".txt") && (
+                              <button
+                                onClick={() => decodeAndDownload(fullPath)}
+                                className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-violet-600 transition-colors"
+                                title="Decode & Download"
+                              >
+                                <Unlock className="h-4 w-4" />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -1223,6 +1476,129 @@ export default function ServerPage() {
                   {previewContent}
                 </pre>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Folder Picker Modal (Move To / Copy To) */}
+      {showFolderPicker && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-in fade-in duration-150">
+          <div className="bg-white rounded-xl shadow-2xl border w-full max-w-lg mx-4 max-h-[70vh] flex flex-col animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between p-4 border-b">
+              <div className="flex items-center gap-3">
+                {folderPickerMode === "move" ? (
+                  <FolderInput className="h-5 w-5 text-blue-500" />
+                ) : (
+                  <FolderSymlink className="h-5 w-5 text-green-500" />
+                )}
+                <div>
+                  <h3 className="font-semibold text-gray-900">
+                    {folderPickerMode === "move" ? "Move To" : "Copy To"}
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {folderPickerTarget?.split("/").pop()}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowFolderPicker(false);
+                  setFolderPickerTarget(null);
+                }}
+                className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Search dirs */}
+            <div className="p-3 border-b">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search folders..."
+                  value={dirSearchQuery}
+                  onChange={(e) => setDirSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-sm border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {/* Directory list */}
+            <div className="flex-1 overflow-auto p-2">
+              {dirsLoading ? (
+                <div className="flex items-center justify-center py-10">
+                  <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+                  <span className="ml-2 text-sm text-gray-500">Loading folders...</span>
+                </div>
+              ) : (
+                <div className="space-y-0.5">
+                  {allDirs
+                    .filter((d) =>
+                      dirSearchQuery
+                        ? d.toLowerCase().includes(dirSearchQuery.toLowerCase())
+                        : true
+                    )
+                    .map((dir) => (
+                      <button
+                        key={dir}
+                        onClick={() => setSelectedDir(dir)}
+                        className={cn(
+                          "w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors",
+                          selectedDir === dir
+                            ? "bg-blue-50 text-blue-700 font-medium"
+                            : "text-gray-700 hover:bg-gray-50"
+                        )}
+                      >
+                        <Folder className="h-4 w-4 text-blue-400 flex-shrink-0" />
+                        <span className="truncate font-mono text-xs">{dir}</span>
+                      </button>
+                    ))}
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="p-4 border-t bg-gray-50/50 flex items-center justify-between">
+              <div className="text-xs text-gray-500">
+                {selectedDir !== null && (
+                  <span>Destination: <strong className="text-gray-700">{selectedDir}</strong></span>
+                )}
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setShowFolderPicker(false);
+                    setFolderPickerTarget(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleMoveOrCopy}
+                  disabled={selectedDir === null || loading}
+                  className={cn(
+                    "text-white",
+                    folderPickerMode === "move"
+                      ? "bg-blue-600 hover:bg-blue-700"
+                      : "bg-green-600 hover:bg-green-700"
+                  )}
+                >
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                  ) : folderPickerMode === "move" ? (
+                    <FolderInput className="h-4 w-4 mr-1.5" />
+                  ) : (
+                    <FolderSymlink className="h-4 w-4 mr-1.5" />
+                  )}
+                  {folderPickerMode === "move" ? "Move Here" : "Copy Here"}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
