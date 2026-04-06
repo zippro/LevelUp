@@ -134,6 +134,7 @@ interface Config {
         minTotalUser?: number;
         minTotalUserLast30?: number;
         minLevel?: number;
+        maxLevel?: number;
         minDaysSinceEvent?: number;
         columnOrder?: string[];
         columnRenames?: Record<string, string>;
@@ -141,6 +142,7 @@ interface Config {
         // Successful tab filters
         successMinTotalUser?: number;
         successMinLevel?: number;
+        successMaxLevel?: number;
         successMinDaysSinceEvent?: number;
         successFinalCluster?: string;
     };
@@ -173,6 +175,7 @@ export default function WeeklyCheckPage() {
     // Unsuccessful Tab Filters
     const [minTotalUser, setMinUsers] = useState<number>(50);
     const [minLevel, setMinLevel] = useState<number>(0);
+    const [maxLevel, setMaxLevel] = useState<number>(0);
     const [minDaysSinceEvent, setMinDaysSinceEvent] = useState<number>(0);
     const [finalClusters, setFinalClusters] = useState<string[]>(['1', '2', '3', '4', 'None']);
     const [listSize, setListSize] = useState<number>(50);
@@ -180,6 +183,7 @@ export default function WeeklyCheckPage() {
     // Successful Tab Filters
     const [successMinTotalUser, setSuccessMinUsers] = useState<number>(50);
     const [successMinLevel, setSuccessMinLevel] = useState<number>(0);
+    const [successMaxLevel, setSuccessMaxLevel] = useState<number>(0);
     const [successMinDaysSinceEvent, setSuccessMinDaysSinceEvent] = useState<number>(0);
     const [successFinalClusters, setSuccessFinalClusters] = useState<string[]>(['1', '2', '3', '4', 'None']);
     const [successListSize, setSuccessListSize] = useState<number>(50);
@@ -300,11 +304,13 @@ export default function WeeklyCheckPage() {
                     // Unsuccessful defaults
                     setMinUsers(data.weeklyCheck.minTotalUser ?? 50);
                     setMinLevel(data.weeklyCheck.minLevel ?? 0);
+                    setMaxLevel(data.weeklyCheck.maxLevel ?? 0);
                     setMinDaysSinceEvent(data.weeklyCheck.minDaysSinceEvent ?? 0);
                     setMinUsersLast30(data.weeklyCheck.minTotalUserLast30 ?? 50);
                     // Successful defaults
                     setSuccessMinUsers(data.weeklyCheck.successMinTotalUser ?? data.weeklyCheck.minTotalUser ?? 50);
                     setSuccessMinLevel(data.weeklyCheck.successMinLevel ?? data.weeklyCheck.minLevel ?? 0);
+                    setSuccessMaxLevel(data.weeklyCheck.successMaxLevel ?? data.weeklyCheck.maxLevel ?? 0);
                     setSuccessMinDaysSinceEvent(data.weeklyCheck.successMinDaysSinceEvent ?? data.weeklyCheck.minDaysSinceEvent ?? 0);
                     // successFinalCluster is omitted - use default ['1','2','3','4']
                 }
@@ -336,10 +342,11 @@ export default function WeeklyCheckPage() {
     };
 
     // Filter function generator
-    const createFilter = (minUsers: number, minLvl: number, minDays: number, clusters: string[]) => {
+    const createFilter = (minUsers: number, minLvl: number, minDays: number, clusters: string[], maxLvl: number = 0) => {
         return (row: any, levelCol: string, dateCol: string) => {
             const levelVal = parseInt(String(row[levelCol] || 0).replace(/[^\d-]/g, '')) || 0;
             if (levelVal < minLvl) return false;
+            if (maxLvl > 0 && levelVal > maxLvl) return false;
 
             const totalUserVal = row['TotalUser'] || row['Total User'] || row['TotalUsers'] || row['total_user'];
             if (!totalUserVal) return false;
@@ -391,7 +398,7 @@ export default function WeeklyCheckPage() {
             return n.includes('min') && n.includes('time') && n.includes('event');
         }) || '';
 
-        const filter = createFilter(minTotalUser, minLevel, minDaysSinceEvent, finalClusters);
+        const filter = createFilter(minTotalUser, minLevel, minDaysSinceEvent, finalClusters, maxLevel);
         const filtered = rawData.filter(row => filter(row, levelCol, dateCol));
 
         const levelScoreData = generateLevelScoreTopUnsuccessful(filtered);
@@ -401,7 +408,7 @@ export default function WeeklyCheckPage() {
             { ...prev[0], data: levelScoreData.slice(0, listSize), headers },
             { ...prev[1], data: churnData.slice(0, listSize), headers },
         ]);
-    }, [rawData, headers, minTotalUser, minLevel, minDaysSinceEvent, finalClusters, listSize, minMoves, maxMoves]);
+    }, [rawData, headers, minTotalUser, minLevel, maxLevel, minDaysSinceEvent, finalClusters, listSize, minMoves, maxMoves]);
 
     // Process data for Successful tab
     useEffect(() => {
@@ -416,7 +423,7 @@ export default function WeeklyCheckPage() {
             return n.includes('min') && n.includes('time') && n.includes('event');
         }) || '';
 
-        const filter = createFilter(successMinTotalUser, successMinLevel, successMinDaysSinceEvent, successFinalClusters);
+        const filter = createFilter(successMinTotalUser, successMinLevel, successMinDaysSinceEvent, successFinalClusters, successMaxLevel);
         const filtered = rawData.filter(row => filter(row, levelCol, dateCol));
 
         const levelScoreData = generateLevelScoreTopSuccessful(filtered);
@@ -426,7 +433,7 @@ export default function WeeklyCheckPage() {
             { ...prev[0], data: levelScoreData.slice(0, successListSize), headers },
             { ...prev[1], data: churnData.slice(0, successListSize), headers },
         ]);
-    }, [rawData, headers, successMinTotalUser, successMinLevel, successMinDaysSinceEvent, successFinalClusters, successListSize, minMoves, maxMoves]);
+    }, [rawData, headers, successMinTotalUser, successMinLevel, successMaxLevel, successMinDaysSinceEvent, successFinalClusters, successListSize, minMoves, maxMoves]);
 
     // Process data for Last 30 tab
     useEffect(() => {
@@ -2090,6 +2097,10 @@ export default function WeeklyCheckPage() {
                             <Input type="number" value={minLevel} onChange={(e) => setMinLevel(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
                         </div>
                         <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Max Level</label>
+                            <Input type="number" value={maxLevel} onChange={(e) => setMaxLevel(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} placeholder="0=off" />
+                        </div>
+                        <div className="space-y-1">
                             <label className="text-xs font-semibold text-muted-foreground">Min Users</label>
                             <Input type="number" value={minTotalUser} onChange={(e) => setMinUsers(Number(e.target.value))} className="w-24 h-8 bg-background" />
                         </div>
@@ -2144,6 +2155,10 @@ export default function WeeklyCheckPage() {
                         <div className="space-y-1">
                             <label className="text-xs font-semibold text-muted-foreground">Min Level</label>
                             <Input type="number" value={successMinLevel} onChange={(e) => setSuccessMinLevel(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Max Level</label>
+                            <Input type="number" value={successMaxLevel} onChange={(e) => setSuccessMaxLevel(Number(e.target.value))} className="w-20 h-8 bg-background" min={0} placeholder="0=off" />
                         </div>
                         <div className="space-y-1">
                             <label className="text-xs font-semibold text-muted-foreground">Min Users</label>
