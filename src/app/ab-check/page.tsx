@@ -41,6 +41,7 @@ interface Config {
         minLevel?: number;
         minDaysSinceEvent?: number;
         minRevision?: number;
+        maxRevision?: number;
         revisionFilter?: 'none' | 'odd' | 'even';
         columnOrder?: string[];
         hiddenColumns?: string[];
@@ -182,6 +183,7 @@ export default function ABCheckPage() {
     const [finalClusters, setFinalClusters] = useState<string[]>(['1', '2', '3', '4', 'None']);
     const [revisionFilter, setRevisionFilter] = useState<RevisionFilter>('none');
     const [minRevision, setMinRevision] = useState(0);
+    const [maxRevision, setMaxRevision] = useState(0);
 
     // Export dialog
     const [showExportDialog, setShowExportDialog] = useState(false);
@@ -252,6 +254,7 @@ export default function ABCheckPage() {
                 setMinDaysSinceEvent(abCfg?.minDaysSinceEvent ?? wcCfg?.minDaysSinceEvent ?? 0);
                 if (abCfg?.revisionFilter) setRevisionFilter(abCfg.revisionFilter);
                 if (abCfg?.minRevision !== undefined) setMinRevision(abCfg.minRevision);
+                if (abCfg?.maxRevision !== undefined) setMaxRevision(abCfg.maxRevision);
                 setLoadingConfig(false);
             })
             .catch(e => console.error(e));
@@ -506,7 +509,7 @@ export default function ABCheckPage() {
                 }
 
                 // Min revision filter
-                if (minRevision > 0) {
+                if (minRevision > 0 || maxRevision > 0) {
                     const revMetric = AB_METRICS.find(m => m.id === 'RevisionNumber')!;
                     const getRevNum = (row: any) => {
                         if (!row) return NaN;
@@ -515,12 +518,13 @@ export default function ABCheckPage() {
                     const revA = getRevNum(rowA);
                     const revB = getRevNum(rowB);
                     const rev = !isNaN(revA) ? revA : revB;
-                    if (!isNaN(rev) && rev < minRevision) return false;
+                    if (minRevision > 0 && !isNaN(rev) && rev < minRevision) return false;
+                    if (maxRevision > 0 && !isNaN(rev) && rev > maxRevision) return false;
                 }
 
                 return true;
             });
-    }, [groupAData, groupBData, minLevel, maxLevel, minTotalUser, maxTotalUser, minDaysSinceEvent, finalClusters, revisionFilter, minRevision, savedScores]);
+    }, [groupAData, groupBData, minLevel, maxLevel, minTotalUser, maxTotalUser, minDaysSinceEvent, finalClusters, revisionFilter, minRevision, maxRevision, savedScores]);
 
     // Determine which variant is "bigger" for each level
     // Helper to calculate level score for a row
@@ -820,6 +824,19 @@ export default function ABCheckPage() {
                         onChange={(e) => setMinRevision(Number(e.target.value))}
                         className="w-[80px] h-9 bg-background shadow-sm"
                         min={0}
+                    />
+                </div>
+
+                {/* Max Revision */}
+                <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Max Rev</label>
+                    <Input
+                        type="number"
+                        value={maxRevision}
+                        onChange={(e) => setMaxRevision(Number(e.target.value))}
+                        className="w-[80px] h-9 bg-background shadow-sm"
+                        min={0}
+                        placeholder="0=off"
                     />
                 </div>
 

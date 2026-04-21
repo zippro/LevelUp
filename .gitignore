@@ -7,3 +7,4 @@ node_modules
 coverage/
 .vscode/
 mcp-server/node_modules/
+.npm-cache/
