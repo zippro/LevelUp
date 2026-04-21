@@ -81,7 +81,7 @@ const AB_METRICS = [
     { id: 'Engagement Score', label: 'Engagement', aliases: ['engagement score', 'engagement_score', 'engagement'] },
     { id: 'Monetization Score', label: 'Monetization', aliases: ['monetization score', 'monetization_score', 'monetization'] },
     { id: 'Satisfaction Score', label: 'Satisfaction', aliases: ['satisfaction score', 'satisfaction_score', 'satisfaction'] },
-    { id: 'RevisionNumber', label: 'Rev#', aliases: ['revision number', 'revisionnumber', 'revision'] },
+    { id: 'RevisionNumber', label: 'Rev#', aliases: ['revision number', 'revisionnumber', 'revision', 'revnumber', 'rev number'] },
 ];
 
 function findMetricInRow(row: any, metric: typeof AB_METRICS[0]): string {
