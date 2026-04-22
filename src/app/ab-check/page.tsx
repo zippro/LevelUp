@@ -508,7 +508,7 @@ export default function ABCheckPage() {
                     if (revisionFilter === 'even' && rev % 2 !== 0) return false;
                 }
 
-                // Min revision filter
+                // Min/Max revision filter
                 if (minRevision > 0 || maxRevision > 0) {
                     const revMetric = AB_METRICS.find(m => m.id === 'RevisionNumber')!;
                     const getRevNum = (row: any) => {
@@ -517,9 +517,13 @@ export default function ABCheckPage() {
                     };
                     const revA = getRevNum(rowA);
                     const revB = getRevNum(rowB);
-                    const rev = !isNaN(revA) ? revA : revB;
-                    if (minRevision > 0 && !isNaN(rev) && rev < minRevision) return false;
-                    if (maxRevision > 0 && !isNaN(rev) && rev > maxRevision) return false;
+                    // A level passes if EITHER variant's revision is within the range
+                    const passesMin = (rev: number) => isNaN(rev) || rev >= minRevision;
+                    const passesMax = (rev: number) => isNaN(rev) || rev <= maxRevision;
+                    const aInRange = (minRevision <= 0 || passesMin(revA)) && (maxRevision <= 0 || passesMax(revA));
+                    const bInRange = (minRevision <= 0 || passesMin(revB)) && (maxRevision <= 0 || passesMax(revB));
+                    // If neither variant has a revision in range, filter out
+                    if (!aInRange && !bInRange) return false;
                 }
 
                 return true;
