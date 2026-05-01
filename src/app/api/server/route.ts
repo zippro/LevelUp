@@ -383,6 +383,7 @@ export async function PUT(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get("file") as File;
     const targetPath = formData.get("path") as string;
+    const aclParam = (formData.get("acl") as string) || "public";
 
     if (!file || targetPath === null || targetPath === undefined) {
       return NextResponse.json(
@@ -401,12 +402,15 @@ export async function PUT(request: NextRequest) {
     if (prefix && !prefix.endsWith("/")) prefix += "/";
     const key = `${prefix}${file.name}`;
 
+    // Determine ACL: "public" -> "public-read", "private" -> "private"
+    const acl = aclParam === "private" ? "private" : "public-read";
+
     const command = new PutObjectCommand({
       Bucket,
       Key: key,
       Body: buffer,
       ContentType: file.type || "application/octet-stream",
-      ACL: "private",
+      ACL: acl,
     });
     await s3.send(command);
 

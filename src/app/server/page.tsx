@@ -37,6 +37,9 @@ import {
   FolderInput,
   FolderSymlink,
   Unlock,
+  Globe,
+  Lock,
+  EyeOff,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -192,6 +195,10 @@ export default function ServerPage() {
 
   // Decode state
   const [decoding, setDecoding] = useState(false);
+  const [showDecoderKeyModal, setShowDecoderKeyModal] = useState(false);
+  const [decoderKeyInput, setDecoderKeyInput] = useState("");
+  const [showDecoderKey, setShowDecoderKey] = useState(false);
+  const pendingDecodeAction = useRef<(() => void) | null>(null);
 
   // Success toast
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -200,6 +207,9 @@ export default function ServerPage() {
   const [pendingAssetFiles, setPendingAssetFiles] = useState<File[]>([]);
   const [pendingNonAssetFiles, setPendingNonAssetFiles] = useState<File[]>([]);
   const [showAssetPrompt, setShowAssetPrompt] = useState(false);
+
+  // File visibility (public / private) — default public
+  const [fileVisibility, setFileVisibility] = useState<"public" | "private">("public");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounterRef = useRef(0);
@@ -219,6 +229,12 @@ export default function ServerPage() {
         }
       })
       .catch(console.error);
+  }, []);
+
+  // Load saved decoder key on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("nar-decoder-key");
+    if (saved) setDecoderKeyInput(saved);
   }, []);
 
   // Fetch directory listing
@@ -551,6 +567,7 @@ export default function ServerPage() {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("path", currentPath);
+        formData.append("acl", fileVisibility);
 
         const res = await fetch("/api/server", {
           method: "PUT",
@@ -586,7 +603,8 @@ export default function ServerPage() {
 
     const key = localStorage.getItem("nar-decoder-key");
     if (!key || key.length !== 32) {
-      setError("Decoder key not set. Go to Decoder page and set your 32-character encryption key first.");
+      pendingDecodeAction.current = () => handleAssetEncodeUpload();
+      setShowDecoderKeyModal(true);
       setPendingAssetFiles([]);
       setPendingNonAssetFiles([]);
       return;
@@ -751,7 +769,9 @@ export default function ServerPage() {
   const decodeAndDownload = async (filePath: string) => {
     const key = localStorage.getItem("nar-decoder-key");
     if (!key || key.length !== 32) {
-      setError("Decoder key not set. Go to Decoder page and set your 32-character encryption key first.");
+      // Show the key modal, store the pending action
+      pendingDecodeAction.current = () => decodeAndDownload(filePath);
+      setShowDecoderKeyModal(true);
       return;
     }
 
@@ -825,6 +845,37 @@ export default function ServerPage() {
       URL.revokeObjectURL(url);
     } catch (err: any) {
       setError(`Decode failed: ${err.message}`);
+    } finally {
+      setDecoding(false);
+    }
+  };
+
+  // Download all selected files
+  const downloadSelected = async () => {
+    const fileNames = Array.from(selectedItems).filter((name) => {
+      const item = items.find((i) => i.name === name);
+      return item && item.type !== "directory";
+    });
+    for (const name of fileNames) {
+      const fullPath =
+        currentPath === "/" ? `/${name}` : `${currentPath}/${name}`;
+      await downloadFile(fullPath);
+    }
+  };
+
+  // Decode & download all selected .txt files
+  const decodeSelectedAndDownload = async () => {
+    const txtNames = Array.from(selectedItems).filter((name) =>
+      name.endsWith(".txt")
+    );
+    if (txtNames.length === 0) return;
+    setDecoding(true);
+    try {
+      for (const name of txtNames) {
+        const fullPath =
+          currentPath === "/" ? `/${name}` : `${currentPath}/${name}`;
+        await decodeAndDownload(fullPath);
+      }
     } finally {
       setDecoding(false);
     }
@@ -933,6 +984,49 @@ export default function ServerPage() {
 
   return (
     <div className="space-y-6">
+      {/* File Visibility Toggle */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium text-gray-700">Upload as:</span>
+            <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+              <button
+                onClick={() => setFileVisibility("public")}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all",
+                  fileVisibility === "public"
+                    ? "bg-blue-600 text-white shadow-inner"
+                    : "bg-white text-gray-600 hover:bg-gray-50"
+                )}
+              >
+                <Globe className="h-4 w-4" />
+                Public
+              </button>
+              <button
+                onClick={() => setFileVisibility("private")}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all border-l border-gray-200",
+                  fileVisibility === "private"
+                    ? "bg-amber-600 text-white shadow-inner"
+                    : "bg-white text-gray-600 hover:bg-gray-50"
+                )}
+              >
+                <Lock className="h-4 w-4" />
+                Private
+              </button>
+            </div>
+            <span className={cn(
+              "text-xs px-2 py-0.5 rounded-full font-medium",
+              fileVisibility === "public"
+                ? "bg-blue-100 text-blue-700"
+                : "bg-amber-100 text-amber-700"
+            )}>
+              {fileVisibility === "public" ? "Files will be publicly accessible" : "Files will be private"}
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -1146,94 +1240,108 @@ export default function ServerPage() {
                 Rename
               </Button>
             )}
-            {selectedItems.size === 1 &&
-              (() => {
-                const name = Array.from(selectedItems)[0];
+            {/* Download — single or multi */}
+            {(() => {
+              const selected = Array.from(selectedItems);
+              const hasFiles = selected.some((name) => {
                 const item = items.find((i) => i.name === name);
                 return item && item.type !== "directory";
-              })() && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
+              });
+              return hasFiles;
+            })() && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (selectedItems.size === 1) {
                     const name = Array.from(selectedItems)[0];
                     const fullPath =
                       currentPath === "/"
                         ? `/${name}`
                         : `${currentPath}/${name}`;
                     downloadFile(fullPath);
-                  }}
-                >
-                  <Download className="h-4 w-4 mr-1.5" />
-                  Download
-                </Button>
-              )}
-            {selectedItems.size === 1 &&
-              (() => {
-                const name = Array.from(selectedItems)[0];
+                  } else {
+                    downloadSelected();
+                  }
+                }}
+              >
+                <Download className="h-4 w-4 mr-1.5" />
+                Download{selectedItems.size > 1 ? ` (${selectedItems.size})` : ""}
+              </Button>
+            )}
+            {/* Move To / Copy To — single or multi */}
+            {(() => {
+              const selected = Array.from(selectedItems);
+              const hasFiles = selected.some((name) => {
                 const item = items.find((i) => i.name === name);
                 return item && item.type !== "directory";
-              })() && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const name = Array.from(selectedItems)[0];
-                      const fullPath =
-                        currentPath === "/"
-                          ? `/${name}`
-                          : `${currentPath}/${name}`;
-                      openFolderPicker("move", fullPath);
-                    }}
-                  >
-                    <FolderInput className="h-4 w-4 mr-1.5" />
-                    Move To
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const name = Array.from(selectedItems)[0];
-                      const fullPath =
-                        currentPath === "/"
-                          ? `/${name}`
-                          : `${currentPath}/${name}`;
-                      openFolderPicker("copy", fullPath);
-                    }}
-                  >
-                    <FolderSymlink className="h-4 w-4 mr-1.5" />
-                    Copy To
-                  </Button>
-                </>
-              )}
-            {selectedItems.size === 1 &&
-              (() => {
-                const name = Array.from(selectedItems)[0];
-                return name.endsWith(".txt");
-              })() && (
+              });
+              return hasFiles;
+            })() && (
+              <>
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={decoding}
-                  className="text-violet-600 border-violet-200 hover:bg-violet-50 hover:border-violet-300"
                   onClick={() => {
                     const name = Array.from(selectedItems)[0];
                     const fullPath =
                       currentPath === "/"
                         ? `/${name}`
                         : `${currentPath}/${name}`;
-                    decodeAndDownload(fullPath);
+                    openFolderPicker("move", fullPath);
                   }}
                 >
-                  {decoding ? (
-                    <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-                  ) : (
-                    <Unlock className="h-4 w-4 mr-1.5" />
-                  )}
-                  Decode & Download
+                  <FolderInput className="h-4 w-4 mr-1.5" />
+                  Move To
                 </Button>
-              )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const name = Array.from(selectedItems)[0];
+                    const fullPath =
+                      currentPath === "/"
+                        ? `/${name}`
+                        : `${currentPath}/${name}`;
+                    openFolderPicker("copy", fullPath);
+                  }}
+                >
+                  <FolderSymlink className="h-4 w-4 mr-1.5" />
+                  Copy To
+                </Button>
+              </>
+            )}
+            {/* Decode & Download — single or multi (.txt files) */}
+            {(() => {
+              const selected = Array.from(selectedItems);
+              return selected.some((name) => name.endsWith(".txt"));
+            })() && (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={decoding}
+                className="text-violet-600 border-violet-200 hover:bg-violet-50 hover:border-violet-300"
+                onClick={() => {
+                  if (selectedItems.size === 1) {
+                    const name = Array.from(selectedItems)[0];
+                    const fullPath =
+                      currentPath === "/"
+                        ? `/${name}`
+                        : `${currentPath}/${name}`;
+                    decodeAndDownload(fullPath);
+                  } else {
+                    decodeSelectedAndDownload();
+                  }
+                }}
+              >
+                {decoding ? (
+                  <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                ) : (
+                  <Unlock className="h-4 w-4 mr-1.5" />
+                )}
+                Decode & Download{selectedItems.size > 1 ? ` (${Array.from(selectedItems).filter(n => n.endsWith(".txt")).length})` : ""}
+              </Button>
+            )}
           </>
         )}
 
@@ -1918,6 +2026,87 @@ export default function ServerPage() {
                   {folderPickerMode === "move" ? "Move Here" : "Copy Here"}
                 </Button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Decoder Key Modal */}
+      {showDecoderKeyModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-in fade-in duration-150">
+          <div className="bg-white rounded-xl shadow-2xl border p-6 max-w-md w-full mx-4 animate-in zoom-in-95 duration-150">
+            <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+              <Unlock className="h-5 w-5 text-violet-500" />
+              Encryption Key Required
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Enter your 32-character encryption key to decode files.
+            </p>
+            <div className="relative mb-2">
+              <input
+                type={showDecoderKey ? "text" : "password"}
+                placeholder="Enter 32-character key..."
+                value={decoderKeyInput}
+                onChange={(e) => setDecoderKeyInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && decoderKeyInput.length === 32) {
+                    localStorage.setItem("nar-decoder-key", decoderKeyInput);
+                    setShowDecoderKeyModal(false);
+                    const action = pendingDecodeAction.current;
+                    pendingDecodeAction.current = null;
+                    if (action) action();
+                  }
+                }}
+                autoFocus
+                maxLength={32}
+                className="w-full border rounded-lg px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 pr-10"
+              />
+              <button
+                onClick={() => setShowDecoderKey(!showDecoderKey)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                {showDecoderKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            <div className="flex items-center justify-between mb-4">
+              <span className={cn(
+                "text-xs font-mono px-2 py-0.5 rounded-full",
+                decoderKeyInput.length === 32
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "bg-red-100 text-red-700"
+              )}>
+                {decoderKeyInput.length}/32
+              </span>
+              <span className="text-[10px] text-gray-400">
+                AES-256-CBC • Saved in your browser
+              </span>
+            </div>
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setShowDecoderKeyModal(false);
+                  pendingDecodeAction.current = null;
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                disabled={decoderKeyInput.length !== 32}
+                className="bg-violet-600 hover:bg-violet-700 text-white"
+                onClick={() => {
+                  localStorage.setItem("nar-decoder-key", decoderKeyInput);
+                  setShowDecoderKeyModal(false);
+                  const action = pendingDecodeAction.current;
+                  pendingDecodeAction.current = null;
+                  if (action) action();
+                }}
+              >
+                <Unlock className="h-4 w-4 mr-1.5" />
+                Save & Decode
+              </Button>
             </div>
           </div>
         </div>
