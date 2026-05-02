@@ -9,6 +9,7 @@ import {
   CopyObjectCommand,
   HeadObjectCommand,
 } from "@aws-sdk/client-s3";
+import crypto from "crypto";
 
 function getS3Client() {
   const accessKeyId = process.env.DO_SPACES_KEY;
@@ -354,6 +355,113 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ dirs });
       }
 
+      case "decode": {
+        // Server-side decryption of encrypted .txt files → .asset content
+        if (!path) {
+          return NextResponse.json({ error: "Path is required for decode" }, { status: 400 });
+        }
+
+        const decoderKey = process.env.NAR_DECODER_KEY;
+        if (!decoderKey || decoderKey.length !== 32) {
+          return NextResponse.json(
+            { error: "NAR_DECODER_KEY is not configured on the server. Add it to .env.local" },
+            { status: 500 }
+          );
+        }
+
+        const decodeFileKey = path.replace(/^\/+/, "");
+        const getCmd = new GetObjectCommand({ Bucket, Key: decodeFileKey });
+        const getRes = await s3.send(getCmd);
+
+        if (!getRes.Body) {
+          return NextResponse.json({ error: "File not found" }, { status: 404 });
+        }
+
+        const encryptedBase64 = (await getRes.Body.transformToString("utf-8")).trim();
+
+        // Base64 decode
+        const encryptedBuf = Buffer.from(encryptedBase64, "base64");
+
+        // Check for NARv1 version header
+        const VERSION_HEADER = Buffer.from("NARv1", "utf-8");
+        let iv: Buffer;
+        let cipherData: Buffer;
+
+        const hasHeader = encryptedBuf.length >= VERSION_HEADER.length + 16 &&
+          encryptedBuf.subarray(0, VERSION_HEADER.length).equals(VERSION_HEADER);
+
+        if (hasHeader) {
+          iv = encryptedBuf.subarray(VERSION_HEADER.length, VERSION_HEADER.length + 16);
+          cipherData = encryptedBuf.subarray(VERSION_HEADER.length + 16);
+        } else {
+          iv = Buffer.alloc(16, 0);
+          cipherData = encryptedBuf;
+        }
+
+        const decipher = crypto.createDecipheriv("aes-256-cbc", Buffer.from(decoderKey, "utf-8"), iv);
+        const decrypted = Buffer.concat([decipher.update(cipherData), decipher.final()]);
+
+        // Skip BOM if present
+        let plainBytes = decrypted;
+        if (plainBytes.length >= 3 && plainBytes[0] === 0xEF && plainBytes[1] === 0xBB && plainBytes[2] === 0xBF) {
+          plainBytes = plainBytes.subarray(3);
+        }
+
+        const plainText = plainBytes.toString("utf-8");
+
+        // Build output filename
+        const decFileName = decodeFileKey.split("/").pop() || "file";
+        const decBaseName = decFileName.replace(/\.txt$/i, "");
+        const decNum = decBaseName.match(/\d+/)?.[0];
+        const outputName = decNum ? `Level_${decNum}.asset` : `${decBaseName}.asset`;
+
+        const outBuf = Buffer.from(plainText, "utf-8");
+        return new NextResponse(outBuf as unknown as BodyInit, {
+          headers: {
+            "Content-Type": "text/plain; charset=utf-8",
+            "Content-Disposition": `attachment; filename="${outputName}"`,
+            "Content-Length": String(outBuf.length),
+          },
+        });
+      }
+
+      case "encode": {
+        // Server-side encryption of .asset content → encrypted Base64 .txt
+        if (!path) {
+          return NextResponse.json({ error: "Path is required for encode" }, { status: 400 });
+        }
+
+        const encoderKey = process.env.NAR_DECODER_KEY;
+        if (!encoderKey || encoderKey.length !== 32) {
+          return NextResponse.json(
+            { error: "NAR_DECODER_KEY is not configured on the server. Add it to .env.local" },
+            { status: 500 }
+          );
+        }
+
+        const encodeFileKey = path.replace(/^\/+/, "");
+        const encGetCmd = new GetObjectCommand({ Bucket, Key: encodeFileKey });
+        const encGetRes = await s3.send(encGetCmd);
+
+        if (!encGetRes.Body) {
+          return NextResponse.json({ error: "File not found" }, { status: 404 });
+        }
+
+        const plainContent = await encGetRes.Body.transformToString("utf-8");
+
+        // Encrypt
+        const encVersionHeader = Buffer.from("NARv1", "utf-8");
+        const encIv = crypto.randomBytes(16);
+        const cipher = crypto.createCipheriv("aes-256-cbc", Buffer.from(encoderKey, "utf-8"), encIv);
+        const encrypted = Buffer.concat([cipher.update(Buffer.from(plainContent, "utf-8")), cipher.final()]);
+
+        // Build: VERSION_HEADER + IV + encrypted
+        const resultBuf = Buffer.concat([encVersionHeader, encIv, encrypted]);
+        const base64Result = resultBuf.toString("base64");
+
+        return NextResponse.json({ content: base64Result });
+      }
+
       case "buckets": {
         // Return which bucket(s) are configured
         return NextResponse.json({
@@ -384,6 +492,7 @@ export async function PUT(request: NextRequest) {
     const file = formData.get("file") as File;
     const targetPath = formData.get("path") as string;
     const aclParam = (formData.get("acl") as string) || "public";
+    const encodeAsset = formData.get("encodeAsset") === "true";
 
     if (!file || targetPath === null || targetPath === undefined) {
       return NextResponse.json(
@@ -395,26 +504,63 @@ export async function PUT(request: NextRequest) {
     const s3 = getS3Client();
     const Bucket = getBucket();
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-
-    // Build the full key
+    // Build the full key prefix
     let prefix = (targetPath || "").replace(/^\/+/, "");
     if (prefix && !prefix.endsWith("/")) prefix += "/";
-    const key = `${prefix}${file.name}`;
 
     // Determine ACL: "public" -> "public-read", "private" -> "private"
     const acl = aclParam === "private" ? "private" : "public-read";
 
+    let uploadBuffer: Buffer;
+    let uploadKey: string;
+    let contentType: string;
+
+    if (encodeAsset && file.name.endsWith(".asset")) {
+      // Server-side encryption: .asset -> encrypted .txt
+      const encoderKey = process.env.NAR_DECODER_KEY;
+      if (!encoderKey || encoderKey.length !== 32) {
+        return NextResponse.json(
+          { error: "NAR_DECODER_KEY is not configured on the server" },
+          { status: 500 }
+        );
+      }
+
+      const plainContent = Buffer.from(await file.arrayBuffer()).toString("utf-8");
+
+      // Encrypt using NARv1 format
+      const versionHeader = Buffer.from("NARv1", "utf-8");
+      const iv = crypto.randomBytes(16);
+      const cipher = crypto.createCipheriv("aes-256-cbc", Buffer.from(encoderKey, "utf-8"), iv);
+      const encrypted = Buffer.concat([cipher.update(Buffer.from(plainContent, "utf-8")), cipher.final()]);
+
+      const resultBuf = Buffer.concat([versionHeader, iv, encrypted]);
+      const base64Content = resultBuf.toString("base64");
+
+      uploadBuffer = Buffer.from(base64Content, "utf-8");
+
+      // Rename: Level_18.asset -> 18.txt
+      const baseName = file.name.replace(/\.asset$/i, "");
+      const num = baseName.match(/\d+/)?.[0];
+      const txtName = num ? `${num}.txt` : `${baseName}.txt`;
+      uploadKey = `${prefix}${txtName}`;
+      contentType = "text/plain";
+    } else {
+      // Normal upload
+      uploadBuffer = Buffer.from(await file.arrayBuffer());
+      uploadKey = `${prefix}${file.name}`;
+      contentType = file.type || "application/octet-stream";
+    }
+
     const command = new PutObjectCommand({
       Bucket,
-      Key: key,
-      Body: buffer,
-      ContentType: file.type || "application/octet-stream",
+      Key: uploadKey,
+      Body: uploadBuffer,
+      ContentType: contentType,
       ACL: acl,
     });
     await s3.send(command);
 
-    return NextResponse.json({ success: true, path: `/${key}` });
+    return NextResponse.json({ success: true, path: `/${uploadKey}` });
   } catch (err: any) {
     console.error("Spaces Upload Error:", err);
     return NextResponse.json(

@@ -39,7 +39,6 @@ import {
   Unlock,
   Globe,
   Lock,
-  EyeOff,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -195,10 +194,6 @@ export default function ServerPage() {
 
   // Decode state
   const [decoding, setDecoding] = useState(false);
-  const [showDecoderKeyModal, setShowDecoderKeyModal] = useState(false);
-  const [decoderKeyInput, setDecoderKeyInput] = useState("");
-  const [showDecoderKey, setShowDecoderKey] = useState(false);
-  const pendingDecodeAction = useRef<(() => void) | null>(null);
 
   // Success toast
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -229,12 +224,6 @@ export default function ServerPage() {
         }
       })
       .catch(console.error);
-  }, []);
-
-  // Load saved decoder key on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("nar-decoder-key");
-    if (saved) setDecoderKeyInput(saved);
   }, []);
 
   // Fetch directory listing
@@ -597,69 +586,40 @@ export default function ServerPage() {
     await doUpload(allFiles);
   };
 
-  // Handle asset prompt: Encode & Upload
+  // Handle asset prompt: Encode & Upload (server-side encryption)
   const handleAssetEncodeUpload = async () => {
     setShowAssetPrompt(false);
-
-    const key = localStorage.getItem("nar-decoder-key");
-    if (!key || key.length !== 32) {
-      pendingDecodeAction.current = () => handleAssetEncodeUpload();
-      setShowDecoderKeyModal(true);
-      setPendingAssetFiles([]);
-      setPendingNonAssetFiles([]);
-      return;
-    }
-
     setUploading(true);
     const allFiles = [...pendingNonAssetFiles];
 
     try {
-      // Encode .asset files to .txt
-      const VERSION_HEADER = new TextEncoder().encode("NARv1");
-      const keyBytes = new TextEncoder().encode(key);
-      const cryptoKey = await crypto.subtle.importKey(
-        "raw", keyBytes, { name: "AES-CBC" }, false, ["encrypt"]
-      );
-
       for (const assetFile of pendingAssetFiles) {
         setUploadProgress(`Encoding ${assetFile.name}...`);
 
-        const plainText = await assetFile.text();
-        const iv = crypto.getRandomValues(new Uint8Array(16));
-        const plainBytes = new TextEncoder().encode(plainText);
-        const encrypted = await crypto.subtle.encrypt(
-          { name: "AES-CBC", iv },
-          cryptoKey,
-          plainBytes
-        );
+        // Send the .asset file to server for encryption
+        const formData = new FormData();
+        formData.append("file", assetFile);
+        formData.append("path", currentPath);
+        formData.append("acl", fileVisibility);
+        formData.append("encodeAsset", "true");
 
-        // Build: VERSION_HEADER + IV + encrypted
-        const encBytes = new Uint8Array(encrypted);
-        const result = new Uint8Array(VERSION_HEADER.length + iv.length + encBytes.length);
-        result.set(VERSION_HEADER, 0);
-        result.set(iv, VERSION_HEADER.length);
-        result.set(encBytes, VERSION_HEADER.length + iv.length);
+        const res = await fetch("/api/server", {
+          method: "PUT",
+          body: formData,
+        });
 
-        // Base64 encode
-        let binary = "";
-        for (let i = 0; i < result.length; i++) binary += String.fromCharCode(result[i]);
-        const base64 = btoa(binary);
-
-        // Create .txt file from encoded content
-        const baseName = assetFile.name.replace(/\.asset$/i, "");
-        const num = baseName.match(/\d+/)?.[0];
-        const txtName = num ? `${num}.txt` : `${baseName}.txt`;
-
-        const blob = new Blob([base64], { type: "text/plain" });
-        const txtFile = new globalThis.File([blob], txtName, { type: "text/plain" });
-        allFiles.push(txtFile);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `Failed to encode ${assetFile.name}`);
       }
 
-      // Upload all (non-asset + encoded)
-      await doUpload(allFiles);
+      // Upload non-asset files normally
+      if (allFiles.length > 0) {
+        await doUpload(allFiles);
+      }
 
       setSuccessMessage(`${pendingAssetFiles.length} file(s) encoded & uploaded as .txt`);
       setTimeout(() => setSuccessMessage(null), 3000);
+      fetchDirectory(currentPath);
     } catch (err: any) {
       setError(`Encode failed: ${err.message}`);
     } finally {
@@ -765,84 +725,32 @@ export default function ServerPage() {
     }
   };
 
-  // Decode & Download — uses NarEncryptor decryption client-side
+  // Decode & Download — server-side decryption
   const decodeAndDownload = async (filePath: string) => {
-    const key = localStorage.getItem("nar-decoder-key");
-    if (!key || key.length !== 32) {
-      // Show the key modal, store the pending action
-      pendingDecodeAction.current = () => decodeAndDownload(filePath);
-      setShowDecoderKeyModal(true);
-      return;
-    }
-
     setDecoding(true);
     try {
-      // 1. Fetch the raw file content
       const res = await fetch("/api/server", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "view", path: filePath }),
+        body: JSON.stringify({ action: "decode", path: filePath }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to fetch file");
 
-      const encryptedText = data.content.trim();
-
-      // 2. Decrypt using NarEncryptor (same logic as decoder page)
-      const VERSION_HEADER = new TextEncoder().encode("NARv1");
-      const keyBytes = new TextEncoder().encode(key);
-      const cryptoKey = await crypto.subtle.importKey(
-        "raw", keyBytes, { name: "AES-CBC" }, false, ["decrypt"]
-      );
-
-      // Base64 decode
-      const binary = atob(encryptedText);
-      const encryptedBytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) encryptedBytes[i] = binary.charCodeAt(i);
-
-      let iv: Uint8Array;
-      let cipherData: Uint8Array;
-
-      // Check for version header
-      const hasHeader = encryptedBytes.length >= VERSION_HEADER.length + 16 &&
-        VERSION_HEADER.every((b, i) => encryptedBytes[i] === b);
-
-      if (hasHeader) {
-        const headerLen = VERSION_HEADER.length;
-        iv = encryptedBytes.slice(headerLen, headerLen + 16);
-        cipherData = encryptedBytes.slice(headerLen + 16);
-      } else {
-        iv = new Uint8Array(16);
-        cipherData = encryptedBytes;
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Decode failed");
       }
 
-      const decrypted = await crypto.subtle.decrypt(
-        { name: "AES-CBC", iv: iv as unknown as ArrayBuffer },
-        cryptoKey,
-        cipherData as unknown as ArrayBuffer
-      );
+      const blob = await res.blob();
+      const contentDisposition = res.headers.get("content-disposition") || "";
+      const fileNameMatch = contentDisposition.match(/filename="(.+?)"/);
+      const outputName = fileNameMatch ? fileNameMatch[1] : filePath.split("/").pop()?.replace(/\.txt$/i, ".asset") || "file.asset";
 
-      // Skip BOM
-      let decryptedBytes = new Uint8Array(decrypted);
-      if (decryptedBytes.length >= 3 && decryptedBytes[0] === 0xEF && decryptedBytes[1] === 0xBB && decryptedBytes[2] === 0xBF) {
-        decryptedBytes = decryptedBytes.slice(3);
-      }
-
-      const plainText = new TextDecoder("utf-8").decode(decryptedBytes);
-
-      // 3. Download as .asset file
-      const fileName = filePath.split("/").pop() || "file";
-      const baseName = fileName.replace(/\.txt$/i, "");
-      const num = baseName.match(/\d+/)?.[0];
-      const outputName = num ? `Level_${num}.asset` : `${baseName}.asset`;
-
-      const blob = new Blob([plainText], { type: "text/plain;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
+      const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = outputName;
       a.click();
-      URL.revokeObjectURL(url);
+      window.URL.revokeObjectURL(url);
     } catch (err: any) {
       setError(`Decode failed: ${err.message}`);
     } finally {
@@ -2026,87 +1934,6 @@ export default function ServerPage() {
                   {folderPickerMode === "move" ? "Move Here" : "Copy Here"}
                 </Button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Decoder Key Modal */}
-      {showDecoderKeyModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-in fade-in duration-150">
-          <div className="bg-white rounded-xl shadow-2xl border p-6 max-w-md w-full mx-4 animate-in zoom-in-95 duration-150">
-            <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-              <Unlock className="h-5 w-5 text-violet-500" />
-              Encryption Key Required
-            </h3>
-            <p className="text-sm text-gray-500 mb-4">
-              Enter your 32-character encryption key to decode files.
-            </p>
-            <div className="relative mb-2">
-              <input
-                type={showDecoderKey ? "text" : "password"}
-                placeholder="Enter 32-character key..."
-                value={decoderKeyInput}
-                onChange={(e) => setDecoderKeyInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && decoderKeyInput.length === 32) {
-                    localStorage.setItem("nar-decoder-key", decoderKeyInput);
-                    setShowDecoderKeyModal(false);
-                    const action = pendingDecodeAction.current;
-                    pendingDecodeAction.current = null;
-                    if (action) action();
-                  }
-                }}
-                autoFocus
-                maxLength={32}
-                className="w-full border rounded-lg px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 pr-10"
-              />
-              <button
-                onClick={() => setShowDecoderKey(!showDecoderKey)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                {showDecoderKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-            <div className="flex items-center justify-between mb-4">
-              <span className={cn(
-                "text-xs font-mono px-2 py-0.5 rounded-full",
-                decoderKeyInput.length === 32
-                  ? "bg-emerald-100 text-emerald-700"
-                  : "bg-red-100 text-red-700"
-              )}>
-                {decoderKeyInput.length}/32
-              </span>
-              <span className="text-[10px] text-gray-400">
-                AES-256-CBC • Saved in your browser
-              </span>
-            </div>
-            <div className="flex gap-3 justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setShowDecoderKeyModal(false);
-                  pendingDecodeAction.current = null;
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                disabled={decoderKeyInput.length !== 32}
-                className="bg-violet-600 hover:bg-violet-700 text-white"
-                onClick={() => {
-                  localStorage.setItem("nar-decoder-key", decoderKeyInput);
-                  setShowDecoderKeyModal(false);
-                  const action = pendingDecodeAction.current;
-                  pendingDecodeAction.current = null;
-                  if (action) action();
-                }}
-              >
-                <Unlock className="h-4 w-4 mr-1.5" />
-                Save & Decode
-              </Button>
             </div>
           </div>
         </div>
