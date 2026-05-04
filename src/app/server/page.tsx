@@ -836,6 +836,39 @@ export default function ServerPage() {
     }
   };
 
+  // Decode & View — decrypt and show in preview modal (for testing decode format)
+  const decodeAndView = async (filePath: string) => {
+    const fileName = filePath.split("/").pop() || "file";
+    setPreviewFileName(`[Decoded] ${fileName}`);
+    setPreviewLoading(true);
+    setShowPreview(true);
+    setPreviewContent(null);
+
+    try {
+      const res = await fetch("/api/server", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "decode", path: filePath }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Decode failed");
+      }
+
+      const data = await res.json();
+      const { encryptedContent, key: decoderKey } = data;
+
+      // Decrypt using Web Crypto — identical to Decoder page
+      const decryptedText = await narDecryptText(encryptedContent, decoderKey);
+      setPreviewContent(decryptedText);
+    } catch (err: any) {
+      setPreviewContent(`Error: ${err.message}`);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
   // Download all selected files
   const downloadSelected = async () => {
     const fileNames = Array.from(selectedItems).filter((name) => {
@@ -1609,13 +1642,22 @@ export default function ServerPage() {
                               </>
                             )}
                             {item.type !== "directory" && item.name.endsWith(".txt") && (
-                              <button
-                                onClick={() => decodeAndDownload(fullPath)}
-                                className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-violet-600 transition-colors"
-                                title="Decode & Download"
-                              >
-                                <Unlock className="h-4 w-4" />
-                              </button>
+                              <>
+                                <button
+                                  onClick={() => decodeAndDownload(fullPath)}
+                                  className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-violet-600 transition-colors"
+                                  title="Decode & Download"
+                                >
+                                  <Unlock className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => decodeAndView(fullPath)}
+                                  className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-emerald-600 transition-colors"
+                                  title="Decode & View"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </button>
+                              </>
                             )}
                             {item.type !== "directory" && siblingFolder && (
                               <button
