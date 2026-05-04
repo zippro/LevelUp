@@ -401,11 +401,18 @@ export async function POST(request: NextRequest) {
         const decipher = crypto.createDecipheriv("aes-256-cbc", Buffer.from(decoderKey, "utf-8"), iv);
         const decrypted = Buffer.concat([decipher.update(cipherData), decipher.final()]);
 
-        // Skip BOM if present
+        // Skip BOM if present (matching Decoder page's skipBom exactly)
         let plainBytes = decrypted;
         if (plainBytes.length >= 3 && plainBytes[0] === 0xEF && plainBytes[1] === 0xBB && plainBytes[2] === 0xBF) {
+          // UTF-8 BOM
           plainBytes = plainBytes.subarray(3);
+        } else if (plainBytes.length >= 2 && ((plainBytes[0] === 0xFF && plainBytes[1] === 0xFE) || (plainBytes[0] === 0xFE && plainBytes[1] === 0xFF))) {
+          // UTF-16 BOM
+          plainBytes = plainBytes.subarray(2);
         }
+
+        // Convert to UTF-8 string (matching Decoder page: new TextDecoder("utf-8").decode)
+        const plainText = plainBytes.toString("utf-8");
 
         // Build output filename
         const decFileName = decodeFileKey.split("/").pop() || "file";
@@ -413,11 +420,11 @@ export async function POST(request: NextRequest) {
         const decNum = decBaseName.match(/\d+/)?.[0];
         const outputName = decNum ? `Level_${decNum}.asset` : `${decBaseName}.asset`;
 
-        // Send raw decrypted bytes directly — no string conversion to preserve exact format
-        const outBuf = Buffer.from(plainBytes);
+        // Send as text/plain;charset=utf-8 (matching Decoder page's Blob type)
+        const outBuf = Buffer.from(plainText, "utf-8");
         return new NextResponse(outBuf as unknown as BodyInit, {
           headers: {
-            "Content-Type": "application/octet-stream",
+            "Content-Type": "text/plain; charset=utf-8",
             "Content-Disposition": `attachment; filename="${outputName}"`,
             "Content-Length": String(outBuf.length),
           },
