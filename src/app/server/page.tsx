@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import JSZip from "jszip";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -342,61 +341,14 @@ export default function ServerPage() {
     }
   };
 
-  // Save a blob using File System Access API (Save As dialog) with fallback
-  const saveBlob = async (blob: Blob, fileName: string) => {
-    // Try native Save As dialog
-    if (typeof window !== "undefined" && "showSaveFilePicker" in window) {
-      try {
-        const handle = await (window as any).showSaveFilePicker({
-          suggestedName: fileName,
-        });
-        const writable = await handle.createWritable();
-        await writable.write(blob);
-        await writable.close();
-        return;
-      } catch (err: any) {
-        // User cancelled the dialog — do nothing
-        if (err.name === "AbortError") return;
-        // Fall through to default download
-      }
-    }
-    // Fallback: auto-download
+  // Download a blob directly to the default download folder
+  const saveBlob = (blob: Blob, fileName: string) => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = fileName;
     a.click();
     window.URL.revokeObjectURL(url);
-  };
-
-  // Save multiple files as a ZIP using Save As dialog
-  const saveBlobsToDirectory = async (files: { blob: Blob; name: string }[]) => {
-    try {
-      const zip = new JSZip();
-      for (const file of files) {
-        zip.file(file.name, file.blob);
-      }
-      const zipBlob = await zip.generateAsync({ type: "blob" });
-
-      // Build a descriptive ZIP name from the current path
-      const folderName = currentPath.split("/").filter(Boolean).pop() || "files";
-      const zipName = `${folderName}_${files.length}files.zip`;
-
-      await saveBlob(zipBlob, zipName);
-      setSuccessMessage(`${files.length} file(s) bundled and saved as ZIP`);
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      if (err.name === "AbortError") return;
-      // Fallback: download each individually
-      for (const file of files) {
-        const url = window.URL.createObjectURL(file.blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = file.name;
-        a.click();
-        window.URL.revokeObjectURL(url);
-      }
-    }
   };
 
   // Download file
@@ -415,7 +367,7 @@ export default function ServerPage() {
 
       const blob = await res.blob();
       const fileName = filePath.split("/").pop() || "file";
-      await saveBlob(blob, fileName);
+      saveBlob(blob, fileName);
     } catch (err: any) {
       setError(err.message);
     }
@@ -799,7 +751,7 @@ export default function ServerPage() {
       const fileNameMatch = contentDisposition.match(/filename="(.+?)"/);
       const outputName = fileNameMatch ? fileNameMatch[1] : filePath.split("/").pop()?.replace(/\.txt$/i, ".asset") || "file.asset";
 
-      await saveBlob(blob, outputName);
+      saveBlob(blob, outputName);
     } catch (err: any) {
       setError(`Decode failed: ${err.message}`);
     } finally {
@@ -813,28 +765,10 @@ export default function ServerPage() {
       const item = items.find((i) => i.name === name);
       return item && item.type !== "directory";
     });
-
-    // Fetch all blobs first
-    const files: { blob: Blob; name: string }[] = [];
     for (const name of fileNames) {
-      try {
-        const fullPath =
-          currentPath === "/" ? `/${name}` : `${currentPath}/${name}`;
-        const res = await fetch("/api/server", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "download", path: fullPath }),
-        });
-        if (!res.ok) continue;
-        const blob = await res.blob();
-        files.push({ blob, name });
-      } catch {
-        // skip failed files
-      }
-    }
-
-    if (files.length > 0) {
-      await saveBlobsToDirectory(files);
+      const fullPath =
+        currentPath === "/" ? `/${name}` : `${currentPath}/${name}`;
+      await downloadFile(fullPath);
     }
   };
 
@@ -846,30 +780,10 @@ export default function ServerPage() {
     if (txtNames.length === 0) return;
     setDecoding(true);
     try {
-      // Fetch all decoded blobs first
-      const files: { blob: Blob; name: string }[] = [];
       for (const name of txtNames) {
-        try {
-          const fullPath =
-            currentPath === "/" ? `/${name}` : `${currentPath}/${name}`;
-          const res = await fetch("/api/server", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "decode", path: fullPath }),
-          });
-          if (!res.ok) continue;
-          const blob = await res.blob();
-          const contentDisposition = res.headers.get("content-disposition") || "";
-          const fileNameMatch = contentDisposition.match(/filename="(.+?)"/);
-          const outputName = fileNameMatch ? fileNameMatch[1] : name.replace(/\.txt$/i, ".asset");
-          files.push({ blob, name: outputName });
-        } catch {
-          // skip failed files
-        }
-      }
-
-      if (files.length > 0) {
-        await saveBlobsToDirectory(files);
+        const fullPath =
+          currentPath === "/" ? `/${name}` : `${currentPath}/${name}`;
+        await decodeAndDownload(fullPath);
       }
     } finally {
       setDecoding(false);
