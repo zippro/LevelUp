@@ -341,8 +341,22 @@ export default function ServerPage() {
     }
   };
 
-  // Download a blob directly to the default download folder
-  const saveBlob = (blob: Blob, fileName: string) => {
+  // Save a blob with native Save As dialog, fallback to direct download
+  const saveBlob = async (blob: Blob, fileName: string) => {
+    if (typeof window !== "undefined" && "showSaveFilePicker" in window) {
+      try {
+        const handle = await (window as any).showSaveFilePicker({
+          suggestedName: fileName,
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        return;
+      } catch (err: any) {
+        if (err.name === "AbortError") return;
+      }
+    }
+    // Fallback: direct download
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -367,7 +381,7 @@ export default function ServerPage() {
 
       const blob = await res.blob();
       const fileName = filePath.split("/").pop() || "file";
-      saveBlob(blob, fileName);
+      await saveBlob(blob, fileName);
     } catch (err: any) {
       setError(err.message);
     }
@@ -751,7 +765,7 @@ export default function ServerPage() {
       const fileNameMatch = contentDisposition.match(/filename="(.+?)"/);
       const outputName = fileNameMatch ? fileNameMatch[1] : filePath.split("/").pop()?.replace(/\.txt$/i, ".asset") || "file.asset";
 
-      saveBlob(blob, outputName);
+      await saveBlob(blob, outputName);
     } catch (err: any) {
       setError(`Decode failed: ${err.message}`);
     } finally {
