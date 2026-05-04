@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import JSZip from "jszip";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -368,34 +369,33 @@ export default function ServerPage() {
     window.URL.revokeObjectURL(url);
   };
 
-  // Save multiple blobs to a user-chosen directory
+  // Save multiple files as a ZIP using Save As dialog
   const saveBlobsToDirectory = async (files: { blob: Blob; name: string }[]) => {
-    // Try native directory picker
-    if (typeof window !== "undefined" && "showDirectoryPicker" in window) {
-      try {
-        const dirHandle = await (window as any).showDirectoryPicker({ mode: "readwrite" });
-        for (const file of files) {
-          const fileHandle = await dirHandle.getFileHandle(file.name, { create: true });
-          const writable = await fileHandle.createWritable();
-          await writable.write(file.blob);
-          await writable.close();
-        }
-        setSuccessMessage(`${files.length} file(s) saved successfully`);
-        setTimeout(() => setSuccessMessage(null), 3000);
-        return;
-      } catch (err: any) {
-        if (err.name === "AbortError") return;
-        // Fall through to individual downloads
+    try {
+      const zip = new JSZip();
+      for (const file of files) {
+        zip.file(file.name, file.blob);
       }
-    }
-    // Fallback: download each individually
-    for (const file of files) {
-      const url = window.URL.createObjectURL(file.blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = file.name;
-      a.click();
-      window.URL.revokeObjectURL(url);
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+
+      // Build a descriptive ZIP name from the current path
+      const folderName = currentPath.split("/").filter(Boolean).pop() || "files";
+      const zipName = `${folderName}_${files.length}files.zip`;
+
+      await saveBlob(zipBlob, zipName);
+      setSuccessMessage(`${files.length} file(s) bundled and saved as ZIP`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err: any) {
+      if (err.name === "AbortError") return;
+      // Fallback: download each individually
+      for (const file of files) {
+        const url = window.URL.createObjectURL(file.blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = file.name;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      }
     }
   };
 
