@@ -407,18 +407,17 @@ export async function POST(request: NextRequest) {
           plainBytes = plainBytes.subarray(3);
         }
 
-        const plainText = plainBytes.toString("utf-8");
-
         // Build output filename
         const decFileName = decodeFileKey.split("/").pop() || "file";
         const decBaseName = decFileName.replace(/\.txt$/i, "");
         const decNum = decBaseName.match(/\d+/)?.[0];
         const outputName = decNum ? `Level_${decNum}.asset` : `${decBaseName}.asset`;
 
-        const outBuf = Buffer.from(plainText, "utf-8");
+        // Send raw decrypted bytes directly — no string conversion to preserve exact format
+        const outBuf = Buffer.from(plainBytes);
         return new NextResponse(outBuf as unknown as BodyInit, {
           headers: {
-            "Content-Type": "text/plain; charset=utf-8",
+            "Content-Type": "application/octet-stream",
             "Content-Disposition": `attachment; filename="${outputName}"`,
             "Content-Length": String(outBuf.length),
           },
