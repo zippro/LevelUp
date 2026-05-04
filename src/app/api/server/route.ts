@@ -420,15 +420,8 @@ export async function POST(request: NextRequest) {
         const decNum = decBaseName.match(/\d+/)?.[0];
         const outputName = decNum ? `Level_${decNum}.asset` : `${decBaseName}.asset`;
 
-        // Send as text/plain;charset=utf-8 (matching Decoder page's Blob type)
-        const outBuf = Buffer.from(plainText, "utf-8");
-        return new NextResponse(outBuf as unknown as BodyInit, {
-          headers: {
-            "Content-Type": "text/plain; charset=utf-8",
-            "Content-Disposition": `attachment; filename="${outputName}"`,
-            "Content-Length": String(outBuf.length),
-          },
-        });
+        // Return as JSON so client can create Blob identically to Decoder page
+        return NextResponse.json({ content: plainText, fileName: outputName });
       }
 
       case "encode": {

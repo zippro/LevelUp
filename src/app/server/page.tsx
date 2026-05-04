@@ -760,10 +760,11 @@ export default function ServerPage() {
         throw new Error(errorData.error || "Decode failed");
       }
 
-      const blob = await res.blob();
-      const contentDisposition = res.headers.get("content-disposition") || "";
-      const fileNameMatch = contentDisposition.match(/filename="(.+?)"/);
-      const outputName = fileNameMatch ? fileNameMatch[1] : filePath.split("/").pop()?.replace(/\.txt$/i, ".asset") || "file.asset";
+      // Parse JSON response and create Blob from string
+      // (matches Decoder page: new Blob([resultContent], { type: "text/plain;charset=utf-8" }))
+      const data = await res.json();
+      const blob = new Blob([data.content], { type: "text/plain;charset=utf-8" });
+      const outputName = data.fileName || filePath.split("/").pop()?.replace(/\.txt$/i, ".asset") || "file.asset";
 
       await saveBlob(blob, outputName);
     } catch (err: any) {
