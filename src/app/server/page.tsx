@@ -760,11 +760,12 @@ export default function ServerPage() {
         throw new Error(errorData.error || "Decode failed");
       }
 
-      // Parse JSON response and create Blob from string
-      // (matches Decoder page: new Blob([resultContent], { type: "text/plain;charset=utf-8" }))
-      const data = await res.json();
-      const blob = new Blob([data.content], { type: "text/plain;charset=utf-8" });
-      const outputName = data.fileName || filePath.split("/").pop()?.replace(/\.txt$/i, ".asset") || "file.asset";
+      // Get the decrypted text content directly (not JSON)
+      const text = await res.text();
+      // Create Blob from string — identical to Decoder page:
+      // new Blob([file.resultContent], { type: "text/plain;charset=utf-8" })
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const outputName = res.headers.get("x-file-name") || filePath.split("/").pop()?.replace(/\.txt$/i, ".asset") || "file.asset";
 
       await saveBlob(blob, outputName);
     } catch (err: any) {
