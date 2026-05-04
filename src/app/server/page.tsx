@@ -152,6 +152,63 @@ function isViewable(name: string): boolean {
   return VIEWABLE_EXTENSIONS.has(ext);
 }
 
+// ─── NarEncryptor (client-side, identical to Decoder page) ───
+
+const VERSION_HEADER = new TextEncoder().encode("NARv1"); // 5 bytes
+
+async function narImportKey(keyStr: string): Promise<CryptoKey> {
+  const keyBytes = new TextEncoder().encode(keyStr);
+  return crypto.subtle.importKey("raw", keyBytes, { name: "AES-CBC" }, false, ["decrypt"]);
+}
+
+function narHasVersionHeader(data: Uint8Array): boolean {
+  if (data.length < VERSION_HEADER.length + 16) return false;
+  for (let i = 0; i < VERSION_HEADER.length; i++) {
+    if (data[i] !== VERSION_HEADER[i]) return false;
+  }
+  return true;
+}
+
+function narSkipBom(bytes: Uint8Array): Uint8Array {
+  if (bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) {
+    return bytes.slice(3);
+  }
+  if (bytes.length >= 2 && ((bytes[0] === 0xFF && bytes[1] === 0xFE) || (bytes[0] === 0xFE && bytes[1] === 0xFF))) {
+    return bytes.slice(2);
+  }
+  return bytes;
+}
+
+/** Decrypt Base64 string → plaintext string (identical to Decoder page's decryptText) */
+async function narDecryptText(encryptedText: string, keyStr: string): Promise<string> {
+  const key = await narImportKey(keyStr);
+  // Base64 decode
+  const binary = atob(encryptedText);
+  const encryptedBytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) encryptedBytes[i] = binary.charCodeAt(i);
+
+  let iv: Uint8Array;
+  let cipherData: Uint8Array;
+
+  if (narHasVersionHeader(encryptedBytes)) {
+    const headerLen = VERSION_HEADER.length;
+    iv = encryptedBytes.slice(headerLen, headerLen + 16);
+    cipherData = encryptedBytes.slice(headerLen + 16);
+  } else {
+    // Legacy: no header, zero IV
+    iv = new Uint8Array(16);
+    cipherData = encryptedBytes;
+  }
+
+  const decrypted = await crypto.subtle.decrypt(
+    { name: "AES-CBC", iv: iv as unknown as ArrayBuffer },
+    key,
+    cipherData as unknown as ArrayBuffer
+  );
+  const decryptedBytes = narSkipBom(new Uint8Array(decrypted));
+  return new TextDecoder("utf-8").decode(decryptedBytes);
+}
+
 export default function ServerPage() {
   const [currentPath, setCurrentPath] = useState("/");
   const [items, setItems] = useState<FileItem[]>([]);
@@ -745,7 +802,7 @@ export default function ServerPage() {
     }
   };
 
-  // Decode & Download — server-side decryption
+  // Decode & Download — client-side decryption using same Web Crypto as Decoder page
   const decodeAndDownload = async (filePath: string) => {
     setDecoding(true);
     try {
@@ -760,12 +817,16 @@ export default function ServerPage() {
         throw new Error(errorData.error || "Decode failed");
       }
 
-      // Get the decrypted text content directly (not JSON)
-      const text = await res.text();
+      // Server returns encrypted content + key
+      const data = await res.json();
+      const { encryptedContent, key: decoderKey, fileName: outputName } = data;
+
+      // Decrypt using the exact same Web Crypto function as the Decoder page
+      const decryptedText = await narDecryptText(encryptedContent, decoderKey);
+
       // Create Blob from string — identical to Decoder page:
       // new Blob([file.resultContent], { type: "text/plain;charset=utf-8" })
-      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-      const outputName = res.headers.get("x-file-name") || filePath.split("/").pop()?.replace(/\.txt$/i, ".asset") || "file.asset";
+      const blob = new Blob([decryptedText], { type: "text/plain;charset=utf-8" });
 
       await saveBlob(blob, outputName);
     } catch (err: any) {

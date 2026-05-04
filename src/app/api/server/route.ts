@@ -356,7 +356,8 @@ export async function POST(request: NextRequest) {
       }
 
       case "decode": {
-        // Server-side decryption of encrypted .txt files → .asset content
+        // Return raw encrypted content + key for client-side decryption
+        // Client uses the exact same Web Crypto decryptText() as the Decoder page
         if (!path) {
           return NextResponse.json({ error: "Path is required for decode" }, { status: 400 });
         }
@@ -377,42 +378,8 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: "File not found" }, { status: 404 });
         }
 
+        // Get raw encrypted Base64 content from S3
         const encryptedBase64 = (await getRes.Body.transformToString("utf-8")).trim();
-
-        // Base64 decode
-        const encryptedBuf = Buffer.from(encryptedBase64, "base64");
-
-        // Check for NARv1 version header
-        const VERSION_HEADER = Buffer.from("NARv1", "utf-8");
-        let iv: Buffer;
-        let cipherData: Buffer;
-
-        const hasHeader = encryptedBuf.length >= VERSION_HEADER.length + 16 &&
-          encryptedBuf.subarray(0, VERSION_HEADER.length).equals(VERSION_HEADER);
-
-        if (hasHeader) {
-          iv = encryptedBuf.subarray(VERSION_HEADER.length, VERSION_HEADER.length + 16);
-          cipherData = encryptedBuf.subarray(VERSION_HEADER.length + 16);
-        } else {
-          iv = Buffer.alloc(16, 0);
-          cipherData = encryptedBuf;
-        }
-
-        const decipher = crypto.createDecipheriv("aes-256-cbc", Buffer.from(decoderKey, "utf-8"), iv);
-        const decrypted = Buffer.concat([decipher.update(cipherData), decipher.final()]);
-
-        // Skip BOM if present (matching Decoder page's skipBom exactly)
-        let plainBytes = decrypted;
-        if (plainBytes.length >= 3 && plainBytes[0] === 0xEF && plainBytes[1] === 0xBB && plainBytes[2] === 0xBF) {
-          // UTF-8 BOM
-          plainBytes = plainBytes.subarray(3);
-        } else if (plainBytes.length >= 2 && ((plainBytes[0] === 0xFF && plainBytes[1] === 0xFE) || (plainBytes[0] === 0xFE && plainBytes[1] === 0xFF))) {
-          // UTF-16 BOM
-          plainBytes = plainBytes.subarray(2);
-        }
-
-        // Convert to UTF-8 string (matching Decoder page: new TextDecoder("utf-8").decode)
-        const plainText = plainBytes.toString("utf-8");
 
         // Build output filename
         const decFileName = decodeFileKey.split("/").pop() || "file";
@@ -420,16 +387,11 @@ export async function POST(request: NextRequest) {
         const decNum = decBaseName.match(/\d+/)?.[0];
         const outputName = decNum ? `Level_${decNum}.asset` : `${decBaseName}.asset`;
 
-        // Send as raw bytes with custom header for filename
-        // Using octet-stream to avoid any text encoding transformations
-        const outBuf = Buffer.from(plainText, "utf-8");
-        return new NextResponse(outBuf as unknown as BodyInit, {
-          headers: {
-            "Content-Type": "application/octet-stream",
-            "Content-Disposition": `attachment; filename="${outputName}"`,
-            "Content-Length": String(outBuf.length),
-            "X-File-Name": outputName,
-          },
+        // Return encrypted content + key for client-side Web Crypto decryption
+        return NextResponse.json({
+          encryptedContent: encryptedBase64,
+          key: decoderKey,
+          fileName: outputName,
         });
       }
 
