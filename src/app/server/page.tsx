@@ -341,6 +341,64 @@ export default function ServerPage() {
     }
   };
 
+  // Save a blob using File System Access API (Save As dialog) with fallback
+  const saveBlob = async (blob: Blob, fileName: string) => {
+    // Try native Save As dialog
+    if (typeof window !== "undefined" && "showSaveFilePicker" in window) {
+      try {
+        const handle = await (window as any).showSaveFilePicker({
+          suggestedName: fileName,
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        return;
+      } catch (err: any) {
+        // User cancelled the dialog — do nothing
+        if (err.name === "AbortError") return;
+        // Fall through to default download
+      }
+    }
+    // Fallback: auto-download
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  // Save multiple blobs to a user-chosen directory
+  const saveBlobsToDirectory = async (files: { blob: Blob; name: string }[]) => {
+    // Try native directory picker
+    if (typeof window !== "undefined" && "showDirectoryPicker" in window) {
+      try {
+        const dirHandle = await (window as any).showDirectoryPicker({ mode: "readwrite" });
+        for (const file of files) {
+          const fileHandle = await dirHandle.getFileHandle(file.name, { create: true });
+          const writable = await fileHandle.createWritable();
+          await writable.write(file.blob);
+          await writable.close();
+        }
+        setSuccessMessage(`${files.length} file(s) saved successfully`);
+        setTimeout(() => setSuccessMessage(null), 3000);
+        return;
+      } catch (err: any) {
+        if (err.name === "AbortError") return;
+        // Fall through to individual downloads
+      }
+    }
+    // Fallback: download each individually
+    for (const file of files) {
+      const url = window.URL.createObjectURL(file.blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = file.name;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+  };
+
   // Download file
   const downloadFile = async (filePath: string) => {
     try {
@@ -356,12 +414,8 @@ export default function ServerPage() {
       }
 
       const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filePath.split("/").pop() || "file";
-      a.click();
-      window.URL.revokeObjectURL(url);
+      const fileName = filePath.split("/").pop() || "file";
+      await saveBlob(blob, fileName);
     } catch (err: any) {
       setError(err.message);
     }
@@ -745,12 +799,7 @@ export default function ServerPage() {
       const fileNameMatch = contentDisposition.match(/filename="(.+?)"/);
       const outputName = fileNameMatch ? fileNameMatch[1] : filePath.split("/").pop()?.replace(/\.txt$/i, ".asset") || "file.asset";
 
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = outputName;
-      a.click();
-      window.URL.revokeObjectURL(url);
+      await saveBlob(blob, outputName);
     } catch (err: any) {
       setError(`Decode failed: ${err.message}`);
     } finally {
@@ -764,10 +813,28 @@ export default function ServerPage() {
       const item = items.find((i) => i.name === name);
       return item && item.type !== "directory";
     });
+
+    // Fetch all blobs first
+    const files: { blob: Blob; name: string }[] = [];
     for (const name of fileNames) {
-      const fullPath =
-        currentPath === "/" ? `/${name}` : `${currentPath}/${name}`;
-      await downloadFile(fullPath);
+      try {
+        const fullPath =
+          currentPath === "/" ? `/${name}` : `${currentPath}/${name}`;
+        const res = await fetch("/api/server", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "download", path: fullPath }),
+        });
+        if (!res.ok) continue;
+        const blob = await res.blob();
+        files.push({ blob, name });
+      } catch {
+        // skip failed files
+      }
+    }
+
+    if (files.length > 0) {
+      await saveBlobsToDirectory(files);
     }
   };
 
@@ -779,10 +846,30 @@ export default function ServerPage() {
     if (txtNames.length === 0) return;
     setDecoding(true);
     try {
+      // Fetch all decoded blobs first
+      const files: { blob: Blob; name: string }[] = [];
       for (const name of txtNames) {
-        const fullPath =
-          currentPath === "/" ? `/${name}` : `${currentPath}/${name}`;
-        await decodeAndDownload(fullPath);
+        try {
+          const fullPath =
+            currentPath === "/" ? `/${name}` : `${currentPath}/${name}`;
+          const res = await fetch("/api/server", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "decode", path: fullPath }),
+          });
+          if (!res.ok) continue;
+          const blob = await res.blob();
+          const contentDisposition = res.headers.get("content-disposition") || "";
+          const fileNameMatch = contentDisposition.match(/filename="(.+?)"/);
+          const outputName = fileNameMatch ? fileNameMatch[1] : name.replace(/\.txt$/i, ".asset");
+          files.push({ blob, name: outputName });
+        } catch {
+          // skip failed files
+        }
+      }
+
+      if (files.length > 0) {
+        await saveBlobsToDirectory(files);
       }
     } finally {
       setDecoding(false);
