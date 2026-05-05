@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import JSZip from "jszip";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -1001,6 +1002,42 @@ export default function ServerPage() {
     }
   };
 
+  // Decode selected .txt files and download as ZIP
+  const decodeSelectedAsZip = async () => {
+    const txtNames = Array.from(selectedItems).filter((name) =>
+      name.endsWith(".txt")
+    );
+    if (txtNames.length === 0) return;
+    setDecoding(true);
+    try {
+      const zip = new JSZip();
+      for (const name of txtNames) {
+        const fullPath =
+          currentPath === "/" ? `/${name}` : `${currentPath}/${name}`;
+        try {
+          const res = await fetch("/api/server", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "decode", path: fullPath }),
+          });
+          if (!res.ok) continue;
+          const data = await res.json();
+          const decryptedText = await narDecryptText(data.encryptedContent, data.key);
+          const finalContent = jsonToUnityYaml(decryptedText);
+          const assetName = data.fileName || name.replace(/\.txt$/i, ".asset");
+          zip.file(assetName, finalContent);
+        } catch { /* skip failed files */ }
+      }
+      const blob = await zip.generateAsync({ type: "blob" });
+      const folderName = currentPath.split("/").filter(Boolean).pop() || "decoded";
+      await saveBlob(blob, `${folderName}_decoded.zip`);
+    } catch (err: any) {
+      setError(`Zip failed: ${err.message}`);
+    } finally {
+      setDecoding(false);
+    }
+  };
+
   // Build breadcrumb
   const pathParts = currentPath.split("/").filter(Boolean);
 
@@ -1460,6 +1497,26 @@ export default function ServerPage() {
                   <Unlock className="h-4 w-4 mr-1.5" />
                 )}
                 Decode & Download{selectedItems.size > 1 ? ` (${Array.from(selectedItems).filter(n => n.endsWith(".txt")).length})` : ""}
+              </Button>
+            )}
+            {/* Decode & Zip — only for multi-selection */}
+            {(() => {
+              const txtCount = Array.from(selectedItems).filter(n => n.endsWith(".txt")).length;
+              return txtCount > 1;
+            })() && (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={decoding}
+                className="text-indigo-600 border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300"
+                onClick={() => decodeSelectedAsZip()}
+              >
+                {decoding ? (
+                  <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                ) : (
+                  <FileArchive className="h-4 w-4 mr-1.5" />
+                )}
+                Decode & Zip ({Array.from(selectedItems).filter(n => n.endsWith(".txt")).length})
               </Button>
             )}
           </>
