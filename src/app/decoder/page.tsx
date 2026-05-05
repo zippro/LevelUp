@@ -84,6 +84,96 @@ async function decryptText(encryptedText: string, keyStr: string): Promise<strin
     return new TextDecoder("utf-8").decode(decryptedBytes);
 }
 
+// ─── JSON → Unity YAML Converter ───
+
+function jsonToUnityYaml(jsonText: string): string {
+    let data: any;
+    try { data = JSON.parse(jsonText); } catch { return jsonText; /* not JSON, return as-is */ }
+
+    const levelNum = data["<LevelNumber>k__BackingField"] ?? 0;
+    const lines: string[] = [
+        "%YAML 1.1",
+        "%TAG !u! tag:unity3d.com,2011:",
+        "--- !u!114 &11400000",
+        "MonoBehaviour:",
+        "  m_ObjectHideFlags: 0",
+        "  m_CorrespondingSourceObject: {fileID: 0}",
+        "  m_PrefabInstance: {fileID: 0}",
+        "  m_PrefabAsset: {fileID: 0}",
+        "  m_GameObject: {fileID: 0}",
+        "  m_Enabled: 1",
+        "  m_EditorHideFlags: 0",
+        "  m_Script: {fileID: 11500000, guid: 4b890cbc5da84282a96f1be7de522b73, type: 3}",
+        `  m_Name: Level_${levelNum}`,
+        "  m_EditorClassIdentifier: ",
+    ];
+
+    for (const [key, value] of Object.entries(data)) {
+        writeYamlField(lines, key, value, 2);
+    }
+    return lines.join("\n") + "\n";
+}
+
+function writeYamlField(lines: string[], key: string, value: any, indent: number): void {
+    const pad = " ".repeat(indent);
+    if (value === null || value === undefined) { lines.push(`${pad}${key}: `); return; }
+    if (typeof value === "number" || typeof value === "boolean") { lines.push(`${pad}${key}: ${value}`); return; }
+    if (typeof value === "string") { lines.push(`${pad}${key}: ${yamlQuote(value)}`); return; }
+    if (Array.isArray(value)) {
+        if (value.length === 0) { lines.push(`${pad}${key}: []`); return; }
+        if (key === "colorIDs" && value.every((v: any) => typeof v === "number")) {
+            const hex = value.map((n: number) => {
+                const b = new ArrayBuffer(4); new DataView(b).setInt32(0, n, true);
+                return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, "0")).join("");
+            }).join("");
+            lines.push(`${pad}${key}: ${hex}`);
+            return;
+        }
+        lines.push(`${pad}${key}:`);
+        for (const item of value) { writeYamlArrayItem(lines, item, indent); }
+        return;
+    }
+    if (typeof value === "object") {
+        lines.push(`${pad}${key}:`);
+        for (const [k, v] of Object.entries(value)) { writeYamlField(lines, k, v, indent + 2); }
+        return;
+    }
+    lines.push(`${pad}${key}: ${value}`);
+}
+
+function writeYamlArrayItem(lines: string[], item: any, parentIndent: number): void {
+    const pad = " ".repeat(parentIndent);
+    if (item === null || item === undefined) { lines.push(`${pad}- `); return; }
+    if (typeof item !== "object" || Array.isArray(item)) {
+        lines.push(`${pad}- ${typeof item === "string" ? yamlQuote(item) : item}`);
+        return;
+    }
+    const entries = Object.entries(item);
+    if (entries.length === 0) { lines.push(`${pad}- {}`); return; }
+    const [fk, fv] = entries[0];
+    if (fv !== null && typeof fv === "object" && !Array.isArray(fv)) {
+        lines.push(`${pad}- ${fk}:`);
+        for (const [k, v] of Object.entries(fv as object)) { writeYamlField(lines, k, v, parentIndent + 4); }
+    } else if (Array.isArray(fv) && fv.length === 0) {
+        lines.push(`${pad}- ${fk}: []`);
+    } else if (Array.isArray(fv)) {
+        lines.push(`${pad}- ${fk}:`);
+        for (const sub of fv) { writeYamlArrayItem(lines, sub, parentIndent + 2); }
+    } else {
+        lines.push(`${pad}- ${fk}: ${typeof fv === "string" ? yamlQuote(fv) : fv}`);
+    }
+    for (let i = 1; i < entries.length; i++) {
+        writeYamlField(lines, entries[i][0], entries[i][1], parentIndent + 2);
+    }
+}
+
+function yamlQuote(s: string): string {
+    if (s.includes("{") || s.includes("}") || s.includes('"') || s.includes(":") || s.includes("#") || s.includes("'") || s.includes("[") || s.includes("]") || s.includes(",")) {
+        return `'${s.replace(/'/g, "''")}'`;
+    }
+    return s;
+}
+
 // ─── File processing helpers ───
 
 interface ProcessedFile {
@@ -157,8 +247,9 @@ export default function DecoderPage() {
             try {
                 let result: string;
                 if (operation === "decode") {
-                    // .txt file → decrypt to YAML
-                    result = await decryptText(content.trim(), key);
+                    // .txt file → decrypt and convert to Unity YAML
+                    const decrypted = await decryptText(content.trim(), key);
+                    result = jsonToUnityYaml(decrypted);
                 } else {
                     // .asset file → encrypt to Base64
                     result = await encryptText(content, key);
